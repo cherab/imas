@@ -3,8 +3,6 @@ import numpy as np
 from scipy.interpolate import RectBivariateSpline, griddata
 from scipy.sparse import coo_matrix
 from matplotlib import pyplot as plt
-from matplotlib.colors import LogNorm
-from timeit import default_timer as timer
 from multiprocessing import get_context, cpu_count
 
 import imas
@@ -268,6 +266,7 @@ for it, t in enumerate(time):
     im = ax.imshow(rgb_image, extent=extent)
     ax.set_xlabel(r'$\alpha$, $\degree$')
     ax.set_ylabel(r'$\beta$, $\degree$')
+    ax.set_title('{}/{}: {:.1f} s'.format(shot, run, t))
     camera_name = geom_matrix_norefl['camera_name'].replace(' ', '_')
-    fig.savefig(os.path.join(frames_path, '{}_rgb_{}_{}_time_{}s.png'.format(camera_name, shot, run, t)), dpi=300)
+    fig.savefig(os.path.join(frames_path, '{}_rgb_{}_{}_time_{:.1f}s.png'.format(camera_name, shot, run, t)), dpi=300)
     fig.clear()
