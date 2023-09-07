@@ -30,7 +30,7 @@ cdef class StructGridFunction3D(Function3D):
     """
     A simple interpolator for the data defined on the 3D structured grid.
     Finds the cell containing the point (x, y, z). Returns the data value for this cell
-    or the `fill_value` if the points lies outside the grid. 
+    or the `fill_value` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.
@@ -52,7 +52,7 @@ cdef class StructGridFunction3D(Function3D):
             raise ValueError("Argument 'y' must be 1D array.")
         if self._z.ndim != 1:
             raise ValueError("Argument 'z' must be 1D array.")
-        
+
         if self._x.size < 2:
             raise ValueError("Array 'x' must have at least 2 elements.")
         if self._y.size < 2:
@@ -64,7 +64,7 @@ cdef class StructGridFunction3D(Function3D):
         # so as not to re-initialize the interpolator if the user changes data values.
 
         # populate internal attributes
-        if grid_data.shape[0] != self._x.size - 1 or grid_data.shape[1] !=  self._y.size - 1 or grid_data.shape[2] !=  self._z.size - 1:
+        if grid_data.shape[0] != self._x.size - 1 or grid_data.shape[1] != self._y.size - 1 or grid_data.shape[2] != self._z.size - 1:
             raise ValueError("The shape of the grid_data array does not match the shape of the grid.")
 
         self._grid_data = grid_data
@@ -107,7 +107,7 @@ cdef class StructGridVectorFunction3D(VectorFunction3D):
     """
     A simple vector interpolator for the data defined on the 3D structured grid.
     Finds the cell containing the point (x, y, z). Returns the 3D vector value this cell
-    or the `fill_vector` if the points lies outside the grid. 
+    or the `fill_vector` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.
@@ -129,7 +129,7 @@ cdef class StructGridVectorFunction3D(VectorFunction3D):
             raise ValueError("Argument 'y' must be 1D array.")
         if self._z.ndim != 1:
             raise ValueError("Argument 'z' must be 1D array.")
-        
+
         if self._x.size < 2:
             raise ValueError("Array 'x' must have at least 2 elements.")
         if self._y.size < 2:

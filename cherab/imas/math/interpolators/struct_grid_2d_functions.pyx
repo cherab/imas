@@ -48,7 +48,7 @@ cdef class StructGridFunction2D(Function2D):
             raise ValueError("Argument 'x' must be 1D array.")
         if self._y.ndim != 1:
             raise ValueError("Argument 'y' must be 1D array.")
-        
+
         if self._x.size < 2:
             raise ValueError("Array 'x' must have at least 2 elements.")
         if self._y.size < 2:
@@ -98,7 +98,7 @@ cdef class StructGridVectorFunction2D(VectorFunction2D):
     """
     A simple vector interpolator for the data defined on the 2D structured grid.
     Finds the cell containing the point (x, y). Returns the 3D vector value this cell
-    or the `fill_vector` if the points lies outside the grid. 
+    or the `fill_vector` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.
@@ -116,7 +116,7 @@ cdef class StructGridVectorFunction2D(VectorFunction2D):
             raise ValueError("Argument 'x' must be 1D array.")
         if self._y.ndim != 1:
             raise ValueError("Argument 'y' must be 1D array.")
-        
+
         if self._x.size < 2:
             raise ValueError("Array 'x' must have at least 2 elements.")
         if self._y.size < 2:

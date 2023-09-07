@@ -62,7 +62,7 @@ def load_equilibrium_data(equilibirum_ids):
         if prof2d.grid_type.index == RECTANGULAR_GRID or prof2d.grid_type.index == EMPTY_INT:
             rectangular_grid = True
             break
-    
+
     if not rectangular_grid:
         raise RuntimeError("Unable to read equilibrium: rectangular grid for psi profile is not found and other grid types are not supported.")
 
@@ -165,4 +165,3 @@ def load_equilibrium_data(equilibirum_ids):
         'lcfs_polygon': lcfs_polygon,
         'time': time
     }
-

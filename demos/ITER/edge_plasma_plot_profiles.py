@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 import imas
 
-from cherab.core.math import samplevector2d, sample3d, sample3d_grid, samplevector3d_grid, samplevector2d_grid
+from cherab.core.math import samplevector2d, sample3d, sample3d_grid, samplevector3d_grid
 from cherab.tools.equilibrium import plot_equilibrium
 from cherab.imas import load_equilibrium, load_magnetic_field, load_edge_plasma
 
@@ -19,7 +19,7 @@ shot, run, time = 123001, 3, 0
 # JINTRAC mkimas
 # shot, run, time = 134000, 45, 300
 # SOLEDGE3X
-# shot, run, time = 106000, 1, 0  
+# shot, run, time = 106000, 1, 0
 # DINA-JINTRAC
 # shot, run, time = 134174, 117, 49.5
 
@@ -56,7 +56,7 @@ def plot_quantity(quantity, extent, title='', logscale=False, symmetric=False):
 
 demos_path = os.path.dirname(__file__)
 plots_path = os.path.join(demos_path, 'plots')
-if not os.path.exists(plots_path ):
+if not os.path.exists(plots_path):
     os.makedirs(plots_path)
 
 # sampling range

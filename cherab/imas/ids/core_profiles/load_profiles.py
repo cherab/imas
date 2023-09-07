@@ -18,8 +18,6 @@
 
 import numpy as np
 
-from imas.imasdef import EMPTY_DOUBLE
-
 from cherab.imas.ids.common.species import get_element_list, get_ion_state, get_neutral_state, get_ion, get_neutral
 
 
@@ -47,9 +45,9 @@ def load_core_profiles(species_struct, backup_species_struct=None):
         'density_fast': None,
         'temperature': None,
         'z_average_1d': None,
-        }
+    }
 
-    for name in  profiles:
+    for name in profiles:
         profiles[name] = _get_profile(species_struct, name)
         if profiles[name] is None and backup_species_struct is not None:
             profiles[name] = _get_profile(backup_species_struct, name)
@@ -167,7 +165,7 @@ def load_core_species(profiles_struct):
                 print("Warning! Skipping duplicated ion: {}".format(ion.label.strip()))
             else:
                 composition[species_type][species_id] = load_core_profiles(ion)
-    
+
     # neutrals
     for neutral in profiles_struct.neutral:
         elements = tuple(get_element_list(neutral.element))
@@ -199,7 +197,7 @@ def load_core_species(profiles_struct):
         for species_type in species_types:
             for species_id, profiles in composition[species_type].items():
                 if profiles['temperature'] is None:
-                    d = {first:second for first, second in species_id}
+                    d = {first: second for first, second in species_id}
                     print('Warning! Using average ion temperature for the {} {}.'.format(d['label'], species_type))
                     profiles['temperature'] = tion
 

@@ -70,7 +70,7 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
     if equilibrium is None:
         equilibrium, psi_interp = load_equilibrium(shot, run, user, database, backend=backend, time=time, with_psi_interpolator=True)
         psi_interpolator = psi_interpolator or psi_interp
-    
+
     if not isinstance(equilibrium, EFITEquilibrium):
         raise ValueError("Argiment equilibrium must be a EFITEquilibrium instance.")
 
@@ -85,7 +85,7 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
     composition = load_core_species(core_profiles_ids.profiles_1d[0])
 
     psi_norm = get_psi_norm(core_grid['psi'], equilibrium.psi_axis, equilibrium.psi_lcfs, core_grid['rho_tor_norm'], psi_interpolator)
-    
+
     name = 'IMAS core plasma: shot {}, run {}, time {}.'.format(shot, run, core_profiles_ids.time[0])
     plasma = Plasma(parent=parent, name=name)
 
@@ -107,9 +107,9 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
         print("Unable to create Core Plasma: electron density is not available.")
     if electrons['temperature'] is None:
         print("Unable to create Core Plasma: electron temperature is not available.")
-    
+
     zero_velocity = ConstantVector3D(Vector3D(0, 0, 0))
-    
+
     plasma.electron_distribution = Maxwellian(electrons['density'], electrons['temperature'],
                                               zero_velocity, electron_mass)
 
@@ -119,7 +119,7 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
 
     # Add ion and neutral species
     for species_id, profiles in composition['ion'].items():
-        d = {first:second for first, second in species_id}
+        d = {first: second for first, second in species_id}
         species_type = d['element']
         charge = int(round(d['z']))
 
@@ -172,7 +172,7 @@ def get_core_interpolators(psi_norm, profiles, equilibrium, return3d=False):
             interpolators[prof_key] = equilibrium.map3d(func) if return3d else equilibrium.map2d(func)
         else:
             interpolators[prof_key] = None
- 
+
     return interpolators.freeze()
 
 

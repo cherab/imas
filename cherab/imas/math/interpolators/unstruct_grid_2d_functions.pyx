@@ -152,7 +152,7 @@ cdef class UnstructGridVectorFunction2D(VectorFunction2D):
     A simple vector interpolator for the data defined on the 2D unstructured grid.
     Finds the cell containing the point (x, y) using the KDtree algorithm.
     Returns the 3D vector value for this cell or the `fill_vector` if the grid
-    does not contain the point. 
+    does not contain the point.
 
     :param object vertex_coords: 2D (N,3) array-like with the vertex coordinates of triangles.
     :param object triangles: 2D (M,3) integer array-like with the vertex indices forming
@@ -223,7 +223,7 @@ cdef class UnstructGridVectorFunction2D(VectorFunction2D):
         cdef UnstructGridFunction2D inst
 
         m = UnstructGridVectorFunction2D.__new__(UnstructGridVectorFunction2D)
-        
+
         if isinstance(instance, UnstructGridVectorFunction2D):
             instvec = instance
             # copy source data

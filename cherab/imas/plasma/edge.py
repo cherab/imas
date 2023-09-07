@@ -64,10 +64,10 @@ def load_edge_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
 
     entry = imas.DBEntry(backend, database, shot, run, user)
     edge_profiles_ids = get_ids_time_slice(entry, 'edge_profiles', time=time, occurrence=occurrence, time_threshold=time_threshold)
- 
+
     if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
         raise RuntimeError("The 'grid_ggd' AOS of the edge_profiles IDS is empty and an alternative grid_ggd structure is not provided.")
-    
+
     if not len(edge_profiles_ids.ggd):
         raise RuntimeError("The 'ggd' AOS of the edge_profiles IDS is empty.")
 
@@ -112,7 +112,7 @@ def load_edge_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
         print("Unable to create Edge Plasma: electron density is not available.")
     if electrons['temperature'] is None:
         print("Unable to create Edge Plasma: electron temperature is not available.")
-    
+
     plasma.electron_distribution = Maxwellian(electrons['density'], electrons['temperature'],
                                               electrons['velocity'], electron_mass)
 
@@ -122,12 +122,12 @@ def load_edge_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
 
     # Add ion and neutral species
     for species_id, profiles in composition['ion'].items():
-        d = {first:second for first, second in species_id}
+        d = {first: second for first, second in species_id}
         species_type = d['element']
         charge = int(round(d['z']))
 
         sp_key = (species_type, charge)
-        if sp_key in plasma.composition:            
+        if sp_key in plasma.composition:
             print("Warning! Skipping {} species. Species with the same (element, charge): {} is already added.".format(d['label'], sp_key))
             continue
 
@@ -176,7 +176,7 @@ def get_edge_interpolators(grid, profiles, b_field=None, return3d=False):
     if isinstance(vector_func, VectorFunction2D) and return3d:
         vector_func = VectorAxisymmetricMapper(vector_func)
     interpolators['velocity'] = vector_func
-  
+
     return interpolators.freeze()
 
 
@@ -192,12 +192,12 @@ def get_velocity_interpolators(grid, profiles, b_field=None):
 
     if not b_field:
         return get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
-    
+
     if vrad is None and vr is not None and vz is not None:
         if vtor is None and vpar is not None:
             _, vtor = _get_components_from_vpar(grid, vpar, b_field)
         return get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
-    
+
     if vpar is None:
         return get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field)
 
@@ -218,18 +218,18 @@ def get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
         vz = np.zeros(len(grid.cells), dtype=np.float64)
     if vtor is None:
         vtor = np.zeros(len(grid.cells), dtype=np.float64)
-    
+
     return grid.vector_interpolator(np.array([vr, vtor, vz]).T)
 
 
 def get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
-    
+
     if vpar is None and vrad is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(Vector3D(0, 1.e-16, 0))  # avoid zero-length vectors for blending
 
         return ConstantVector3D(Vector3D(0, 1.e-16, 0))  # avoid zero-length vectors for blending
-    
+
     const_func = Constant2D if grid.dimension == 2 else Constant3D
 
     vpar_i = const_func(0) if vpar is None else grid.interpolator(vpar)
@@ -252,7 +252,7 @@ def get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field):
             return ConstantVector2D(Vector3D(0, 1.e-16, 0))  # avoid zero-length vectors for blending
 
         return ConstantVector3D(Vector3D(0, 1.e-16, 0))  # avoid zero-length vectors for blending
-    
+
     const_func = Constant2D if grid.dimension == 2 else Constant3D
 
     vpol_i = const_func(0) if vpol is None else grid.interpolator(vpol)
@@ -276,7 +276,7 @@ def _get_components_from_vpar(grid, vpar, b_field):
     vtor = np.zeros(len(grid.cells), dtype=np.float64)
 
     for i, cell_centre in enumerate(grid.cell_centre):
-        if grid.dimension == 2:  # 2D case            
+        if grid.dimension == 2:  # 2D case
             r, z = cell_centre
         else:  # 3D case
             if grid.coordinate_system == 'cartesian':
@@ -290,5 +290,5 @@ def _get_components_from_vpar(grid, vpar, b_field):
             vtor[i] = vpar[i] * b_field.y / b_field.length
         except ValueError:  # Outside equilibrium grid
             continue
-    
+
     return vpol, vtor

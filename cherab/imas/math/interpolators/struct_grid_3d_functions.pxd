@@ -29,7 +29,7 @@ cdef class StructGridFunction3D(Function3D):
     cdef:
         np.ndarray _x, _y, _z, _grid_data
         double[::1] _x_mv, _y_mv, _z_mv
-        double[:,:,::1] _grid_data_mv
+        double[:, :, ::1] _grid_data_mv
         double _fill_value
 
 cdef class StructGridVectorFunction3D(VectorFunction3D):
@@ -37,5 +37,5 @@ cdef class StructGridVectorFunction3D(VectorFunction3D):
     cdef:
         np.ndarray _x, _y, _z, _grid_vectors
         double[::1] _x_mv, _y_mv, _z_mv
-        double[:,:,:,::1] _grid_vectors_mv
+        double[:, :, :, ::1] _grid_vectors_mv
         Vector3D _fill_vector

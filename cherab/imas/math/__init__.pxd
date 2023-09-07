@@ -18,4 +18,3 @@
 
 from cherab.imas.math.function cimport *
 from cherab.imas.math.interpolators cimport *
-

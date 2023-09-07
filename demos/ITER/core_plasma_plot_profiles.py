@@ -60,7 +60,7 @@ def plot_quantity(quantity, extent, title='', logscale=False, symmetric=False):
 
 demos_path = os.path.dirname(__file__)
 plots_path = os.path.join(demos_path, 'plots')
-if not os.path.exists(plots_path ):
+if not os.path.exists(plots_path):
     os.makedirs(plots_path)
 
 # Load and plot equilibrium

@@ -40,5 +40,5 @@ cdef class UnstructGridVectorFunction2D(VectorFunction2D):
         MeshKDTree2D _kdtree
         np.ndarray _grid_vectors, _triangle_to_cell_map
         np.int32_t[::1] _triangle_to_cell_map_mv
-        double[:,::1] _grid_vectors_mv
+        double[:, ::1] _grid_vectors_mv
         Vector3D _fill_vector

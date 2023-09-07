@@ -43,7 +43,7 @@ def load_equilibrium(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
     :param occurrence: Instance index of the 'equilibrium' IDS. Default is 0.
     :param time_threshold: Sets the maximum allowable difference between the specified time and the nearest
         available time. Default is np.inf.
-    :param with_psi_interpolator: If True, return the psi_norm(rho_tor_norm) interpolator. 
+    :param with_psi_interpolator: If True, return the psi_norm(rho_tor_norm) interpolator.
 
     :returns: EFITEquilibrium object and Function1D interpolator for the psi_norm(rho_tor_norm) (optionaly).
     """
@@ -64,27 +64,27 @@ def load_equilibrium(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
     q_profile = np.array([equilibrium_dict['psi_norm'], equilibrium_dict['q']])
 
     equilibrium = EFITEquilibrium(equilibrium_dict['r'],
-                           equilibrium_dict['z'],
-                           equilibrium_dict['psi_grid'],
-                           equilibrium_dict['psi_axis'],
-                           equilibrium_dict['psi_lcfs'],
-                           equilibrium_dict['magnetic_axis'],
-                           equilibrium_dict['x_points'],
-                           equilibrium_dict['strike_points'],
-                           f_profile,
-                           q_profile,
-                           equilibrium_dict['b_vacuum_radius'],
-                           equilibrium_dict['b_vacuum_magnitude'],
-                           equilibrium_dict['lcfs_polygon'],
-                           None,
-                           equilibrium_dict['time'])
-    
+                                  equilibrium_dict['z'],
+                                  equilibrium_dict['psi_grid'],
+                                  equilibrium_dict['psi_axis'],
+                                  equilibrium_dict['psi_lcfs'],
+                                  equilibrium_dict['magnetic_axis'],
+                                  equilibrium_dict['x_points'],
+                                  equilibrium_dict['strike_points'],
+                                  f_profile,
+                                  q_profile,
+                                  equilibrium_dict['b_vacuum_radius'],
+                                  equilibrium_dict['b_vacuum_magnitude'],
+                                  equilibrium_dict['lcfs_polygon'],
+                                  None,
+                                  equilibrium_dict['time'])
+
     if not with_psi_interpolator:
         return equilibrium
-    
+
     if equilibrium_dict['rho_tor_norm'] is None:
         return equilibrium, None
-    
+
     psi_interpolator = Interpolator1DArray(equilibrium_dict['rho_tor_norm'], equilibrium_dict['psi_norm'], 'cubic', 'none', 0)
 
     return equilibrium, psi_interpolator
@@ -109,7 +109,7 @@ def load_magnetic_field(shot, run, user, database, backend=imas.imasdef.MDSPLUS_
 
     entry = imas.DBEntry(backend, database, shot, run, user)
     equilibrium_ids = get_ids_time_slice(entry, 'equilibrium', time=time, occurrence=occurrence, time_threshold=time_threshold)
-    
+
     if not len(equilibrium_ids.time_slice):
         raise RuntimeError('Equilibrium IDS does not have a time slice.')
 

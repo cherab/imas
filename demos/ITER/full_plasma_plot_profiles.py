@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 import imas
 
-from cherab.core.math import samplevector2d, sample3d, sample3d_grid, samplevector3d_grid, samplevector2d_grid
+from cherab.core.math import samplevector2d, sample3d, sample3d_grid, samplevector3d_grid
 from cherab.tools.equilibrium import plot_equilibrium
 from cherab.imas import load_equilibrium, load_plasma
 
@@ -52,7 +52,7 @@ def plot_quantity(quantity, extent, title='', logscale=False, symmetric=False):
 
 demos_path = os.path.dirname(__file__)
 plots_path = os.path.join(demos_path, 'plots')
-if not os.path.exists(plots_path ):
+if not os.path.exists(plots_path):
     os.makedirs(plots_path)
 
 # sampling range

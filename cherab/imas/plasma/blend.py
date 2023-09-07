@@ -21,7 +21,7 @@ from scipy.constants import atomic_mass, electron_mass
 
 import imas
 
-from raysect.core.math.function.float import Interpolator1DArray, Function2D, Function3D, Blend2D, Blend3D
+from raysect.core.math.function.float import Function2D, Function3D, Blend2D, Blend3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
 from raysect.core.math.function.vector3d import Function3D as VectorFunction3D
 from raysect.core.math.function.vector3d import Blend2D as VectorBlend2D
@@ -32,7 +32,6 @@ from raysect.primitive import Cylinder, Subtract
 
 from cherab.core import Plasma, Species, Maxwellian
 from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
-from cherab.core.utility import RecursiveDict
 
 from cherab.imas.ids.core_profiles import load_core_species, load_core_grid
 from cherab.imas.ids.edge_profiles import load_edge_species
@@ -70,7 +69,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
     :param time_edge: Time moment for the edge plasma if different from the 'time'. Default is None.
     :param occurrence_edge: Instance index of the 'edge_profiles' IDS. Default is 0.
     :param grid_ggd: An alternative grid_ggd structure with the grid description. Default is None.
-    :param grid_subset_id: Identifier of the grid subset. Either index or name. Default is 5 ("Cells").    
+    :param grid_subset_id: Identifier of the grid subset. Either index or name. Default is 5 ("Cells").
     :param equilibrium: Alternative EFITEquilibrium object used to map core profiles.
         Default is None: equilibrium is read from the same shot, run, time, etc. as the core profiles.
         This parameter is ignored if core plasma is not available.
@@ -102,7 +101,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
                                 backend=backend_edge, time=time_edge, occurrence=occurrence_edge,
                                 grid_ggd=grid_ggd, grid_subset_id=grid_subset_id, b_field=b_field,
                                 time_threshold=time_threshold, parent=parent)
-    
+
     entry = imas.DBEntry(backend_edge, database_edge, shot_edge, run_edge, user_edge)
     try:
         edge_profiles_ids = get_ids_time_slice(entry, 'edge_profiles', time=time_edge,
@@ -117,7 +116,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
 
     if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
         raise RuntimeError("The 'grid_ggd' AOS of the edge_profiles IDS is empty and an alternative grid_ggd structure is not provided.")
-    
+
     if not len(edge_profiles_ids.ggd):
         raise RuntimeError("The 'ggd' AOS of the edge_profiles IDS is empty.")
 
@@ -125,22 +124,22 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
     if equilibrium is None:
         equilibrium, psi_interp = load_equilibrium(shot, run, user, database, backend=backend, time=time, with_psi_interpolator=True)
         psi_interpolator = psi_interpolator or psi_interp
-    
+
     if b_field is None:
         try:
             b_field = load_magnetic_field(shot, run, user, database, backend=backend, time=time)
         except RuntimeError:
             b_field = equilibrium.b_field
-    
+
     mask = mask or equilibrium.inside_lcfs
 
     # Getting core data
     core_grid = load_core_grid(core_profiles_ids.profiles_1d[0].grid)
 
     composition_core = load_core_species(core_profiles_ids.profiles_1d[0])
-    
+
     psi_norm = get_psi_norm(core_grid['psi'], equilibrium.psi_axis, equilibrium.psi_lcfs, core_grid['rho_tor_norm'], psi_interpolator)
-    
+
     # Getting edge data
     grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
     grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
@@ -175,7 +174,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
     electrons_core = get_core_interpolators(psi_norm, composition_core['electron'], equilibrium, return3d=False)
     if electrons_core['density_thermal'] is not None:
         electrons_core['density'] = electrons_core['density_thermal']
-    
+
     electrons_edge = get_edge_interpolators(grid, composition_edge['electron'], b_field, return3d=False)
 
     electrons = blend_core_edge_interpolators(electrons_core, electrons_edge, mask, return3d=True)
@@ -184,7 +183,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
         print("Unable to create Core Plasma: electron density is not available.")
     if electrons['temperature'] is None:
         print("Unable to create Core Plasma: electron temperature is not available.")
-   
+
     plasma.electron_distribution = Maxwellian(electrons['density'], electrons['temperature'],
                                               electrons['velocity'], electron_mass)
 
@@ -200,7 +199,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
     # List core species
     core_species = {}
     for species_id, profiles in composition_core['ion'].items():
-        d = {first:second for first, second in species_id}
+        d = {first: second for first, second in species_id}
         sp_key = (d['element'], int(round(d['z'])))
         if sp_key in core_species:
             print("Warning! Skipping {} core species. Species with the same (element, charge): {} is already added.".format(d['label'], sp_key))
@@ -208,16 +207,16 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
         if profiles['density_thermal'] is not None:
             profiles['density'] = profiles['density_thermal']
         core_species[sp_key] = profiles
-    
+
     # List edge species
     edge_species = {}
     for species_id, profiles in composition_edge['ion'].items():
-        d = {first:second for first, second in species_id}
+        d = {first: second for first, second in species_id}
         sp_key = (d['element'], int(round(d['z'])))
         if sp_key in edge_species:
             print("Warning! Skipping {} edge species. Species with the same (element, charge): {} is already added.".format(d['label'], sp_key))
         edge_species[sp_key] = profiles
-    
+
     species = {}
     for core_key, core_profiles in core_species.items():
         if core_key in edge_species:
@@ -306,9 +305,9 @@ def blend_core_edge_functions(core_func, edge_func, mask, return3d):
 
         if isinstance(edge_func, VectorFunction2D) and return3d:
             return VectorAxisymmetricMapper(edge_func)
-        
+
         return edge_func
-    
+
     if edge_func is None:
 
         if isinstance(core_func, Function2D) and return3d:
@@ -316,40 +315,40 @@ def blend_core_edge_functions(core_func, edge_func, mask, return3d):
 
         if isinstance(core_func, VectorFunction2D) and return3d:
             return VectorAxisymmetricMapper(core_func)
-        
+
         return core_func
 
     if isinstance(core_func, Function2D) and isinstance(edge_func, Function2D) and isinstance(mask, Function2D):
 
         blended_func = Blend2D(edge_func, core_func, mask)
         return AxisymmetricMapper(blended_func) if return3d else blended_func
-    
+
     if isinstance(core_func, VectorFunction2D) and isinstance(edge_func, VectorFunction2D) and isinstance(mask, Function2D):
 
         blended_func = VectorBlend2D(edge_func, core_func, mask)
         return VectorAxisymmetricMapper(blended_func) if return3d else blended_func
-    
+
     # unable to return 2D, convert to 3D
 
     if isinstance(core_func, Function2D):
         core_func = AxisymmetricMapper(core_func)
-    
+
     if isinstance(core_func, VectorFunction2D):
         core_func = VectorAxisymmetricMapper(core_func)
-    
+
     if isinstance(edge_func, Function2D):
         edge_func = AxisymmetricMapper(edge_func)
-    
+
     if isinstance(edge_func, VectorFunction2D):
         edge_func = VectorAxisymmetricMapper(edge_func)
-    
+
     if isinstance(mask, Function2D):
         mask = AxisymmetricMapper(mask)
-    
+
     if isinstance(core_func, Function3D) and isinstance(edge_func, Function3D):
         return Blend3D(edge_func, core_func, mask)
-    
+
     if isinstance(core_func, VectorFunction3D) and isinstance(edge_func, VectorFunction3D):
         return VectorBlend3D(edge_func, core_func, mask)
-    
+
     raise ValueError("Cannot blend scalar and vector functions.")

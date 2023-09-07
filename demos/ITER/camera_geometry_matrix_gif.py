@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import RectBivariateSpline, griddata
 from scipy.sparse import coo_matrix
 from matplotlib import pyplot as plt
-from multiprocessing import get_context, cpu_count
+from multiprocessing import get_context
 
 import imas
 
@@ -49,7 +49,7 @@ geom_matrix_run = 1020
 # EP12 (C0)
 # geom_matrix_run = 1020
 
-unsaturated_fraction = 0.97
+unsaturated_fraction = 0.98
 
 
 def read_geometry_matrix_without_reflections(shot, run, user, database='ITER_MD', backend=imas.imasdef.HDF5_BACKEND):
@@ -77,7 +77,7 @@ def read_geometry_matrix_without_reflections(shot, run, user, database='ITER_MD'
     without_reflections['voxel_indices'] = camera.channel[0].detector[0].geometry_matrix.without_reflections.voxel_indices
     without_reflections['pixel_indices'] = camera.channel[0].detector[0].geometry_matrix.without_reflections.pixel_indices
     geometry_matrix['without_reflections'] = without_reflections
-    
+
     return geometry_matrix
 
 
@@ -99,7 +99,7 @@ def read_geometry_matrix_interpolated(shot, run, user, database='ITER_MD', backe
     interpolated['z'] = camera.channel[0].detector[0].geometry_matrix.interpolated.z
     interpolated['data'] = camera.channel[0].detector[0].geometry_matrix.interpolated.data
     geometry_matrix['interpolated'] = interpolated
-   
+
     return geometry_matrix
 
 
@@ -193,7 +193,7 @@ for il_indx, il in enumerate(np.argsort(line_wavelength)):
         # without reflections
         emission_interp = RectBivariateSpline(r, z, line_emission[il, it], kx=1, ky=1)
         emission_grid = emission_interp(r_gm, z_gm, grid=True)
-        emission_prof = emission_grid.flatten()[indx_v[1:]] if ivox[0] == -1 else emission_grid.flatten()[indx_v]        
+        emission_prof = emission_grid.flatten()[indx_v[1:]] if ivox[0] == -1 else emission_grid.flatten()[indx_v]
         images[il, it] = (geom_matrix @ emission_prof).reshape(npix_y, npix_x)
 
         # add reflections
@@ -249,7 +249,7 @@ images_ciexyz /= peak_luminance
 
 demos_path = os.path.dirname(__file__)
 frames_path = os.path.join(demos_path, 'frames')
-if not os.path.exists(frames_path ):
+if not os.path.exists(frames_path):
     os.makedirs(frames_path)
 
 # Convert to SRGB

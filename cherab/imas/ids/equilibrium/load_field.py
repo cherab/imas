@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from imas.imasdef import EMPTY_DOUBLE, EMPTY_INT
+from imas.imasdef import EMPTY_INT
 
 
 RECTANGULAR_GRID = 1
@@ -43,7 +43,7 @@ def load_magnetic_field_data(profiles_2d):
         if prof2d.grid_type.index == RECTANGULAR_GRID or prof2d.grid_type.index == EMPTY_INT:
             rectangular_grid = True
             break
-    
+
     if not rectangular_grid:
         raise RuntimeError("Unable to read magnetic field: rectangular grid for 2D profiles is not found and other grid types are not supported.")
 

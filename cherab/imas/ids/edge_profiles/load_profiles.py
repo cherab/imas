@@ -18,8 +18,6 @@
 
 import numpy as np
 
-from imas.imasdef import EMPTY_DOUBLE, EMPTY_INT
-
 from cherab.imas.ids.common.species import get_element_list, get_ion_state, get_neutral_state, get_ion, get_neutral
 
 
@@ -59,7 +57,7 @@ def load_edge_profiles(species_struct, grid_subset_index=5, backup_species_struc
         'velocity_r': None,
         'velocity_z': None,
         'z_average': None,
-        }
+    }
 
     scalar_profiles = ('density', 'density_fast', 'temperature', 'z_average')
 
@@ -75,7 +73,7 @@ def load_edge_profiles(species_struct, grid_subset_index=5, backup_species_struc
             for name in velocity_profiles:
                 prof = getattr(s, name)
                 profiles['velocity_' + name] = np.array(prof) if len(prof) else None
-            break    
+            break
     if all(profiles['velocity_' + name] is None for name in velocity_profiles) and backup_species_struct is not None:
         for s in backup_species_struct.velocity:
             if s.grid_subset_index == grid_subset_index:
@@ -85,6 +83,7 @@ def load_edge_profiles(species_struct, grid_subset_index=5, backup_species_struc
                 break
 
     return profiles
+
 
 def load_edge_species(ggd_struct, grid_subset_index=5):
     """
@@ -170,7 +169,7 @@ def load_edge_species(ggd_struct, grid_subset_index=5):
                 print("Warning! Skipping duplicated ion: {}".format(ion.label.strip()))
             else:
                 composition[species_type][species_id] = load_edge_profiles(ion, grid_subset_index)
-    
+
     # neutrals
     for neutral in ggd_struct.neutral:
         elements = tuple(get_element_list(neutral.element))
@@ -202,7 +201,7 @@ def load_edge_species(ggd_struct, grid_subset_index=5):
         for species_type in species_types:
             for species_id, profiles in composition[species_type].items():
                 if profiles['temperature'] is None:
-                    d = {first:second for first, second in species_id}
+                    d = {first: second for first, second in species_id}
                     print('Warning! Using average ion temperature for the {} {}.'.format(d['label'], species_type))
                     profiles['temperature'] = tion
 

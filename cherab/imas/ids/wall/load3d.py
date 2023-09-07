@@ -18,8 +18,6 @@
 
 import numpy as np
 
-import imas
-
 from raysect.core.math.polygon import triangulate2d
 
 
@@ -125,7 +123,7 @@ def _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subse
     else:  # trivial subset, includes all polygons, element index equals to polygon index
         if len(element_indices) == 1 and element_indices[0] == 0:  # trivial case, use all polygons
             indices = range(len(space.objects_per_dimension[POLYGON_DIMENSION].object))
-        else:  
+        else:
             indices = element_indices
 
     for i in indices:

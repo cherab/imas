@@ -22,7 +22,7 @@ def warn_unsupported_species(composition, species_type):
         print("Warning! Species of type '{}' are currently not supported. The follwoing species will be skipped:".format(species_type))
         labels = []
         for species_id in composition[species_type]:
-            d = {first:second for first, second in species_id}
+            d = {first: second for first, second in species_id}
             labels.append(d['label'])
         print('; '.join(labels))
 

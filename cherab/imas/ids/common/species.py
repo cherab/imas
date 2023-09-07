@@ -16,8 +16,6 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-import numpy as np
-
 from imas.imasdef import EMPTY_DOUBLE, EMPTY_INT
 
 from cherab.core.atomic.elements import lookup_isotope
@@ -44,7 +42,7 @@ def get_ion_state(state, state_index, elements, grid_subset_index=None):
 
     state_dict = {'label': state.label.strip()}
 
-    if len(elements) > 1: # molecular ions and bundles
+    if len(elements) > 1:  # molecular ions and bundles
         state_dict['elements'] = elements
         if z_min == z_max:
             species_type = 'molecule'
@@ -56,7 +54,7 @@ def get_ion_state(state, state_index, elements, grid_subset_index=None):
             species_type = 'molecular_bundle'
             state_dict['z_min'] = z_min
             state_dict['z_max'] = z_max
-    else: # ions and bundles
+    else:  # ions and bundles
         state_dict['element'] = elements[0]
         if z_min == z_max:
             species_type = 'ion'
@@ -67,7 +65,7 @@ def get_ion_state(state, state_index, elements, grid_subset_index=None):
             state_dict['z_min'] = z_min
             state_dict['z_max'] = z_max
     species_id = frozenset(state_dict.items())
-    
+
     return species_type, species_id
 
 
@@ -97,11 +95,11 @@ def get_ion(ion, elements):
     z_ion = ion.z_ion if ion.z_ion != EMPTY_DOUBLE else elements[0].atomic_number
     if len(elements) > 1:
         species_id = frozenset({('label', ion.label.strip()), ('elements', elements), ('z', z_ion),
-                               ('electron_configuration', None), ('vibrational_mode', None), ('vibrational_level', None)})
+                                ('electron_configuration', None), ('vibrational_mode', None), ('vibrational_level', None)})
         return 'molecule', species_id
 
     species_id = frozenset({('label', ion.label.strip()), ('element', elements[0]), ('z', z_ion),
-                           ('electron_configuration', None)})
+                            ('electron_configuration', None)})
     return 'ion', species_id
 
 
@@ -109,11 +107,11 @@ def get_neutral(neutral, elements):
 
     if len(elements) > 1:
         species_id = frozenset({('label', neutral.label.strip()), ('elements', elements), ('z', 0),
-                               ('electron_configuration', None), ('vibrational_mode', None), ('vibrational_level', None)})
+                                ('electron_configuration', None), ('vibrational_mode', None), ('vibrational_level', None)})
         return 'molecule', species_id
 
     species_id = frozenset({('label', neutral.label.strip()), ('element', elements[0]), ('z', 0),
-                           ('electron_configuration', None)})
+                            ('electron_configuration', None)})
     return 'ion', species_id
 
 
