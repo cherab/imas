@@ -17,7 +17,7 @@ from cherab.openadas import OpenADAS
 from cherab.imas import load_plasma
 
 
-NPROC = 4  # number of parallel processes
+NPROC = 8  # number of parallel processes
 
 DATABASE = 'ITER'
 DATABASE_MD = 'ITER_MD'
@@ -49,7 +49,7 @@ geom_matrix_run = 1020
 # EP12 (C0)
 # geom_matrix_run = 1020
 
-unsaturated_fraction = 0.98
+unsaturated_fraction = 0.95
 
 
 def read_geometry_matrix_without_reflections(shot, run, user, database='ITER_MD', backend=imas.imasdef.HDF5_BACKEND):
@@ -186,6 +186,8 @@ for il_indx, il in enumerate(np.argsort(line_wavelength)):
     gm_index = np.argmin(np.abs(geom_matrix_wvl - line_wavelength[il])) + 1
     if gm_index != gm_index_prev:
         gm_interp = read_geometry_matrix_interpolated(geom_matrix_shot, geom_matrix_run + gm_index, USER_MD, DATABASE_MD)
+        node_points = np.array([gm_interp['interpolated']['r'], gm_interp['interpolated']['z']]).T
+        interp_data = np.moveaxis(gm_interp['interpolated']['data'], -1, 0).reshape((node_points.shape[0], npix))
         gm_index_prev = gm_index
 
     for it, t in enumerate(time):
@@ -198,11 +200,7 @@ for il_indx, il in enumerate(np.argsort(line_wavelength)):
 
         # add reflections
         indx = np.where(line_emission[il, it] > 0)
-        power = volume[indx] * line_emission[il, it][indx]
-
-        node_points = np.array([gm_interp['interpolated']['r'], gm_interp['interpolated']['z']]).T
-        interp_data = np.moveaxis(gm_interp['interpolated']['data'], -1, 0).reshape((node_points.shape[0], npix))
-
+        power = volume[indx] * line_emission[il, it][indx]        
         points = np.array([r2d[indx], z2d[indx]]).T
 
         def f(task):
@@ -220,7 +218,8 @@ for il_indx, il in enumerate(np.argsort(line_wavelength)):
         reflected_image = np.zeros(npix)
         for task, res in zip(tasks, results):
             reflected_image[task[0]:task[1]] = res
-            images[il, it] += reflected_image.reshape((npix_y, npix_x))
+
+        images[il, it] += reflected_image.reshape((npix_y, npix_x))
 
 # Convert to CIEXYZ
 print("Converting to CIEXYZ...")
@@ -254,6 +253,7 @@ if not os.path.exists(frames_path):
 
 # Convert to SRGB
 print("Converting to SRGB and saving...")
+camera_name = geom_matrix_norefl['camera_name'].replace(' ', '_')
 fig = plt.figure(figsize=(5., 6.), tight_layout=True)
 for it, t in enumerate(time):
     ciexyz = images_ciexyz[it]
@@ -267,6 +267,7 @@ for it, t in enumerate(time):
     ax.set_xlabel(r'$\alpha$, $\degree$')
     ax.set_ylabel(r'$\beta$, $\degree$')
     ax.set_title('{}/{}: {:.1f} s'.format(shot, run, t))
-    camera_name = geom_matrix_norefl['camera_name'].replace(' ', '_')
     fig.savefig(os.path.join(frames_path, '{}_rgb_{}_{}_time_{:.1f}s.png'.format(camera_name, shot, run, t)), dpi=300)
     fig.clear()
+
+os.system('convert -delay 10 -loop 0 {}/*.png {}/{}_rgb_{}_{}.gif'.format(frames_path, demos_path, camera_name, shot, run))
