@@ -263,7 +263,7 @@ for it, t in enumerate(time):
             rgb_image[iy, ix] = ciexyz_to_srgb(ciexyz[iy, ix, 0], ciexyz[iy, ix, 1], ciexyz[iy, ix, 2])
 
     ax = fig.add_subplot(111)
-    im = ax.imshow(rgb_image, extent=extent)
+    im = ax.imshow(rgb_image[1:-1, 1:-1], extent=extent)
     ax.set_xlabel(r'$\alpha$, $\degree$')
     ax.set_ylabel(r'$\beta$, $\degree$')
     ax.set_title('{}/{}: {:.1f} s'.format(shot, run, t))
