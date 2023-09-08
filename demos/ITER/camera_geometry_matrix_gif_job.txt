@@ -12,5 +12,6 @@
 
 module load IMAS
 module load Raysect/0.7.1-intel-2020b
+module load GraphicsMagick/1.3.36-intel-2020b
 
 python /home/ITER/neverov/cherab-imas/demos/ITER/camera_geometry_matrix_gif.py

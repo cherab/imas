@@ -270,4 +270,4 @@ for it, t in enumerate(time):
     fig.savefig(os.path.join(frames_path, '{}_rgb_{}_{}_time_{:.1f}s.png'.format(camera_name, shot, run, t)), dpi=300)
     fig.clear()
 
-os.system('convert -delay 10 -loop 0 {}/*.png {}/{}_rgb_{}_{}.gif'.format(frames_path, demos_path, camera_name, shot, run))
+os.system('gm convert -delay 12 -loop 0 {}/*.png {}/{}_rgb_{}_{}.gif'.format(frames_path, demos_path, camera_name, shot, run))
