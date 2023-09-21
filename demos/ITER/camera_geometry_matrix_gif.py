@@ -9,7 +9,7 @@ import imas
 
 from raysect.core.math import Point3D, Vector3D
 from raysect.optical import Spectrum
-from raysect.optical.colour import spectrum_to_ciexyz, ciexyz_to_srgb
+from raysect.optical.colour import spectrum_to_ciexyz, ciexyz_to_srgb, resample_ciexyz
 from cherab.core.atomic import Line, beryllium, deuterium
 from cherab.core.model import ExcitationLine, RecombinationLine
 from cherab.openadas import OpenADAS
@@ -128,7 +128,7 @@ r2d, z2d = np.meshgrid(r, z, indexing='ij')
 atomic_data = OpenADAS(permit_extrapolation=True)
 
 line_emission = np.zeros((len(spectral_lines), time.size, r.size, z.size))
-line_wavelength = [atomic_data.wavelength(line.element, line.charge, line.transition) for line in spectral_lines]
+line_wavelength = np.array([atomic_data.wavelength(line.element, line.charge, line.transition) for line in spectral_lines])
 
 wvl_delta = 3.
 direction = Vector3D(0, 0, 1)
@@ -224,11 +224,12 @@ for il_indx, il in enumerate(np.argsort(line_wavelength)):
 # Convert to CIEXYZ
 print("Converting to CIEXYZ...")
 delta_wl = 1.
-min_wavelength = np.min(line_wavelength) - 0.5 * delta_wl
-max_wavelength = np.max(line_wavelength) + 0.5 * delta_wl
+min_wavelength = line_wavelength.min() - 0.5 * delta_wl
+max_wavelength = line_wavelength.max() + 0.5 * delta_wl
 bins = int(round((max_wavelength - min_wavelength) / delta_wl))
 delta_wl = (max_wavelength - min_wavelength) / bins
 bin_index = ((line_wavelength - min_wavelength) / delta_wl).astype(int)
+resampled_xyz = resample_ciexyz(min_wavelength, max_wavelength, bins)
 
 images_ciexyz = np.zeros((time.size, npix_y, npix_x, 3))
 for it in range(time.size):
@@ -239,7 +240,7 @@ for it in range(time.size):
         for ix in range(npix_x):
             spectrum = Spectrum(min_wavelength, max_wavelength, bins)
             spectrum.samples[:] += spectral_image[iy, ix]
-            images_ciexyz[it, iy, ix] = spectrum_to_ciexyz(spectrum)
+            images_ciexyz[it, iy, ix] = spectrum_to_ciexyz(spectrum, resampled_xyz)
 
 luminance = np.copy(images_ciexyz[:, :, :, 1]).flatten()
 luminance.sort()
