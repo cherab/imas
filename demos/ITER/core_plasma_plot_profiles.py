@@ -1,4 +1,11 @@
 
+"""
+This demo creates a Plasma object from the core profiles and equilibrium.
+Then samples and plots the quantities. 
+
+Tested on CORSICA, ASTRA, JETTO, JINTRAC, DINA-IMAS and DINA-JINTRAC scenarios.
+"""
+
 import os
 import numpy as np
 from matplotlib.colors import SymLogNorm

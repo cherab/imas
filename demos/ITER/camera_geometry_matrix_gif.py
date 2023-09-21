@@ -1,3 +1,11 @@
+
+"""
+This demo loads plasma from the DINA-JINTRAC scenario frame by frame,
+samples 4 deuterium and 4 beryllium line emission profiles
+and convolves them with the geometry matrices for the 55.G1 or 55.E2 cameras.
+Then converts spectral data to RGB images.
+"""
+
 import os
 import numpy as np
 from scipy.interpolate import RectBivariateSpline, griddata

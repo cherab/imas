@@ -1,4 +1,11 @@
 
+"""
+This demo creates a blended Plasma object from the core and edge profiles using the equilibrium.
+Then samples and plots the quantities. 
+
+Tested on JINTRAC and DINA-JINTRAC scenarios.
+"""
+
 import os
 import numpy as np
 from matplotlib.colors import SymLogNorm

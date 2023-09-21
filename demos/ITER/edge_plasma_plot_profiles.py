@@ -1,4 +1,11 @@
 
+"""
+This demo creates a Plasma object from the edge profiles.
+Then samples and plots the quantities. 
+
+Tested on SOLPS 4.3, SOLPS-ITER, SOLEDGE3X, JINTRAC and DINA-JINTRAC scenarios.
+"""
+
 import os
 import numpy as np
 from matplotlib.colors import SymLogNorm
