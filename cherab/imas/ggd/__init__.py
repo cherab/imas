@@ -16,4 +16,5 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
+from .base_mesh import GGDGrid
 from .unstruct_2d_mesh import UnstructGrid2D

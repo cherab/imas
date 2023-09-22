@@ -76,7 +76,7 @@ def load_edge_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
 
     grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
 
-    if np.all(subsets[grid_subset_name] != np.arange(len(grid.cells), dtype=int)):
+    if np.all(subsets[grid_subset_name] != np.arange(grid.num_cell, dtype=int)):
         # To reduce memory usage, create the sub-grid only if needed.
         grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
 
@@ -213,11 +213,11 @@ def get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
         return ConstantVector3D(Vector3D(0, 1.e-16, 0))  # avoid zero-length vectors for blending
 
     if vr is None:
-        vr = np.zeros(len(grid.cells), dtype=np.float64)
+        vr = np.zeros(grid.num_cell, dtype=np.float64)
     if vz is None:
-        vz = np.zeros(len(grid.cells), dtype=np.float64)
+        vz = np.zeros(grid.num_cell, dtype=np.float64)
     if vtor is None:
-        vtor = np.zeros(len(grid.cells), dtype=np.float64)
+        vtor = np.zeros(grid.num_cell, dtype=np.float64)
 
     return grid.vector_interpolator(np.array([vr, vtor, vz]).T)
 
@@ -272,8 +272,8 @@ def get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field):
 
 
 def _get_components_from_vpar(grid, vpar, b_field):
-    vpol = np.zeros(len(grid.cells), dtype=np.float64)
-    vtor = np.zeros(len(grid.cells), dtype=np.float64)
+    vpol = np.zeros(grid.num_cell, dtype=np.float64)
+    vtor = np.zeros(grid.num_cell, dtype=np.float64)
 
     for i, cell_centre in enumerate(grid.cell_centre):
         if grid.dimension == 2:  # 2D case

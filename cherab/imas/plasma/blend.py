@@ -146,7 +146,7 @@ def load_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
 
     grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
 
-    if np.all(subsets[grid_subset_name] != np.arange(len(grid.cells), dtype=int)):
+    if np.all(subsets[grid_subset_name] != np.arange(grid.num_cell, dtype=int)):
         # To reduce memory usage, create the sub-grid only if needed.
         grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
 
