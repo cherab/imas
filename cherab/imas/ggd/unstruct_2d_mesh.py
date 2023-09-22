@@ -24,9 +24,10 @@ from raysect.core.math import Vector3D
 from raysect.core.math.polygon import triangulate2d
 
 from cherab.imas.math import UnstructGridFunction2D, UnstructGridVectorFunction2D
+from .base_mesh import GGDGrid
 
 
-class UnstructGrid2D:
+class UnstructGrid2D(GGDGrid):
     """
     Unstructured 2D grid object.
 
@@ -42,7 +43,7 @@ class UnstructGrid2D:
     :param str name: A name of the grid. Default is 'Cells'.
     """
 
-    def __init__(self, vertices, cells, name='Cells'):
+    def __init__(self, vertices, cells, name='Cells', coordinate_system='cylindrical'):
 
         vertices = np.array(vertices, dtype=np.float64)
         vertices.setflags(write=False)
@@ -59,20 +60,18 @@ class UnstructGrid2D:
         for cell in cells:
             if len(cell) < 3:
                 raise ValueError("Cell {} is not a polygon.".format(np.array2string(cell)))
-        
-        self._dimension = 2
 
         self._vertices = vertices
 
         self._cells = tuple(cells)
 
-        self._name = str(name)
-
-        self._initial_setup()
+        super().__init__(name, 2, coordinate_system)
 
     def _initial_setup(self):
 
         self._interpolator = None
+
+        self._num_cell = len(self._cells)
 
         x = self._vertices[:, 0]
         y = self._vertices[:, 1]
@@ -125,20 +124,10 @@ class UnstructGrid2D:
         
         self._cell_centre.setflags(write=False)
         self._cell_area.setflags(write=False)
-    
-    @property
-    def name(self):
-        """Grid name."""
-        return self._name
-    
-    @name.setter
-    def name(self, value):
-        self._name = str(value)
-    
-    @property
-    def dimension(self):
-        """Grid dimension."""
-        return self._dimension
+
+        if self._coordinate_system == 'cylindrical':
+            self._cell_volume = 0.5 * np.pi * self._cell_centre[:, 0] * self._cell_area
+            self._cell_volume.setflags(write=False)
 
     @property
     def vertices(self):
@@ -154,21 +143,6 @@ class UnstructGrid2D:
     def triangles(self):
         """Mesh triangles as (M, 3) array."""
         return self._triangles
-
-    @property
-    def cell_centre(self):
-        """Coordinates of cell centres as (K, 2) array."""
-        return self._cell_centre
-
-    @property
-    def cell_area(self):
-        """Cell areas as (K,) array."""
-        return self._cell_area
-
-    @property
-    def mesh_extent(self):
-        """Extent of the mesh. A dictionary with xmin, xmax, ymin and ymax keys."""
-        return self._mesh_extent
 
     @property
     def triangle_to_cell_map(self):
@@ -202,6 +176,8 @@ class UnstructGrid2D:
         grid = UnstructGrid2D.__new__(UnstructGrid2D)
 
         grid._name = name or self.name + ' subset'
+        grid._coordinate_system = self._coordinate_system
+        grid._dimension = self._dimension
         grid._interpolator = None
 
         cells_original = tuple(self.cells[i] for i in indices)  # all cells in this subset but with original vertex indices
@@ -217,6 +193,7 @@ class UnstructGrid2D:
             cells.append(inv_indx[ist:ist + len(cell)])
             ist += len(cell)
         grid._cells = tuple(cells)
+        grid._num_cell = len(grid._cells)
         ntri_total = ist - 2 * len(cells_original)
         
         # cell area and centres of this subset
@@ -228,7 +205,10 @@ class UnstructGrid2D:
         # mesh extent of this subset
         xmin, ymin = grid._vertices.min(0)
         xmax, ymax = grid._vertices.max(0)
-        grid._mesh_extent = {"xmin": xmin, "xmax": xmax, "ymin": ymin, "ymax": ymax}
+        grid._mesh_extent = {"xmin": xmin, "xmax": xmax,
+                             "ymin": ymin, "ymax": ymax,
+                             "rmin": xmin, "rmax": xmax,
+                             "zmin": ymin, "zmax": ymax}
         
         # triangles and maps of this subset
         grid._triangles = np.empty((ntri_total, 3), dtype=np.int32)
@@ -298,17 +278,21 @@ class UnstructGrid2D:
 
     def __getstate__(self):
         state = {
+            'name': self._name,
+            'dimension': self._dimension,
+            'coordinate_system': self._coordinate_system,
             'vertices': self._vertices,
-            'cells': self._cells,
-            'name': self._name
+            'cells': self._cells
         }
         return state
 
     def __setstate__(self, state):
+        self._name = state['name']
+        self._dimension = state['dimension']
+        self._coordinate_system = state['coordinate_system']
         self._vertices = state['vertices']
         self._vertices.flags(write=False)
         self._cells = state['cells']
-        self._name = state['name']
 
         self._initial_setup()
 
@@ -331,8 +315,13 @@ class UnstructGrid2D:
         ax.set_aspect(1)
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
-        ax.set_xlabel("X [m]")
-        ax.set_ylabel("Y [m]")
+
+        if self._coordinate_system == 'cartesian':
+            ax.set_xlabel("X [m]")
+            ax.set_ylabel("Y [m]")
+        elif self._coordinate_system == 'cylindrical':
+            ax.set_xlabel("R [m]")
+            ax.set_ylabel("Z [m]") 
 
         return ax
 
@@ -356,7 +345,12 @@ class UnstructGrid2D:
         ax.set_aspect(1)
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
-        ax.set_xlabel("X [m]")
-        ax.set_ylabel("Y [m]")
+
+        if self._coordinate_system == 'cartesian':
+            ax.set_xlabel("X [m]")
+            ax.set_ylabel("Y [m]")
+        elif self._coordinate_system == 'cylindrical':
+            ax.set_xlabel("R [m]")
+            ax.set_ylabel("Z [m]")            
 
         return ax
