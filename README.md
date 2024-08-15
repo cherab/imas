@@ -8,16 +8,20 @@ This module enables the creation of Cherab plasma objects and Raysect meshes fro
 
 This add-on module requires IMAS to be installed with Python interface. 
 
-On ITER SDCC load the respective modules:
+Imnstall with the following commands.
+
+On ITER SDCC CentOS8 nodes:
 
 ```bash
 module load IMAS
 module load Raysect/0.7.1-intel-2020b
+pip install <path-to-cherab-imas> --user
 ```
-and then install with:
+
+On ITER SDCC RHEL9 nodes:
 
 ```bash
-pip install cherab==1.4.0 --user
-pip install -U cython==3.0a5 --user
+module load IMAS
+module load Raysect/0.7.1-iimkl-2023b
 pip install <path-to-cherab-imas> --user
 ```
