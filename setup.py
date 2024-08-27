@@ -1,9 +1,11 @@
+from collections import defaultdict
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 import sys
 import numpy
 import os
 import os.path as path
+from pathlib import Path
 
 force = False
 profile = False
@@ -33,12 +35,22 @@ cython_directives = {"language_level": 3}
 if profile:
     cython_directives["profile"] = True
 
+# Include demos in a separate directory in the distribution as data_files.
+demo_parent_path = Path("share/cherab/demos/imas")
+data_files = defaultdict(list)
+demos_source = Path("demos")
+for item in demos_source.rglob("*"):
+    if item.is_file():
+        install_dir = demo_parent_path / item.parent.relative_to(demos_source)
+        data_files[str(install_dir)].append(str(item))
+data_files = list(data_files.items())
+
 with open("README.md") as f:
     long_description = f.read()
 
 setup(
     name="cherab-imas",
-    version="0.1.0",
+    version="0.1.1",
     namespace_packages=['cherab'],
     description="Cherab spectroscopy framework: IMAS submodule",
     classifiers=[
@@ -60,6 +72,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["raysect==0.8.1", "cherab==1.5.0.dev1"],
+    install_requires=["cherab==1.5"],
     ext_modules=cythonize(extensions, force=force, compiler_directives=cython_directives),
+    data_files=data_files,
 )
