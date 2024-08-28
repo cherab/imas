@@ -72,7 +72,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["cherab==1.5"],
+    install_requires=["raysect==0.8.1.*", "cherab==1.5.*"],
     ext_modules=cythonize(extensions, force=force, compiler_directives=cython_directives),
     data_files=data_files,
 )
