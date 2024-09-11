@@ -265,7 +265,7 @@ class UnstructGrid2D(GGDGrid):
         On the second and subsequent calls, the interpolator is created as an instance
         of the previously created interpolator sharing the same KDtree structure.
 
-        :param grid_vectors: A (K,3) array containing 3D vectors in the grid cells.
+        :param grid_vectors: A (3,K) array containing 3D vectors in the grid cells.
         :param fill_vector: A 3D vector returned outside the gird. Default is (0, 0, 0).
 
         :returns: UnstructGridVectorFunction2D interpolator
