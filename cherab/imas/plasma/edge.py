@@ -219,7 +219,7 @@ def get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
     if vtor is None:
         vtor = np.zeros(grid.num_cell, dtype=np.float64)
 
-    return grid.vector_interpolator(np.array([vr, vtor, vz]).T)
+    return grid.vector_interpolator(np.array([vr, vtor, vz]))
 
 
 def get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
