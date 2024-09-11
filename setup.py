@@ -71,8 +71,11 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    include_package_data=True,
+    package_data={"": [
+        "**/*.pyx", "**/*.pxd",  # Needed to build Cython extensions.
+        ],
+    },
+    data_files=data_files,
     install_requires=["raysect==0.8.1.*", "cherab==1.5.*"],
     ext_modules=cythonize(extensions, force=force, compiler_directives=cython_directives),
-    data_files=data_files,
 )
