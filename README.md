@@ -13,7 +13,8 @@ On ITER SDCC load the IMAS module:
 ```bash
 module load IMAS
 ```
-and then install with:
+
+On ITER SDCC RHEL9 nodes:
 
 ```bash
 pip install git@https://github.com/cherab/imas --user
