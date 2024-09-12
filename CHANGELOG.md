@@ -1,5 +1,5 @@
-Release 0.1.1 (TBD)
--------------------
+Release 0.1.1 (12 Sep 2024)
+---------------------------
 
 New:
 * Support Cython 3 stable release
