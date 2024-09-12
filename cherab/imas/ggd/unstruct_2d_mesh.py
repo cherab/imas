@@ -90,7 +90,7 @@ class UnstructGrid2D(GGDGrid):
         self._triangles = np.empty((ntri_total, 3), dtype=np.int32)
         self._cell_to_triangle_map = np.empty((len(self._cells), 2), dtype=np.int32)
         self._triangle_to_cell_map = np.empty(ntri_total, dtype=np.int32)
-    
+
         itri = 0
         for i, cell in enumerate(self._cells):
             ntri = len(cell) - 2
@@ -103,7 +103,7 @@ class UnstructGrid2D(GGDGrid):
             self._cell_to_triangle_map[i] = [itri, ntri]
             self._triangle_to_cell_map[itri:itri + ntri] = i
             itri += ntri
-        
+
         self._triangles.setflags(write=False)
         self._cell_to_triangle_map.setflags(write=False)
         self._triangle_to_cell_map.setflags(write=False)
@@ -121,7 +121,7 @@ class UnstructGrid2D(GGDGrid):
             self._cell_centre[i] = self._vertices[cell].mean(0)
             ist, ntri = self._cell_to_triangle_map[i]
             self._cell_area[i] = area[ist:ist + ntri].sum()
-        
+
         self._cell_centre.setflags(write=False)
         self._cell_area.setflags(write=False)
 
@@ -138,7 +138,7 @@ class UnstructGrid2D(GGDGrid):
     def cells(self):
         """List of K polygonal cells."""
         return self._cells
-    
+
     @property
     def triangles(self):
         """Mesh triangles as (M, 3) array."""
@@ -164,7 +164,7 @@ class UnstructGrid2D(GGDGrid):
             >>> tri_cell = mesh.triangles[itri:itri + ntri]
         """
         return self._cell_to_triangle_map
-    
+
     def subset(self, indices, name=None):
         """
         Creates a subset UnstructGrid2D from this instance.
@@ -187,7 +187,7 @@ class UnstructGrid2D(GGDGrid):
         grid._vertices.setflags(write=False)
 
         # renumerating vertex indices
-        cells = [] # and split
+        cells = []  # and split
         ist = 0
         for cell in cells_original:
             cells.append(inv_indx[ist:ist + len(cell)])
@@ -195,7 +195,7 @@ class UnstructGrid2D(GGDGrid):
         grid._cells = tuple(cells)
         grid._num_cell = len(grid._cells)
         ntri_total = ist - 2 * len(cells_original)
-        
+
         # cell area and centres of this subset
         grid._cell_area = np.array(self.cell_area[indices])
         grid._cell_area.setflags(write=False)
@@ -209,7 +209,7 @@ class UnstructGrid2D(GGDGrid):
                              "ymin": ymin, "ymax": ymax,
                              "rmin": xmin, "rmax": xmax,
                              "zmin": ymin, "zmax": ymax}
-        
+
         # triangles and maps of this subset
         grid._triangles = np.empty((ntri_total, 3), dtype=np.int32)
         grid._cell_to_triangle_map = np.empty((len(cells), 2), dtype=np.int32)
@@ -219,7 +219,7 @@ class UnstructGrid2D(GGDGrid):
         # maps original vertices to the subset, -1 if not in the subset
         subset_vertex_map = -1 * np.ones(self.vertices.shape[0], dtype=np.int32)
         subset_vertex_map[vert_indx] = np.arange(vert_indx.size, dtype=np.int32)
-    
+
         itri = 0
         for i, cell in enumerate(cells):
             ntri = len(cell) - 2
@@ -232,13 +232,13 @@ class UnstructGrid2D(GGDGrid):
             grid._cell_to_triangle_map[i] = [itri, ntri]
             grid._triangle_to_cell_map[itri:itri + ntri] = i
             itri += ntri
-        
+
         grid._triangles.setflags(write=False)
         grid._cell_to_triangle_map.setflags(write=False)
         grid._triangle_to_cell_map.setflags(write=False)
 
         return grid
-    
+
     def interpolator(self, grid_data, fill_value=0):
         """
         Returns an UnstructGridFunction2D interpolator instance for the data defined on this grid.
@@ -254,7 +254,7 @@ class UnstructGrid2D(GGDGrid):
         if self._interpolator is None:
             self._interpolator = UnstructGridFunction2D(self._vertices, self._triangles, self._triangle_to_cell_map, grid_data, fill_value)
             return self._interpolator
-        
+
         return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
 
     def vector_interpolator(self, grid_vectors, fill_vector=Vector3D(0, 0, 0)):
@@ -265,7 +265,7 @@ class UnstructGrid2D(GGDGrid):
         On the second and subsequent calls, the interpolator is created as an instance
         of the previously created interpolator sharing the same KDtree structure.
 
-        :param grid_vectors: A (K,3) array containing 3D vectors in the grid cells.
+        :param grid_vectors: A (3,K) array containing 3D vectors in the grid cells.
         :param fill_vector: A 3D vector returned outside the gird. Default is (0, 0, 0).
 
         :returns: UnstructGridVectorFunction2D interpolator
@@ -291,7 +291,7 @@ class UnstructGrid2D(GGDGrid):
         self._dimension = state['dimension']
         self._coordinate_system = state['coordinate_system']
         self._vertices = state['vertices']
-        self._vertices.flags(write=False)
+        self._vertices.setflags(write=False)
         self._cells = state['cells']
 
         self._initial_setup()
@@ -321,7 +321,7 @@ class UnstructGrid2D(GGDGrid):
             ax.set_ylabel("Y [m]")
         elif self._coordinate_system == 'cylindrical':
             ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]") 
+            ax.set_ylabel("Z [m]")
 
         return ax
 
@@ -351,6 +351,6 @@ class UnstructGrid2D(GGDGrid):
             ax.set_ylabel("Y [m]")
         elif self._coordinate_system == 'cylindrical':
             ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")            
+            ax.set_ylabel("Z [m]")
 
         return ax

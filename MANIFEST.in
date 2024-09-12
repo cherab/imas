@@ -1,3 +1,0 @@
-include README.md CHANGELOG.md MANIFEST.in setup.py
-recursive-include cherab *.py
-prune demos*
