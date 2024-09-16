@@ -1,11 +1,10 @@
-from collections import defaultdict
-from setuptools import setup, find_packages, Extension
-from Cython.Build import cythonize
 import sys
-import numpy
-import os
-import os.path as path
+from collections import defaultdict
 from pathlib import Path
+
+import numpy
+from Cython.Build import cythonize
+from setuptools import Extension, find_packages, setup
 
 force = False
 profile = False
@@ -20,16 +19,16 @@ if "--profile" in sys.argv:
 
 compilation_includes = [".", numpy.get_include()]
 
-setup_path = path.dirname(path.abspath(__file__))
+setup_path = Path(__file__).parent
 
 # build extension list
 extensions = []
-for root, dirs, files in os.walk(setup_path):
-    for file in files:
-        if path.splitext(file)[1] == ".pyx":
-            pyx_file = path.relpath(path.join(root, file), setup_path)
-            module = path.splitext(pyx_file)[0].replace("/", ".")
-            extensions.append(Extension(module, [pyx_file], include_dirs=compilation_includes),)
+for pyx in (setup_path / "cherab").glob("**/*.pyx"):
+    pyx_path = pyx.relative_to(setup_path)
+    module = ".".join(pyx_path.with_suffix("").parts)
+    extensions.append(
+        Extension(module, [str(pyx_path)], include_dirs=compilation_includes),
+    )
 
 cython_directives = {"language_level": 3}
 if profile:
@@ -51,7 +50,7 @@ with open("README.md") as f:
 setup(
     name="cherab-imas",
     version="0.1.1",
-    namespace_packages=['cherab'],
+    namespace_packages=["cherab"],
     description="Cherab spectroscopy framework: IMAS submodule",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
