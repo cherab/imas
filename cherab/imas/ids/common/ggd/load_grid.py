@@ -16,19 +16,18 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-import numpy as np
-
-from imas.imasdef import EMPTY_INT
 
 from .load_unstruct_2d import load_unstruct_grid_2d
+from .load_unstruct_3d import load_unstruct_grid_2d_extended
 
 
-def load_grid(grid_ggd, with_subsets=False):
+def load_grid(grid_ggd, with_subsets=False, num_toroidal=None):
     """
     Loads grid from the grid_ggd structure.
 
     :param grid_ggd: The grid_ggd structure.
     :param with_subsets: Read grid subset data if True. Default is True.
+    :param num_toroidal: Number of toroidal points. Default is None.
 
     :returns:
     |   grid: A grid object that depends on the grid type (structured/unstructured, 2D/3D).
@@ -42,7 +41,7 @@ def load_grid(grid_ggd, with_subsets=False):
 
     if not len(spaces):
         raise RuntimeError("GGD grid contain no spaces.")
-   
+
     if len(spaces) == 1:  # simple unstructured grids
         if len(spaces[0].objects_per_dimension) == 3: # 2D case
             return load_unstruct_grid_2d(grid_ggd, 0, with_subsets=with_subsets)
@@ -53,12 +52,12 @@ def load_grid(grid_ggd, with_subsets=False):
 
     if len(spaces) == 2:  # 2D structured grid or 2D unstructured grid extended in 3D
         if len(spaces[0].objects_per_dimension) == 3 and len(spaces[1].objects_per_dimension) < 3:
-            raise NotImplementedError("Loading unstructured 2D grids extended in 3D will be implemented in the future.")
+            return load_unstruct_grid_2d_extended(grid_ggd, with_subsets=False, num_toroidal=num_toroidal)
         if len(spaces[0].objects_per_dimension) < 3 and len(spaces[1].objects_per_dimension) < 3:
             raise NotImplementedError("Loading structured 2D grids will be implemented in the future.")
 
         raise RuntimeError("Unsupported grid type.")
-    
+
     if len(spaces) == 3:  # 3D structured grid
         if len(spaces[0].objects_per_dimension) < 3 and len(spaces[1].objects_per_dimension) < 3 and len(spaces[2].objects_per_dimension) < 3:
             raise NotImplementedError("Loading structured 3D grids will be implemented in the future.")
@@ -90,5 +89,5 @@ def get_standard_spaces(grid_ggd):
         # if space.geometry_type.index == 0 or space.geometry_type.index == EMPTY_INT:
         if len(space.objects_per_dimension) and len(space.objects_per_dimension[0].object) > 2:
             spaces.append(space)
-    
+
     return spaces
