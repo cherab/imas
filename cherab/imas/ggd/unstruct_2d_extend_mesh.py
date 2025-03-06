@@ -19,6 +19,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PolyCollection
+from matplotlib.tri import Triangulation
 from raysect.core.math import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
@@ -313,7 +314,7 @@ class UnstructGrid2DExtended(GGDGrid):
         :param data: Data array defined on the polygonal mesh at the poloidal plane
         """
         if ax is None:
-            _, ax = plt.subplots(constrained_layout=True)
+            _, ax = plt.subplots(layout="constrained")
 
         cells = self._cells[: self._num_faces, :4]
         verts = [self._vertices[cell][:, ::2] for cell in cells]
@@ -325,6 +326,42 @@ class UnstructGrid2DExtended(GGDGrid):
             collection_mesh.set_array(data)
         ax.add_collection(collection_mesh)
         ax.set_aspect(1)
+        ax.set_xlim(self._mesh_extent["rmin"], self._mesh_extent["rmax"])
+        ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
+
+        if self._coordinate_system == "cartesian":
+            ax.set_xlabel("X [m]")
+            ax.set_ylabel("Y [m]")
+        elif self._coordinate_system == "cylindrical":
+            ax.set_xlabel("R [m]")
+            ax.set_ylabel("Z [m]")
+
+        return ax
+
+    def plot_tri_mesh(self, data, ax=None, cmap="viridis"):
+        """
+        Plot the data defined on the triangular mesh at the poloidal plane to a matplotlib figure.
+
+        :param data: Data array defined on the cells at the poloidal plane
+        """
+        data = np.asarray(data)
+        if data.shape[0] != self._num_faces:
+            raise ValueError("The data array must have the same number of faces as the grid.")
+        data = np.repeat(data, 2)
+
+        cells = self._cells[: self._num_faces]
+        tri = np.empty((self._num_faces * 2, 3), dtype=np.int32)
+        for i, cell in enumerate(cells):
+            tri[2 * i] = [cell[0], cell[1], cell[2]]
+            tri[2 * i + 1] = [cell[0], cell[2], cell[3]]
+        verts = self._vertices[: self.num_poloidal, ::2]
+        triangles = Triangulation(verts[:, 0], verts[:, 1], tri)
+
+        if ax is None:
+            _, ax = plt.subplots(layout="constrained")
+
+        ax.set_aspect(1)
+        ax.tripcolor(triangles, data, cmap=cmap)
         ax.set_xlim(self._mesh_extent["rmin"], self._mesh_extent["rmax"])
         ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
 
