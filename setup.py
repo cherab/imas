@@ -27,7 +27,13 @@ for pyx in (setup_path / "cherab").glob("**/*.pyx"):
     pyx_path = pyx.relative_to(setup_path)
     module = ".".join(pyx_path.with_suffix("").parts)
     extensions.append(
-        Extension(module, [str(pyx_path)], include_dirs=compilation_includes),
+        Extension(
+            module,
+            [str(pyx_path)],
+            include_dirs=compilation_includes,
+            extra_compile_args=["-fopenmp"],
+            extra_link_args=["-fopenmp"],
+        ),
     )
 
 cython_directives = {"language_level": 3}
