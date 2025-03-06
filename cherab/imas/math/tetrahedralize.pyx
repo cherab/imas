@@ -8,7 +8,7 @@ from numpy cimport import_array, ndarray, int32_t
 
 from cython.parallel import prange
 
-__all__ = ["cell_to_5tetra", "cell_to_6tetra"]
+__all__ = ["cell_to_5tetra", "cell_to_6tetra", "calculate_tetra_volume"]
 
 
 import_array()
@@ -38,8 +38,8 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
     :obj:`~numpy.ndarray`
         tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> from cherab.imas.math.tetrahedralize import cell_to_5tetras
     >>>
@@ -112,8 +112,8 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
     :obj:`~numpy.ndarray`
         tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> from cherab.imas.math.tetrahedralize import cell_to_6tetra
     >>>
@@ -167,3 +167,51 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
                 tetrahedra_mv[6 * i + j, k] = cells[i, tetra_indices[j][k]]
 
     return tetrahedra
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+@cython.cdivision(True)
+cpdef double calculate_tetra_volume(const double[:, ::1] vertices, const int32_t[:, ::1] tetras) nogil:
+    """Calculate the volume of tetrahedra.
+
+    Parameters
+    ----------
+    vertices : :obj:`~numpy.ndarray`[numpy.float64]
+        Vertices of tetrahedra.
+    tetras : :obj:`~numpy.ndarray`[numpy.int32]
+        Tetrahedra indices.
+
+    Returns
+    -------
+    volume : float
+        Volume of tetrahedra.
+
+    Examples
+    --------
+    >>> vertices = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    >>> tetras = np.array([[0, 1, 2, 3]], dtype=np.int32)
+    >>> calculate_tetra_volume(vertices, tetras)
+    0.16666666666666666
+    """
+    cdef:
+        double volume = 0.0
+        int i
+        double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z
+        double cx, cy, cz, dot_product
+
+    for i in range(tetras.shape[0]):
+        v0x, v0y, v0z = vertices[tetras[i, 0], 0], vertices[tetras[i, 0], 1], vertices[tetras[i, 0], 2]
+        v1x, v1y, v1z = vertices[tetras[i, 1], 0], vertices[tetras[i, 1], 1], vertices[tetras[i, 1], 2]
+        v2x, v2y, v2z = vertices[tetras[i, 2], 0], vertices[tetras[i, 2], 1], vertices[tetras[i, 2], 2]
+        v3x, v3y, v3z = vertices[tetras[i, 3], 0], vertices[tetras[i, 3], 1], vertices[tetras[i, 3], 2]
+
+        cx = (v1y - v0y) * (v2z - v0z) - (v1z - v0z) * (v2y - v0y)
+        cy = (v1z - v0z) * (v2x - v0x) - (v1x - v0x) * (v2z - v0z)
+        cz = (v1x - v0x) * (v2y - v0y) - (v1y - v0y) * (v2x - v0x)
+
+        dot_product = cx * (v3x - v0x) + cy * (v3y - v0y) + cz * (v3z - v0z)
+        volume += (1.0 / 6.0) * abs(dot_product)
+
+    return volume
