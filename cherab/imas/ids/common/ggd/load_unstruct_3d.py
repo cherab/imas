@@ -1,0 +1,109 @@
+# Copyright 2023 Euratom
+# Copyright 2023 United Kingdom Atomic Energy Authority
+# Copyright 2023 Centro de Investigaciones Energéticas, Medioambientales y Tecnológicas
+#
+# Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the
+# European Commission - subsequent versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at:
+#
+# https://joinup.ec.europa.eu/software/page/eupl5
+#
+# Unless required by applicable law or agreed to in writing, software distributed
+# under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied.
+#
+# See the Licence for the specific language governing permissions and limitations
+# under the Licence.
+
+import numpy as np
+
+from cherab.imas.ggd import UnstructGrid2DExtended
+
+SPACE_RZ = 0
+SPACE_FOURIER = 1
+VERTEX_DIMENSION = 0
+EDGE_DIMENSION = 1
+FACE_DIMENSION = 2
+TETRA_IN_CELL = 5
+NUM_TOROIDAL = 64
+
+
+def load_unstruct_grid_2d_extended(grid_ggd, with_subsets=False, num_toroidal=None):
+    """
+    Loads unstructured 2D grid extended in 3D from the grid_ggd structure.
+
+    :param grid_ggd: The grid_ggd structure.
+    :param with_subsets: Read grid subset data if True. Default is False.
+    :param num_toroidal: Number of toroidal points. Default is None.
+
+    :returns:
+    |   grid: An UnstructGrid2DExtended instance.
+    """
+    # Check if the number of toroidal points is specified
+    if isinstance(num_toroidal, int):
+        if num_toroidal < 1:
+            raise ValueError("The number of toroidal points must be greater than 0.")
+        num_toroidal = num_toroidal
+    else:
+        num_toroidal = NUM_TOROIDAL
+
+    # Get the R-Z space
+    space = grid_ggd.space[SPACE_RZ]
+
+    # Check if the grid is 2D
+    if len(space.objects_per_dimension) != 3:
+        raise ValueError(
+            "The load_unstruct_grid_2d_extended() supports only unstructured extended 2D grids."
+        )
+
+    grid_name = grid_ggd.identifier.name
+
+    # =========================================
+    # Reading vertices (poloidal and toroidal)
+    # =========================================
+    num_poloidal = len(space.objects_per_dimension[VERTEX_DIMENSION].object)
+    num_vert = num_poloidal * num_toroidal
+    vertices_rpz = np.empty((num_vert, 3), dtype=float)
+
+    for i_phi, i_pol in np.ndindex(num_toroidal, num_poloidal):
+        phi = 2.0 * np.pi * i_phi / num_toroidal
+        vertices_rpz[i_pol + i_phi * num_poloidal] = (
+            space.objects_per_dimension[VERTEX_DIMENSION].object[i_pol].geometry[0],
+            phi,
+            space.objects_per_dimension[VERTEX_DIMENSION].object[i_pol].geometry[1],
+        )
+    # Convert to cartesian coordinates
+    vertices = np.empty((num_vert, 3), dtype=float)
+    p = vertices_rpz[:, 1]
+    vertices[:, 0] = vertices_rpz[:, 0] * np.cos(p)
+    vertices[:, 1] = vertices_rpz[:, 0] * np.sin(p)
+    vertices[:, 2] = vertices_rpz[:, 2]
+
+    # =========================================
+    # Reading cells indices
+    # =========================================
+    faces = space.objects_per_dimension[FACE_DIMENSION].object
+    num_faces = len(faces)
+    cells = np.zeros((num_faces * num_toroidal, 8), dtype=np.int32)
+    i_cell = 0
+    for i_phi, i_face in np.ndindex(num_toroidal, num_faces):
+        i_phi_next = i_phi + 1 if i_phi + 1 < num_toroidal else 0
+        cells[i_cell] = np.hstack(
+            [
+                (faces[i_face].nodes - 1) + i_phi * num_poloidal,
+                (faces[i_face].nodes - 1) + i_phi_next * num_poloidal,
+            ]
+        )
+        i_cell += 1
+
+    grid = UnstructGrid2DExtended(vertices, cells, num_faces, num_poloidal, num_toroidal, name=grid_name)
+
+    if not with_subsets:
+        return grid
+    else:
+        raise NotImplementedError("Reading grid subsets is not implemented yet.")
+
+
+def load_unstruct_grid_3d(grid_ggd, space_index=0, with_subsets=False):
+    raise NotImplementedError("Loading unstructured 3D grids will be implemented in the future.")

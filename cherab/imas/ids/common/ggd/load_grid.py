@@ -52,7 +52,7 @@ def load_grid(grid_ggd, with_subsets=False, num_toroidal=None):
 
     if len(spaces) == 2:  # 2D structured grid or 2D unstructured grid extended in 3D
         if len(spaces[0].objects_per_dimension) == 3 and len(spaces[1].objects_per_dimension) < 3:
-            return load_unstruct_grid_2d_extended(grid_ggd, with_subsets=False, num_toroidal=num_toroidal)
+            return load_unstruct_grid_2d_extended(grid_ggd, with_subsets=with_subsets, num_toroidal=num_toroidal)
         if len(spaces[0].objects_per_dimension) < 3 and len(spaces[1].objects_per_dimension) < 3:
             raise NotImplementedError("Loading structured 2D grids will be implemented in the future.")
 

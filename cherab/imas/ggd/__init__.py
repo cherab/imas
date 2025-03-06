@@ -18,3 +18,4 @@
 
 from .base_mesh import GGDGrid
 from .unstruct_2d_mesh import UnstructGrid2D
+from .unstruct_2d_extend_mesh import UnstructGrid2DExtended
