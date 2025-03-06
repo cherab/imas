@@ -16,7 +16,7 @@ import_array()
 
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(ndarray cells):
+cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
     """Generate tetrahedral indices by dividing one cell into 5 tetrahedra.
 
     One cubic-like cell having 8 vertices can be divided into a minimum of five tetrahedra.
@@ -29,7 +29,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(ndarray cells):
 
     Parameters
     ----------
-    cells : :obj:`~numpy.ndarray`
+    cells : :obj:`~numpy.ndarray`[numpy.int32]
         cell indices 2D array, the shape of which is :math:`(N, 8)`, where :math:`N` is the number
         of cells.
 
@@ -64,7 +64,6 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(ndarray cells):
         int[5][4] tetra_indices
         ndarray[int32_t, ndim=2] tetrahedra
         int32_t[:, ::1] tetrahedra_mv
-        int32_t[:, ::1] cells_mv
 
     if cells.ndim != 2:
         raise ValueError("cells must be a 2 dimensional array.")
@@ -73,7 +72,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(ndarray cells):
         raise ValueError("cells must have a shape of (N, 8).")
 
     # tetrahedra indices array
-    tetrahedra = np.zeros((cells.shape[0] * 5, 4), dtype=np.int32)
+    tetrahedra = np.empty((cells.shape[0] * 5, 4), dtype=np.int32)
 
     # five tetrahedra indices at one cell
     tetra_indices[0][:] = [0, 1, 3, 4]
@@ -84,12 +83,11 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(ndarray cells):
 
     # memory view
     tetrahedra_mv = tetrahedra
-    cells_mv = cells
 
-    for i in prange(cells_mv.shape[0], nogil=True):
+    for i in prange(cells.shape[0], nogil=True):
         for j in range(5):
             for k in range(4):
-                tetrahedra_mv[5 * i + j, k] = cells_mv[i, tetra_indices[j][k]]
+                tetrahedra_mv[5 * i + j, k] = cells[i, tetra_indices[j][k]]
 
     return tetrahedra
 
@@ -97,7 +95,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(ndarray cells):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
-cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(ndarray cells):
+cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
     """Generate tetrahedral indices by dividing one cell into 6 tetrahedra.
 
     One cubic-like cell having 8 vertices can be divided into six tetrahedra.
@@ -105,7 +103,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(ndarray cells):
 
     Parameters
     ----------
-    cells : :obj:`~numpy.ndarray`
+    cells : :obj:`~numpy.ndarray`[numpy.int32]
         cell indices 2D array, the shape of which is :math:`(N, 8)`, where :math:`N` is the number
         of cells.
 
@@ -142,7 +140,6 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(ndarray cells):
         int[6][4] tetra_indices
         ndarray[int32_t, ndim=2] tetrahedra
         int32_t[:, ::1] tetrahedra_mv
-        int32_t[:, ::1] cells_mv
 
     if cells.ndim != 2:
         raise ValueError("cells must be a 2 dimensional array.")
@@ -151,7 +148,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(ndarray cells):
         raise ValueError("cells must have a shape of (N, 8).")
 
     # tetrahedra indices array
-    tetrahedra = np.zeros((cells.shape[0] * 6, 4), dtype=np.int32)
+    tetrahedra = np.empty((cells.shape[0] * 6, 4), dtype=np.int32)
 
     # six tetrahedra indices at one cell
     tetra_indices[0][:] = [6, 2, 1, 0]
@@ -163,11 +160,10 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(ndarray cells):
 
     # memory view
     tetrahedra_mv = tetrahedra
-    cells_mv = cells
 
-    for i in prange(cells_mv.shape[0], nogil=True):
+    for i in prange(cells.shape[0], nogil=True):
         for j in range(6):
             for k in range(4):
-                tetrahedra_mv[6 * i + j, k] = cells_mv[i, tetra_indices[j][k]]
+                tetrahedra_mv[6 * i + j, k] = cells[i, tetra_indices[j][k]]
 
     return tetrahedra
