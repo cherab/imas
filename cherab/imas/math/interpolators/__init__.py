@@ -17,5 +17,6 @@
 # under the Licence.
 
 from .unstruct_grid_2d_functions import UnstructGridFunction2D, UnstructGridVectorFunction2D
+from .unstruct_grid_3d_functions import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from .struct_grid_2d_functions import StructGridFunction2D, StructGridVectorFunction2D
 from .struct_grid_3d_functions import StructGridFunction3D, StructGridVectorFunction3D
