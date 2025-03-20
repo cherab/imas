@@ -69,7 +69,7 @@ class UnstructGrid2DExtended(GGDGrid):
         self._num_poloidal = num_poloidal
         self._num_toroidal = num_toroidal
 
-        super().__init__(name, 2, coordinate_system)
+        super().__init__(name, 3, coordinate_system)
 
     def _initial_setup(self):
         self._interpolator = None
