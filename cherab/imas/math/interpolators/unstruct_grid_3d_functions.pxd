@@ -29,8 +29,8 @@ cdef class UnstructGridFunction3D(Function3D):
 
     cdef:
         MeshKDTree3D _kdtree
-        np.ndarray _grid_data, _tetrahedra_to_cell_map
-        np.int32_t[::1] _tetrahedra_to_cell_map_mv
+        np.ndarray _grid_data, _tetra_to_cell_map
+        np.int32_t[::1] _tetra_to_cell_map_mv
         double[::1] _grid_data_mv
         double _fill_value
 
@@ -38,7 +38,7 @@ cdef class UnstructGridVectorFunction3D(VectorFunction3D):
 
     cdef:
         MeshKDTree3D _kdtree
-        np.ndarray _grid_vectors, _tetrahedra_to_cell_map
-        np.int32_t[::1] _tetrahedra_to_cell_map_mv
+        np.ndarray _grid_vectors, _tetra_to_cell_map
+        np.int32_t[::1] _tetra_to_cell_map_mv
         double[:, ::1] _grid_vectors_mv
         Vector3D _fill_vector
