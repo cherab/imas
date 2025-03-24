@@ -115,6 +115,10 @@ def load_geometry(sensor) -> dict[str, Any]:
             sensor.x3_unit_vector.x, sensor.x3_unit_vector.y, sensor.x3_unit_vector.z
         )
 
+        # Check if bases are in RHS (assume that basis_z is a vector targetting the plasma)
+        if geometry["basis_z"].dot(geometry["basis_x"].cross(geometry["basis_y"])) < 0:
+            geometry["basis_y"] *= -1
+
         # Dimensions
         geometry["dx"] = sensor.x2_width
         geometry["dy"] = sensor.x1_width
