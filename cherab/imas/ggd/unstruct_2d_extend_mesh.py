@@ -23,7 +23,7 @@ from matplotlib.tri import Triangulation
 from raysect.core.math import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
-from ..math.tetrahedralize import cell_to_5tetra, calculate_tetra_volume
+from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
 from .base_mesh import GGDGrid
 
 
@@ -165,6 +165,94 @@ class UnstructGrid2DExtended(GGDGrid):
         """
         return self._cell_to_tetra_map
 
+    def subset_faces(self, indices, name=None):
+        """
+        Creates a subset UnstructGrid2DExtended from this instance.
+
+        The subset is defined by the indices of the faces at the poloidal plane.
+        Thus, the subset mesh is periodic in the toroidal direction.
+
+        See Also
+        --------
+        subset : for a method that creates a subset from the original grid cells.
+
+        :param indices: Indices of the faces of the original grid in the subset.
+        :param name: Name of the grid subset. Default is instance.name + ' subset'.
+        """
+        grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
+
+        grid._name = name or self._name + " subset"
+        grid._coordinate_system = self._coordinate_system
+        grid._dimension = self._dimension
+        grid._interpolator = None
+        if np.amax(indices) >= self._num_faces:
+            raise ValueError("The indices of the faces must be less than the number of faces in the grid.")
+        indices = np.unique(indices)
+        grid._num_faces = len(indices)
+        grid._num_toroidal = self._num_toroidal
+
+        index_flags = np.zeros(self._num_faces, dtype=bool)
+        index_flags[indices] = True
+        index_flags = np.tile(index_flags, self._num_toroidal)
+        index_flags.setflags(write=False)
+        setattr(grid, "index_flags", index_flags)  # store the indices flags for the subset
+
+        cells_original = self.cells[
+            index_flags
+        ]  # all cells in this subset but with original vertex indices
+        vert_indx, inv_indx = np.unique(cells_original, return_inverse=True)  # all unique vertex indices in this subset
+        grid._vertices = np.array(self.vertices[vert_indx])  # vertices in this subset
+        grid._vertices.setflags(write=False)
+
+        # renumerating vertex indices
+        cells = []  # and split
+        ist = 0
+        for cell in cells_original:
+            cells.append(inv_indx[ist : ist + len(cell)])
+            ist += len(cell)
+        grid._cells = np.array(cells, dtype=np.int32)
+        grid._cells.setflags(write=False)
+        grid._num_cell = len(grid._cells)
+        grid._num_poloidal = grid._vertices.shape[0] // self._num_toroidal
+
+        # cell volume and centres of this subset
+        grid._cell_volume = np.array(self._cell_volume[index_flags])
+        grid._cell_volume.setflags(write=False)
+        grid._cell_centre = np.array(self._cell_centre[index_flags])
+        grid._cell_centre.setflags(write=False)
+
+        # Extract grid points at the first poloidal plane
+        r = np.hypot(grid._vertices[:, 0], grid._vertices[:, 1])
+        z = grid._vertices[:, 2]
+
+        # mesh extent of this subset
+        grid._mesh_extent = {
+            "xmin": grid._vertices[:, 0].min(),
+            "xmax": grid._vertices[:, 0].max(),
+            "ymin": grid._vertices[:, 1].min(),
+            "ymax": grid._vertices[:, 1].max(),
+            "rmin": r.min(),
+            "rmax": r.max(),
+            "zmin": z.min(),
+            "zmax": z.max(),
+        }
+
+        # Tetrahedralize cells and maps of this subset
+        grid._tetrahedra = cell_to_5tetra(grid._cells)
+        grid._tetra_to_cell_map = np.repeat(
+            np.arange(len(grid._cells), dtype=np.int32), 5
+        )
+        grid._cell_to_tetra_map = np.column_stack(
+            (np.arange(len(grid._cells)) * 5, np.full(len(grid._cells), 5))
+        )
+
+        grid._tetrahedra.setflags(write=False)
+        grid._cell_to_tetra_map.setflags(write=False)
+        grid._tetra_to_cell_map.setflags(write=False)
+
+        return grid
+
+
     def subset(self, indices, name=None):
         """
         Creates a subset UnstructGrid2DExtended from this instance.
@@ -282,6 +370,7 @@ class UnstructGrid2DExtended(GGDGrid):
             "num_poloidal": self._num_poloidal,
             "num_toroidal": self._num_toroidal,
             "num_faces": self._num_faces,
+            "index_flags": self.index_flags if hasattr(self, "index_flags") else None,
         }
         return state
 
@@ -296,6 +385,9 @@ class UnstructGrid2DExtended(GGDGrid):
         self._num_poloidal = state["num_poloidal"]
         self._num_toroidal = state["num_toroidal"]
         self._num_faces = state["num_faces"]
+        if hasattr(self, "index_flags"):
+            # If index_flags exists, it is a subset of the original grid
+            self.index_flags = state["index_flags"]
 
         self._initial_setup()
 
@@ -304,23 +396,38 @@ class UnstructGrid2DExtended(GGDGrid):
         Plot the tetrahedral mesh grid geometry.
 
         :param data: Data array defined on the tetrahedral mesh
+        :param ax: Matplotlib axes to plot the mesh. If None, a new figure is created.
+        :returns: Matplotlib axes with the plotted mesh.
+        :rtype: matplotlib.axes.Axes
         """
         raise NotImplementedError("Plotting of tetrahedral mesh is not implemented yet.")
 
-    def plot_mesh_poloidal(self, data=None, ax=None):
+    def plot_mesh(self, data=None, ax=None, **grid_styles):
         """
         Plot the polygonal mesh grid geometry at the first poloidal plane to a matplotlib figure.
 
         :param data: Data array defined on the polygonal mesh at the poloidal plane
+        :type data: array_like, optional
+        :param ax: Matplotlib axes to plot the mesh. If None, a new figure is created.
+        :type ax: matplotlib.axes.Axes, optional
+        :param grid_styles: Styles for the grid lines and faces, by default ``{"facecolor": "none", "edgecolor": "b", "linewidth": 0.25}``.
+        :type grid_styles: dict, optional
+        :returns: Matplotlib axes with the plotted mesh.
+        :rtype: matplotlib.axes.Axes
         """
         if ax is None:
             _, ax = plt.subplots(layout="constrained")
+
+        # Set default grid line styles if not provided
+        grid_styles.setdefault("facecolor", "none")
+        grid_styles.setdefault("edgecolor", "b")
+        grid_styles.setdefault("linewidth", 0.25)
 
         cells = self._cells[: self._num_faces, :4]
         verts = [self._vertices[cell][:, ::2] for cell in cells]
 
         if data is None:
-            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor="b", linewidth=0.25)
+            collection_mesh = PolyCollection(verts, **grid_styles)
         else:
             collection_mesh = PolyCollection(verts)
             collection_mesh.set_array(data)
@@ -343,6 +450,9 @@ class UnstructGrid2DExtended(GGDGrid):
         Plot the data defined on the triangular mesh at the poloidal plane to a matplotlib figure.
 
         :param data: Data array defined on the cells at the poloidal plane
+        :param ax: Matplotlib axes to plot the mesh. If None, a new figure is created.
+        :param cmap: Colormap to use for the data. Default is 'viridis'.
+        :returns: Matplotlib axes with the plotted mesh.
         """
         data = np.asarray(data)
         if data.shape[0] != self._num_faces:
