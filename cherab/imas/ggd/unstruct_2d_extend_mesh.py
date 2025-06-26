@@ -195,7 +195,9 @@ class UnstructGrid2DExtended(GGDGrid):
         index_flags[indices] = True
         index_flags = np.tile(index_flags, self._num_toroidal)
         index_flags.setflags(write=False)
-        setattr(grid, "index_flags", index_flags)  # store the indices flags for the subset
+
+        # TODO: Require to implement index_flags as a property neatly?
+        setattr(grid, "index_flags", index_flags)
 
         cells_original = self.cells[
             index_flags
@@ -385,7 +387,7 @@ class UnstructGrid2DExtended(GGDGrid):
         self._num_poloidal = state["num_poloidal"]
         self._num_toroidal = state["num_toroidal"]
         self._num_faces = state["num_faces"]
-        if hasattr(self, "index_flags"):
+        if "index_flags" in state:
             # If index_flags exists, it is a subset of the original grid
             self.index_flags = state["index_flags"]
 
