@@ -15,6 +15,10 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""The Cherab subpackage for the IMAS tokamak."""
 
-from .wall import *
-from .plasma import *
+from __future__ import annotations
+
+from importlib.metadata import version
+
+__version__ = version(__package__)  # type: ignore
