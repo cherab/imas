@@ -1,3 +1,151 @@
 [build-system]
-requires = ["setuptools", "oldest-supported-numpy", "cython~=3.0", "raysect==0.8.1.*", "cherab==1.5.*"]
-build-backend="setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs", "hatch-cython>=0.6.0rc0", "cherab==1.5.*"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cherab-imas"
+description = "Cherab spectroscopy framework: IMAS submodule"
+authors = [
+    { name = "munechika-koyo", email = "munechika.koyo@gmail.com" },
+    { name = "vsnever" },
+    { name = "jacklovell" },
+]
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENCE.txt" }
+keywords = ["cherab", "IMAS", "imas", "tokamak", "fusion", "plasma"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Unix",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = ["cherab==1.5.*"]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/cherab"
+Documentation = "https://cherab.github.io/documentation/"
+Repository = "https://github.com/cherab/imas"
+Issues = "https://github.com/cherab/imas/issues"
+
+# ----------------------
+# === Version config ===
+# ----------------------
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.metadata.hooks.vcs]
+
+# ----------------------------
+# === Build/Package config ===
+# ----------------------------
+[tool.hatch.build.targets.wheel]
+packages = ["src/cherab"]
+artifacts = ["*.so", "*.pyd", "*.dylib"]
+exclude = ["*.pyx", "cherab/__init__.pxd"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"share/cherab/demos/imas" = "demos/*"
+
+[tool.hatch.build.targets.wheel.hooks.cython]
+dependencies = ["hatch-cython"]
+
+[tool.hatch.build.targets.wheel.hooks.cython.options]
+src = "cherab"
+include_numpy = true
+compile_args = ["-O3"]
+compile_py = false
+parallel = true
+
+[tool.hatch.build.targets.wheel.hooks.cython.options.files]
+targets = ["**/*.pyx"]
+
+# -----------------------
+# === Cov/Test config ===
+# -----------------------
+[tool.coverage.run]
+source_pkgs = ["cherab.imas"]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+test = ["src/test", "*/test/src/test"]
+tests = ["tests", "*/test/tests"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=cherab_imas --cov-report term-missing --no-cov-on-fail"
+
+
+# ------------------------------
+# === Lint & Format settings ===
+# ------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "B",   # flake8-bugbear
+    "F",   # pyflakes
+    "I",   # isort (import order)
+    "N",   # pep8-naming
+    "W",   # Warning
+    "UP",  # pyupgrade
+    "NPY", # numpy specific rules
+]
+ignore = [
+    # Recommended ignores by ruff when using formatter
+    "E501", # line too long
+    "N803", # argument name should be lowercase
+    "N806", # variable in function should be lowercase
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/*.ipynb" = ["W292"] # no newline at end of file
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.cython-lint]
+max-line-length = 100
+
+[tool.docformatter]
+recursive = true
+wrap-summaries = 100
+wrap-descriptions = 100
+blank = false
+
+[tool.numpydoc_validation]
+checks = [
+    "all",  # report on all checks, except the below
+    "GL01", # Docstring text (summary) should start in the line immediately
+    "EX01", # No examples section found
+    "SA01", # See Also section not found
+    "ES01", # No extended summary found
+    "GL08", # The object does not have a docstring
+    "RT01", # No Returns section found
+    "PR01", # Parameters {missing_params} not documented
+    "SS06", # Summary should fit in a single line
+]
+# remember to use single quotes for regex in TOML
+exclude = [ # don't report on objects that match any of these regex
+    '\.__repr__$',
+]
+override_SS05 = ['^Process ', '^Assess ', '^Access ']
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_untyped_defs = true
