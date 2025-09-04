@@ -16,4 +16,5 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-__import__('pkg_resources').declare_namespace(__name__)
+# This file seems to be necessary for Cython to be able to import the module internally even though
+# Cython is compatible with PEP 420.
