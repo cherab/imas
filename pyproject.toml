@@ -21,17 +21,13 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
     "Natural Language :: English",
-    "Operating System :: POSIX :: Unix",
+    "Operating System :: Unix",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = [
-    "cherab==1.5.*",
-    "imas-python",
-    "imas-data-dictionaries = 4.0.*",
-]
+dependencies = ["cherab==1.5.*", "imas-python", "imas-data-dictionaries==4.0.*"]
 dynamic = ["version"]
 
 [project.urls]
