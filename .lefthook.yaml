@@ -1,0 +1,78 @@
+lefthook: pixi run --environment=lint lefthook
+
+templates:
+  run: run --environment=lint
+
+colors: true
+
+output:
+  - meta # Print lefthook version
+  - summary # Print summary block (successful and failed steps)
+  - empty_summary # Print summary heading when there are no steps to run
+  # - success # Print successful steps
+  # - failure # Print failed steps printing
+  # - execution # Print any execution logs
+  # - execution_out # Print execution output
+  # - execution_info # Print `EXECUTE > ...` logging
+  - skips # Print "skip" (i.e. no files matched)
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: dprint
+      glob: "*.{json,jsonc,md,yaml,yml}"
+      stage_fixed: true
+      run: pixi {run} dprint fmt {staged_files}
+
+    - name: taplo
+      glob: "*.toml"
+      stage_fixed: true
+      run: pixi {run} taplo fmt {staged_files}
+
+    - name: ruff
+      glob: "*.{py,pyi}"
+      stage_fixed: true
+      group:
+        piped: true
+        jobs:
+          - name: ruff check
+            run: pixi {run} ruff check --fix {staged_files}
+          - name: ruff format
+            run: pixi {run} ruff format {staged_files}
+
+    - name: mypy
+      glob: "*.{py,pyi}"
+      run: pixi {run} mypy {staged_files}
+
+    - name: typos
+      stage_fixed: true
+      run: pixi {run} typos --force-exclude {staged_files}
+
+    - name: actionlint
+      glob: ".github/workflows/*.{yaml,yml}"
+      run: pixi {run} actionlint {staged_files}
+
+    - name: blacken-docs
+      glob: "*.md"
+      stage_fixed: true
+      run: pixi {run} blacken-docs {staged_files}
+
+    - name: validate-pyproject
+      glob: "pyproject.toml"
+      run: pixi {run} validate-pyproject {staged_files}
+
+    - name: docstring-lint
+      stage_fixed: true
+      group:
+        piped: true
+        jobs:
+          - name: docformatter
+            glob: "*.{py,pyx,pyi}"
+            run: pixi {run} docformatter --in-place {staged_files}
+          - name: numpydoc
+            glob: "*.{py,pyi}"
+            run: pixi {run} numpydoc lint {staged_files}
+
+    - name: cython-lint
+      glob: "*.{pyx,pxd}"
+      run: pixi {run} cython-lint {staged_files}
