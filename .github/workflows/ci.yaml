@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: 🟨 Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+        with:
+          environments: lint
+
+      - name: 🧹 Execute lint
+        run: pixi run -e lint lint
+
+  checks:
+    name: Test 🐍 ${{ matrix.environment }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        environment: [tests-py310, tests-py313]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: check out repo
+        uses: actions/checkout@v4
+
+      - name: 🟨 Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+        with:
+          environments: ${{ matrix.environment }}
+
+      - name: 🧪 Execute pytest
+        env:
+          pytest_github_report: true
+        run: pixi run -e ${{ matrix.environment }} test --cov-report xml
+
+      - name: 📦 Disambiguate coverage filename by environment and OS
+        run: mv .coverage ".coverage.${{ matrix.environment }}.${{ matrix.os }}.xml"
+
+      - name: 📤 Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
