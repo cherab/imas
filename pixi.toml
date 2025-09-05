@@ -1,0 +1,89 @@
+[workspace]
+authors = ["munechika-koyo <munechika.koyo@gmail.com>", "jacklovell", "vsnever"]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64"]
+preview = ["pixi-build"]
+
+# -------------------------------
+# === Packaging Configuration ===
+# -------------------------------
+[package]
+name = "cherab-imas"
+version = "0.1.1"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "*" }
+
+[package.build.config]
+noarch = false
+env = { SETUPTOOLS_SCM_PRETEND_VERSION = "0.1.1" }
+
+[workspace.build-variants]
+python = ["3.10.*", "3.13.*"]
+
+[package.host-dependencies]
+hatchling = "*"
+hatch-vcs = "*"
+hatch-cython = ">=0.6.0rc0"
+cython = ">=3.1,<4"
+llvm-openmp = "*"
+cherab = "1.5.*"
+
+[package.run-dependencies]
+imas-python = "*"
+imas-data-dictionaries = "4.0.*"
+
+# ---------------------------------
+# === Development Configuration ===
+# ---------------------------------
+[dependencies]
+cherab-imas = { path = "." }
+ipython = "*"
+
+[tasks]
+ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
+
+[feature.tests.dependencies]
+pytest = "*"
+
+[feature.tests.tasks]
+test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
+
+# === Linting feature ===
+[feature.lint.dependencies]
+dprint = "*"
+lefthook = "*"
+ruff = "*"
+typos = "*"
+mypy = "*"
+numpydoc = "*"
+actionlint = "*"
+shellcheck = "*"
+validate-pyproject = "*"
+cython-lint = "*"
+docformatter = "*"
+blacken-docs = "*"
+taplo = "*"
+
+[feature.lint.tasks]
+lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
+hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks" }
+pre-commit = { cmd = "lefthook run pre-commit", description = "🔗 Run pre-commit checks" }
+lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
+
+# === Python environment features ===
+[feature.py310.dependencies]
+python = "3.10.*"
+[feature.py313.dependencies]
+python = "3.13.*"
+
+[environments]
+default = { features = ["py313"], solve-group = "py313" }
+# docs = { features = ["py313", "docs"], solve-group = "py313" }
+tests = { features = ["py313", "tests"], solve-group = "py313" }
+tests-py313 = { features = [
+    "py313",
+    "tests",
+], solve-group = "py313" } # alias of tests
+tests-py310 = ["py310", "tests"]
+lint = { features = ["lint"], no-default-feature = true }
