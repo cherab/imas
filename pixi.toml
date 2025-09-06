@@ -1,5 +1,4 @@
 [workspace]
-authors = ["munechika-koyo <munechika.koyo@gmail.com>", "jacklovell", "vsnever"]
 channels = ["https://prefix.dev/conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 preview = ["pixi-build"]
@@ -19,7 +18,7 @@ noarch = false
 env = { SETUPTOOLS_SCM_PRETEND_VERSION = "0.1.1" }
 
 [workspace.build-variants]
-python = ["3.10.*", "3.13.*"]
+python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
 
 [package.host-dependencies]
 hatchling = "*"
@@ -31,7 +30,6 @@ cherab = "1.5.*"
 
 [package.run-dependencies]
 imas-python = "*"
-imas-data-dictionaries = "4.0.*"
 
 # ---------------------------------
 # === Development Configuration ===
@@ -45,6 +43,7 @@ ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
 
 [feature.tests.dependencies]
 pytest = "*"
+pytest-cov = "*"
 
 [feature.tests.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
