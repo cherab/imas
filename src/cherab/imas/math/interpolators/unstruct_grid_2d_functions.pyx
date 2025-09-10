@@ -27,17 +27,16 @@ cimport cython
 
 
 cdef class UnstructGridFunction2D(Function2D):
-    """
-    A simple interpolator for the data defined on the 2D unstructured grid.
+    """Simple interpolator for the data defined on the 2D unstructured grid.
+
     Finds the cell containing the point (x, y) using the KDtree algorithm.
-    Returns the data value for this cell or the `fill_value` if the grid
-    does not contain the point. 
+    Returns the data value for this cell or the `fill_value` if the grid does not contain the point.
 
     :param object vertex_coords: 2D (N,3) array-like with the vertex coordinates of triangles.
-    :param object triangles: 2D (M,3) integer array-like with the vertex indices forming
-        the triangles.
-    :param object triangle_to_cell_map: 1D (M,) integer array-like with the indices of
-        the grid cells (polygons) containing the triangles.
+    :param object triangles: 2D (M,3) integer array-like with the vertex indices forming the
+        triangles.
+    :param object triangle_to_cell_map: 1D (M,) integer array-like with the indices of the grid
+        cells (polygons) containing the triangles.
     :param ndarray grid_data: An array containing data in the grid cells.
     :param double fill_value: A value returned outside the gird. Default is 0.
     """
@@ -77,25 +76,31 @@ cdef class UnstructGridFunction2D(Function2D):
 
     @classmethod
     def instance(cls, object instance not None, np.ndarray grid_data=None, object fill_value=None):
-        """
-        Creates a new interpolator instance from an existing UnstructGridFunction2D
-        or UnstructGridVectorFunction2D instance.
-        The new interpolator instance will share the same internal acceleration
-        data as the original interpolator. The grid_data of the new instance can
-        be redefined.
-        This method should be used if the user has multiple datasets
-        that lie on the same mesh geometry. Using this methods avoids the
-        repeated rebuilding of the mesh acceleration structures by sharing the
-        geometry data between multiple interpolator objects.
+        """Creates a new interpolator instance from an existing `UnstructGridFunction2D` or
+        `UnstructGridVectorFunction2D` instance.
 
-        If created from the UnstructGridVectorFunction2D instance,
-        the grid_data and the fill_value must not be None.
+        The new interpolator instance will share the same internal acceleration data as the original
+        interpolator. The grid_data of the new instance can be redefined.
+        This method should be used if the user has multiple datasets that lie on the same mesh
+        geometry. Using this methods avoids the repeated rebuilding of the mesh acceleration
+        structures by sharing the geometry data between multiple interpolator objects.
 
-        :param object instance: UnstructGridFunction2D or UnstructGridVectorFunction2D object.
-        :param ndarray grid_data: An array containing data in the grid cells.
-        :param object fill_value: A value returned outside the gird.
-        :return: A UnstructGridFunction2D object.
-        :rtype: UnstructGridFunction2D
+        If created from the UnstructGridVectorFunction2D instance, the grid_data and the fill_value
+        must not be None.
+
+        Parameters
+        ----------
+        instance : UnstructGridFunction2D | UnstructGridVectorFunction2D
+            The instance from which to create the new interpolator.
+        grid_data : ndarray, optional
+            Array containing data in the grid cells.
+        fill_value : float, optional
+            Value returned outside the grid.
+
+        Returns
+        -------
+        UnstructGridFunction2D | UnstructGridVectorFunction2D
+            The new interpolator instance.
         """
 
         cdef UnstructGridFunction2D m, inst
@@ -148,17 +153,17 @@ cdef class UnstructGridFunction2D(Function2D):
         return self._fill_value
 
 cdef class UnstructGridVectorFunction2D(VectorFunction2D):
-    """
-    A simple vector interpolator for the data defined on the 2D unstructured grid.
+    """Simple vector interpolator for the data defined on the 2D unstructured grid.
+
     Finds the cell containing the point (x, y) using the KDtree algorithm.
-    Returns the 3D vector value for this cell or the `fill_vector` if the grid
-    does not contain the point.
+    Returns the 3D vector value for this cell or the `fill_vector` if the grid does not contain the
+    point.
 
     :param object vertex_coords: 2D (N,3) array-like with the vertex coordinates of triangles.
-    :param object triangles: 2D (M,3) integer array-like with the vertex indices forming
-        the triangles.
-    :param object triangle_to_cell_map: 1D (M,) integer array-like with the indices of
-        the grid cells (polygons) containing the triangles.
+    :param object triangles: 2D (M,3) integer array-like with the vertex indices forming the
+        triangles.
+    :param object triangle_to_cell_map: 1D (M,) integer array-like with the indices of the grid
+        cells (polygons) containing the triangles.
     :param ndarray grid_vectors: A (3,K) array containing 3D vectors in the grid cells.
     :param Vector3D fill_vector: A 3D vector returned outside the gird. Default is (0, 0, 0).
     """
@@ -199,24 +204,31 @@ cdef class UnstructGridVectorFunction2D(VectorFunction2D):
     @classmethod
     def instance(cls, object instance not None, np.ndarray grid_vectors=None,
                  Vector3D fill_vector=None):
-        """
-        Creates a new interpolator instance from an existing UnstructGridVectorFunction2D
-        or UnstructGridFunction2D instance.
-        The new interpolator instance will share the same internal acceleration
-        data as the original interpolator. The grid_vectors of the new instance can
-        be redefined.
-        This method should be used if the user has multiple datasets
-        that lie on the same mesh geometry. Using this methods avoids the
-        repeated rebuilding of the mesh acceleration structures by sharing the
-        geometry data between multiple interpolator objects.
+        """Creates a new interpolator instance from an existing `UnstructGridVectorFunction2D` or
+        `UnstructGridFunction2D` instance.
 
-        If created from the UnstructGridFunction2D instance,
-        the grid_vectors and the fill_vector must not be None.
+        The new interpolator instance will share the same internal acceleration data as the original
+        interpolator. The `grid_vectors` of the new instance can be redefined. This method should be
+        used if the user has multiple datasets that lie on the same mesh geometry.
+        Using this methods avoids the repeated rebuilding of the mesh acceleration structures by
+        sharing the geometry data between multiple interpolator objects.
 
-        :param object instance: UnstructGridVectorFunction2D or UnstructGridFunction2D object.
-        :param ndarray grid_vectors: An array containing vector grid data.
-        :return: UnstructGridVectorFunction2D object.
-        :rtype: UnstructGridVectorFunction2D
+        If created from the `UnstructGridFunction2D` instance, the `grid_vectors` and the
+        `fill_vector` must not be None.
+
+        Parameters
+        ----------
+        instance : UnstructGridFunction2D | UnstructGridVectorFunction2D
+            The instance from which to create the new interpolator.
+        grid_vectors : ndarray, optional
+            Array containing vector grid data.
+        fill_vector : Vector3D, optional
+            3D vector returned outside the grid, by default `Vector3D(0, 0, 0)`.
+
+        Returns
+        -------
+        UnstructGridFunction2D | UnstructGridVectorFunction2D
+            The new interpolator instance.
         """
 
         cdef UnstructGridVectorFunction2D m, instvec

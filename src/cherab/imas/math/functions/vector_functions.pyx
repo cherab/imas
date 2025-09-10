@@ -25,9 +25,7 @@ from raysect.core.math.function.vector3d cimport autowrap_function3d as autowrap
 
 
 cdef class UnitVector1D(VectorFunction1D):
-    """
-    Evaluates a unit vector for the given VectorFunction1D instance.
-    """
+    """Evaluates a unit vector for the given VectorFunction1D instance."""
 
     def __init__(self, object vector):
         self._vector = autowrap_vectorfunction1d(vector)
@@ -38,9 +36,7 @@ cdef class UnitVector1D(VectorFunction1D):
 
 
 cdef class UnitVector2D(VectorFunction2D):
-    """
-    Evaluates a unit vector for the given VectorFunction2D instance.
-    """
+    """Evaluates a unit vector for the given VectorFunction2D instance."""
 
     def __init__(self, object vector):
         self._vector = autowrap_vectorfunction2d(vector)
@@ -51,9 +47,7 @@ cdef class UnitVector2D(VectorFunction2D):
 
 
 cdef class UnitVector3D(VectorFunction3D):
-    """
-    Evaluates a unit vector for the given VectorFunction3D instance.
-    """
+    """Evaluates a unit vector for the given VectorFunction3D instance."""
 
     def __init__(self, object vector):
         self._vector = autowrap_vectorfunction3d(vector)

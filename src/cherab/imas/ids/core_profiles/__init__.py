@@ -16,4 +16,4 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .load_profiles import load_core_profiles, load_core_grid, load_core_species
+from .load_profiles import load_core_grid, load_core_profiles, load_core_species

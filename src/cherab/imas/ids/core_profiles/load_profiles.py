@@ -18,33 +18,33 @@
 
 import numpy as np
 
-from cherab.imas.ids.common.species import get_element_list, get_ion_state, get_neutral_state, get_ion, get_neutral
+from cherab.imas.ids.common.species import (
+    get_element_list,
+    get_ion,
+    get_ion_state,
+    get_neutral,
+    get_neutral_state,
+)
 
 
 def load_core_profiles(species_struct, backup_species_struct=None):
-    """
-    Loads core profiles from a given species structe.
+    """Loads core profiles from a given species structe.
 
     The returned dictionary values for missing profiles are None.
 
     :param species_struct: The IDS structure containing the profiles for a single species.
-    :param backup_species_struct: The backup ids structure that is used if the profile is missing
-                                  in species_struct. Default is None.
-
-    :returns: A dictionary with the following keys:
-        'density',
-        'density_thermal'
-        'density_fast',
-        'temperature',
-        'z_average_1d'.
+    :param backup_species_struct: The backup ids structure that is used if the profile is missing in
+        species_struct. Default is None.
+    :returns: A dictionary with the following keys: 'density', 'density_thermal' 'density_fast',
+        'temperature', 'z_average_1d'.
     """
 
     profiles = {
-        'density': None,
-        'density_thermal': None,
-        'density_fast': None,
-        'temperature': None,
-        'z_average_1d': None,
+        "density": None,
+        "density_thermal": None,
+        "density_fast": None,
+        "temperature": None,
+        "z_average_1d": None,
     }
 
     for name in profiles:
@@ -56,27 +56,22 @@ def load_core_profiles(species_struct, backup_species_struct=None):
 
 
 def load_core_grid(grid_struct):
-    """
-    Loads grid properties of the core profiles.
+    """Loads grid properties of the core profiles.
 
     The returned dictionary values for missing data are None.
 
     :param grid_struct The IDS structure containing the grid data for 1D profiles.
 
-    :returns: A dictionary with the following keys:
-        'rho_tor_norm',
-        'psi',
-        'volume',
-        'area'
+    :returns: A dictionary with the following keys: 'rho_tor_norm', 'psi', 'volume', 'area'
         'surface'.
     """
 
     grid = {
-        'rho_tor_norm': None,
-        'volume': None,
-        'area': None,
-        'surface': None,
-        'psi': None,
+        "rho_tor_norm": None,
+        "volume": None,
+        "area": None,
+        "surface": None,
+        "psi": None,
     }
 
     for name in grid:
@@ -86,8 +81,7 @@ def load_core_grid(grid_struct):
 
 
 def load_core_species(profiles_struct):
-    """
-    Loads core plasma species and their profiles from a given profiles IDS structure.
+    """Loads core plasma species and their profiles from a given profiles IDS structure.
 
     The returned dictionary has the following structure:
     {
@@ -134,10 +128,10 @@ def load_core_species(profiles_struct):
     :returns: A dictionary with plasma profiles.
     """
 
-    species_types = ('molecule', 'molecular_bundle', 'ion', 'ion_bundle')
+    species_types = ("molecule", "molecular_bundle", "ion", "ion_bundle")
     composition = {species_type: {} for species_type in species_types}
 
-    composition['electron'] = load_core_profiles(profiles_struct.electrons)
+    composition["electron"] = load_core_profiles(profiles_struct.electrons)
 
     # ions
     ion_elements = []
@@ -148,21 +142,21 @@ def load_core_species(profiles_struct):
         ion_elements.append(elements)
 
         if len(ion.state):
-            shared_temperature = _get_profile(ion, 'temperature')
+            shared_temperature = _get_profile(ion, "temperature")
             backup_ids = None if len(ion.state) > 1 else ion
             for i, state in enumerate(ion.state):
                 species_type, species_id = get_ion_state(state, i, elements)
                 if species_id in composition[species_type]:
-                    print("Warning! Skipping duplicated ion: {}".format(state.label.strip()))
+                    print(f"Warning! Skipping duplicated ion: {state.label.strip()}")
                     continue
                 profiles = load_core_profiles(state, backup_ids)
-                if backup_ids is None and profiles['temperature'] is None:
-                    profiles['temperature'] = shared_temperature
+                if backup_ids is None and profiles["temperature"] is None:
+                    profiles["temperature"] = shared_temperature
                 composition[species_type][species_id] = profiles
         else:
             species_type, species_id = get_ion(ion, elements)
             if species_id in composition[species_type]:
-                print("Warning! Skipping duplicated ion: {}".format(ion.label.strip()))
+                print(f"Warning! Skipping duplicated ion: {ion.label.strip()}")
             else:
                 composition[species_type][species_id] = load_core_profiles(ion)
 
@@ -173,21 +167,21 @@ def load_core_species(profiles_struct):
             elements = ion_elements[neutral.ion_index - 1]
 
         if len(neutral.state):
-            shared_temperature = _get_profile(neutral, 'temperature')
+            shared_temperature = _get_profile(neutral, "temperature")
             backup_ids = None if len(neutral.state) > 1 else neutral
             for state in neutral.state:
                 species_type, species_id = get_neutral_state(state, elements)
                 if species_id in composition[species_type]:
-                    print("Warning! Skipping duplicated neutral: {}".format(state.label.strip()))
+                    print(f"Warning! Skipping duplicated neutral: {state.label.strip()}")
                     continue
                 profiles = load_core_profiles(state, backup_ids)
-                if backup_ids is None and profiles['temperature'] is None:
-                    profiles['temperature'] = shared_temperature
+                if backup_ids is None and profiles["temperature"] is None:
+                    profiles["temperature"] = shared_temperature
                 composition[species_type][species_id] = profiles
         else:
             species_type, species_id = get_neutral(neutral, elements)
             if species_id in composition[species_type]:
-                print("Warning! Skipping duplicated neutral: ".format(neutral.label.strip()))
+                print("Warning! Skipping duplicated neutral: ")
             else:
                 composition[species_type][species_id] = load_core_profiles(neutral)
 
@@ -196,10 +190,14 @@ def load_core_species(profiles_struct):
     if len(tion):
         for species_type in species_types:
             for species_id, profiles in composition[species_type].items():
-                if profiles['temperature'] is None:
+                if profiles["temperature"] is None:
                     d = {first: second for first, second in species_id}
-                    print('Warning! Using average ion temperature for the {} {}.'.format(d['label'], species_type))
-                    profiles['temperature'] = tion
+                    print(
+                        "Warning! Using average ion temperature for the {} {}.".format(
+                            d["label"], species_type
+                        )
+                    )
+                    profiles["temperature"] = tion
 
     return composition
 

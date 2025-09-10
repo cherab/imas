@@ -18,24 +18,33 @@
 
 import numpy as np
 
-from imas.imasdef import EMPTY_INT
-
+from imas.ids_defs import EMPTY_INT
+from imas.ids_struct_array import IDSStructArray
 
 RECTANGULAR_GRID = 1
 
+__all__ = ["load_magnetic_field_data"]
 
-def load_magnetic_field_data(profiles_2d):
-    """
-    Loads 2D profiles of the magnetic field components from the profiles_2d structure of the equilibirum IDS.
 
-    :param profiles_2d: The profiles_2d structure of the equilibirum IDS.
+def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
+    """Loads 2D profiles of the magnetic field components from the profiles_2d structure of the
+    equilibirum IDS.
 
-    :returns: A dictionary with the following keys:
-        'r': A N-size array with R coordinates of rectangular grid,
-        'z': A M-size array with Z coordinates of rectangular grid,
-        'b_field_r': A NxM  array of shape (N, M) with R component of the magnetic field,
-        'b_field_z': A NxM  array of shape (N, M) with Z component of the magnetic field,
-        'b_field_tor': A NxM  array of shape (N, M) with toroidal component of the magnetic field,
+    Parameters
+    ----------
+    profiles_2d : IDSStructArray
+        The profiles_2d structure of the equilibirum IDS.
+
+    Returns
+    -------
+    dict[str, ndarray]
+        Dictionary with the following keys:
+
+            - 'r': (N,) ndarray with R coordinates of rectangular grid
+            - 'z': (M,) ndarray with Z coordinates of rectangular grid
+            - 'b_field_r': (N, M) ndarray with R component of the magnetic field
+            - 'b_field_z': (N, M) ndarray with Z component of the magnetic field
+            - 'b_field_tor': (N, M) ndarray with toroidal component of the magnetic field
     """
 
     rectangular_grid = False
@@ -45,19 +54,29 @@ def load_magnetic_field_data(profiles_2d):
             break
 
     if not rectangular_grid:
-        raise RuntimeError("Unable to read magnetic field: rectangular grid for 2D profiles is not found and other grid types are not supported.")
+        raise RuntimeError(
+            "Unable to read magnetic field: "
+            "rectangular grid for 2D profiles is not found and other grid types are not supported."
+        )
 
     b_dict = {}
 
-    b_dict['r'] = np.array(prof2d.grid.dim1)
-    b_dict['z'] = np.array(prof2d.grid.dim2)
-    shape = (b_dict['r'].size, b_dict['z'].size)
+    b_dict["r"] = np.array(prof2d.grid.dim1)
+    b_dict["z"] = np.array(prof2d.grid.dim2)
+    shape = (b_dict["r"].size, b_dict["z"].size)
 
-    b_dict['b_field_r'] = np.array(prof2d.b_field_r)
-    b_dict['b_field_tor'] = np.array(prof2d.b_field_tor)
-    b_dict['b_field_z'] = np.array(prof2d.b_field_z)
+    b_dict["b_field_r"] = np.array(prof2d.b_field_r)
+    b_dict["b_field_tor"] = np.array(prof2d.b_field_tor)
+    b_dict["b_field_z"] = np.array(prof2d.b_field_z)
 
-    if b_dict['b_field_r'].shape != shape or b_dict['b_field_tor'].shape != shape or b_dict['b_field_z'].shape != shape:
-        raise RuntimeError("Unable to read magnetic field: the shape of the magnetic field components does not match the grid shape.")
+    if (
+        b_dict["b_field_r"].shape != shape
+        or b_dict["b_field_tor"].shape != shape
+        or b_dict["b_field_z"].shape != shape
+    ):
+        raise RuntimeError(
+            "Unable to read magnetic field: "
+            "the shape of the magnetic field components does not match the grid shape."
+        )
 
     return b_dict

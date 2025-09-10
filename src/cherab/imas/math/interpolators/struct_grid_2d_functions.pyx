@@ -27,10 +27,10 @@ cimport cython
 
 
 cdef class StructGridFunction2D(Function2D):
-    """
-    A simple interpolator for the data defined on the 2D structured grid.
-    Finds the cell containing the point (x, y). Returns the data value for this cell
-    or the `fill_value` if the points lies outside the grid. 
+    """Simple interpolator for the data defined on the 2D structured grid.
+
+    Finds the cell containing the point (x, y).
+    Returns the data value for this cell or the `fill_value` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.
@@ -95,10 +95,10 @@ cdef class StructGridFunction2D(Function2D):
 
 
 cdef class StructGridVectorFunction2D(VectorFunction2D):
-    """
-    A simple vector interpolator for the data defined on the 2D structured grid.
-    Finds the cell containing the point (x, y). Returns the 3D vector value this cell
-    or the `fill_vector` if the points lies outside the grid.
+    """Simple vector interpolator for the data defined on the 2D structured grid.
+
+    Finds the cell containing the point (x, y).
+    Returns the 3D vector value this cell or the `fill_vector` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.

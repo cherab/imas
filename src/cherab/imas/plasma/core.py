@@ -17,31 +17,39 @@
 # under the Licence.
 
 import numpy as np
+from raysect.core.math import Vector3D, translate
+from raysect.core.math.function.float import Interpolator1DArray
+from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
+from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
 import imas
-
-from raysect.core.math.function.float import Interpolator1DArray
-from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
-from raysect.core.math import translate, Vector3D
-from raysect.primitive import Cylinder, Subtract
-
-from cherab.core import Plasma, Species, Maxwellian
+from cherab.core import Maxwellian, Plasma, Species
 from cherab.core.math import VectorAxisymmetricMapper
 from cherab.core.utility import RecursiveDict
-from cherab.tools.equilibrium import EFITEquilibrium
-
 from cherab.imas.ids.common import get_ids_time_slice
-from cherab.imas.ids.core_profiles import load_core_species, load_core_grid
+from cherab.imas.ids.core_profiles import load_core_grid, load_core_species
 from cherab.imas.plasma.equilibrium import load_equilibrium, load_magnetic_field
 from cherab.imas.plasma.utility import warn_unsupported_species
+from cherab.tools.equilibrium import EFITEquilibrium
 
 
-def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND, time=0, occurrence=0,
-                     equilibrium=None, b_field=None, psi_interpolator=None, time_threshold=np.inf, parent=None):
-    """
-    Loads core profiles and creates a Plasma object.
-    Prefers 'density_thermal' over 'density' profile.
+def load_core_plasma(
+    shot,
+    run,
+    user,
+    database,
+    backend=imas.imasdef.MDSPLUS_BACKEND,
+    time=0,
+    occurrence=0,
+    equilibrium=None,
+    b_field=None,
+    psi_interpolator=None,
+    time_threshold=np.inf,
+    parent=None,
+):
+    """Loads core profiles and creates a Plasma object. Prefers 'density_thermal' over 'density'
+    profile.
 
     :param shot: IMAS shot number.
     :param run: IMAS run number for a given shot.
@@ -62,13 +70,17 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
     """
 
     entry = imas.DBEntry(backend, database, shot, run, user)
-    core_profiles_ids = get_ids_time_slice(entry, 'core_profiles', time=time, occurrence=occurrence, time_threshold=time_threshold)
+    core_profiles_ids = get_ids_time_slice(
+        entry, "core_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
+    )
 
     if not len(core_profiles_ids.profiles_1d):
-        raise RuntimeError('The profiles_1d AOS in core_profiles IDS is empty.')
+        raise RuntimeError("The profiles_1d AOS in core_profiles IDS is empty.")
 
     if equilibrium is None:
-        equilibrium, psi_interp = load_equilibrium(shot, run, user, database, backend=backend, time=time, with_psi_interpolator=True)
+        equilibrium, psi_interp = load_equilibrium(
+            shot, run, user, database, backend=backend, time=time, with_psi_interpolator=True
+        )
         psi_interpolator = psi_interpolator or psi_interp
 
     if not isinstance(equilibrium, EFITEquilibrium):
@@ -84,9 +96,15 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
 
     composition = load_core_species(core_profiles_ids.profiles_1d[0])
 
-    psi_norm = get_psi_norm(core_grid['psi'], equilibrium.psi_axis, equilibrium.psi_lcfs, core_grid['rho_tor_norm'], psi_interpolator)
+    psi_norm = get_psi_norm(
+        core_grid["psi"],
+        equilibrium.psi_axis,
+        equilibrium.psi_lcfs,
+        core_grid["rho_tor_norm"],
+        psi_interpolator,
+    )
 
-    name = 'IMAS core plasma: shot {}, run {}, time {}.'.format(shot, run, core_profiles_ids.time[0])
+    name = f"IMAS core plasma: shot {shot}, run {run}, time {core_profiles_ids.time[0]}."
     plasma = Plasma(parent=parent, name=name)
 
     # Create plasma geometry
@@ -99,46 +117,57 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
     plasma.b_field = VectorAxisymmetricMapper(b_field)
 
     # Add electron species
-    electrons = get_core_interpolators(psi_norm, composition['electron'], equilibrium, return3d=True)
-    if electrons['density_thermal'] is not None:
-        electrons['density'] = electrons['density_thermal']
+    electrons = get_core_interpolators(
+        psi_norm, composition["electron"], equilibrium, return3d=True
+    )
+    if electrons["density_thermal"] is not None:
+        electrons["density"] = electrons["density_thermal"]
 
-    if electrons['density'] is None:
+    if electrons["density"] is None:
         print("Unable to create Core Plasma: electron density is not available.")
-    if electrons['temperature'] is None:
+    if electrons["temperature"] is None:
         print("Unable to create Core Plasma: electron temperature is not available.")
 
     zero_velocity = ConstantVector3D(Vector3D(0, 0, 0))
 
-    plasma.electron_distribution = Maxwellian(electrons['density'], electrons['temperature'],
-                                              zero_velocity, electron_mass)
+    plasma.electron_distribution = Maxwellian(
+        electrons["density"], electrons["temperature"], zero_velocity, electron_mass
+    )
 
-    warn_unsupported_species(composition, 'molecule')
-    warn_unsupported_species(composition, 'molecular_bundle')
-    warn_unsupported_species(composition, 'ion_bundle')
+    warn_unsupported_species(composition, "molecule")
+    warn_unsupported_species(composition, "molecular_bundle")
+    warn_unsupported_species(composition, "ion_bundle")
 
     # Add ion and neutral species
-    for species_id, profiles in composition['ion'].items():
+    for species_id, profiles in composition["ion"].items():
         d = {first: second for first, second in species_id}
-        species_type = d['element']
-        charge = int(round(d['z']))
+        species_type = d["element"]
+        charge = int(round(d["z"]))
 
         sp_key = (species_type, charge)
         if sp_key in plasma.composition:
-            print("Warning! Skipping {} species. Species with the same (element, charge): {} is already added.".format(d['label'], sp_key))
+            print(
+                "Warning! Skipping {} species. Species with the same (element, charge): {} is already added.".format(
+                    d["label"], sp_key
+                )
+            )
             continue
 
         interp = get_core_interpolators(psi_norm, profiles, equilibrium, return3d=True)
-        if interp['density_thermal'] is not None:
-            interp['density'] = interp['density_thermal']
+        if interp["density_thermal"] is not None:
+            interp["density"] = interp["density_thermal"]
 
-        if interp['density'] is None:
-            print("Warning! Skipping {} species: density is not available.".format(d['label']))
-        if interp['temperature'] is None:
-            print("Warning! Skipping {} species: temperature is not available.".format(d['label']))
+        if interp["density"] is None:
+            print("Warning! Skipping {} species: density is not available.".format(d["label"]))
+        if interp["temperature"] is None:
+            print("Warning! Skipping {} species: temperature is not available.".format(d["label"]))
 
-        distribution = Maxwellian(interp['density'], interp['temperature'],
-                                  zero_velocity, species_type.atomic_weight * atomic_mass)
+        distribution = Maxwellian(
+            interp["density"],
+            interp["temperature"],
+            zero_velocity,
+            species_type.atomic_weight * atomic_mass,
+        )
 
         plasma.composition.add(Species(species_type, charge, distribution))
 
@@ -146,15 +175,13 @@ def load_core_plasma(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BAC
 
 
 def get_core_interpolators(psi_norm, profiles, equilibrium, return3d=False):
-    """
-    Create interpolators for the core profiles.
+    """Create interpolators for the core profiles.
 
     :param psi_norm: psi_norm array.
     :param profiles: A dictionary with core plasma profiles.
     :param equilibrium: EFITEquilibrium object used to map core profiles.
-    :param return3d: If True, return the 3D interpolators assuming rotational symmetry.
-        Default is False.
-
+    :param return3d: If True, return the 3D interpolators assuming rotational symmetry. Default is
+        False.
     :returns: A dictionary with core interpolators.
     """
 
@@ -167,9 +194,13 @@ def get_core_interpolators(psi_norm, profiles, equilibrium, return3d=False):
 
     for prof_key, profile in profiles.items():
         if profile is not None:
-            extrapolation_range = max(0, psi_norm[0], 1. - psi_norm[-1])
-            func = Interpolator1DArray(psi_norm, profile[indx], 'cubic', 'nearest', extrapolation_range)
-            interpolators[prof_key] = equilibrium.map3d(func) if return3d else equilibrium.map2d(func)
+            extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
+            func = Interpolator1DArray(
+                psi_norm, profile[indx], "cubic", "nearest", extrapolation_range
+            )
+            interpolators[prof_key] = (
+                equilibrium.map3d(func) if return3d else equilibrium.map2d(func)
+            )
         else:
             interpolators[prof_key] = None
 
@@ -177,13 +208,16 @@ def get_core_interpolators(psi_norm, profiles, equilibrium, return3d=False):
 
 
 def get_psi_norm(psi, psi_axis, psi_lcfs, rho_tor_norm, psi_interpolator):
-
     if psi is None:
         if psi_interpolator is None:
-            raise RuntimeError('Unable to map rho_tor_norm to psi_norm grid: psi_interpolator is not provided.')
+            raise RuntimeError(
+                "Unable to map rho_tor_norm to psi_norm grid: psi_interpolator is not provided."
+            )
 
         if rho_tor_norm is None:
-            raise RuntimeError('No rho_tor_norm values are available in the core grid: unable to interpolate to psi_norm.')
+            raise RuntimeError(
+                "No rho_tor_norm values are available in the core grid: unable to interpolate to psi_norm."
+            )
 
         return np.array([psi_interpolator(rho) for rho in rho_tor_norm])
 

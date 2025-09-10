@@ -18,25 +18,28 @@
 
 from numpy import inf
 
-from imas.imasdef import CLOSEST_INTERP
+import imas
 
 
-def get_ids_time_slice(entry, ids_name, time=0, occurrence=0, time_threshold=inf):
-
+def get_ids_time_slice(
+    entry: imas.DBEntry, ids_name: str, time=0, occurrence=0, time_threshold=inf
+):
     if time < 0:
         raise ValueError("Argument 'time' must be >=0.")
     if time_threshold < 0:
         raise ValueError("Argument 'time_threshold' must be >=0.")
 
     entry.open()
-    ids = entry.get_slice(ids_name, time, CLOSEST_INTERP, occurrence=occurrence)
+    ids = entry.get_slice(ids_name, time, imas.ids_defs.CLOSEST_INTERP, occurrence=occurrence)
     entry.close()
 
     if not len(ids.time):
-        raise RuntimeError('The {} IDS is empty.'.format(ids_name))
+        raise RuntimeError(f"The {ids_name} IDS is empty.")
 
     if abs(ids.time[0] - time) > time_threshold:
-        raise RuntimeError('The time difference between the actual time ({} s) of the nearest {}'.format(ids.time[0], ids_name) +
-                           ' time slice and the given time ({} s) exceeds the specified threshold ({} s).'.format(time, time_threshold))
+        raise RuntimeError(
+            f"The time difference between the actual time ({ids.time[0]} s) of the nearest {ids_name}"
+            + f" time slice and the given time ({time} s) exceeds the specified threshold ({time_threshold} s)."
+        )
 
     return ids

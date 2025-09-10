@@ -16,5 +16,5 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .load3d import load_wall_3d
 from .load2d import load_wall_2d
+from .load3d import load_wall_3d

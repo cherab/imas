@@ -20,11 +20,9 @@ import numpy as np
 
 
 def load_wall_2d(description_2d):
-    """
-    Loads 2D wall outline (limiter contour only) from IMAS wall IDS and returns a dictionary.
+    """Loads 2D wall outline (limiter contour only) from IMAS wall IDS and returns a dictionary.
 
     :param description_2d: IDS structure with 2D description of the wall.
-
     :returns: A dictionary of wall unit outlines given in RZ coordinates.
     """
 

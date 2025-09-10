@@ -17,18 +17,15 @@
 # under the Licence.
 
 import numpy as np
-
-from imas.imasdef import EMPTY_DOUBLE, EMPTY_INT
-
 from raysect.core.math import Point2D
 
+from imas.imasdef import EMPTY_DOUBLE, EMPTY_INT
 
 RECTANGULAR_GRID = 1
 
 
 def load_equilibrium_data(equilibirum_ids):
-    """
-    Loads 2D plasma equilibrium data from the equilibrium IDS.
+    """Loads 2D plasma equilibrium data from the equilibrium IDS.
 
     :param equilibirum_ids: The time-slice of the equilibrium IDS.
 
@@ -53,7 +50,7 @@ def load_equilibrium_data(equilibirum_ids):
     """
 
     if not len(equilibirum_ids.time_slice):
-        raise RuntimeError('Equilibrium IDS does not have a time slice.')
+        raise RuntimeError("Equilibrium IDS does not have a time slice.")
 
     profiles_2d = equilibirum_ids.time_slice[0].profiles_2d
 
@@ -64,14 +61,18 @@ def load_equilibrium_data(equilibirum_ids):
             break
 
     if not rectangular_grid:
-        raise RuntimeError("Unable to read equilibrium: rectangular grid for psi profile is not found and other grid types are not supported.")
+        raise RuntimeError(
+            "Unable to read equilibrium: rectangular grid for psi profile is not found and other grid types are not supported."
+        )
 
     r = np.array(prof2d.grid.dim1)
     z = np.array(prof2d.grid.dim2)
 
     psi_grid = np.array(prof2d.psi)
     if psi_grid.shape != (r.size, z.size):
-        raise RuntimeError("Unable to read equilibrium: the shape of 'profiles_2d[i].psi' does not match the grid shape.")
+        raise RuntimeError(
+            "Unable to read equilibrium: the shape of 'profiles_2d[i].psi' does not match the grid shape."
+        )
 
     profiles_1d = equilibirum_ids.time_slice[0].profiles_1d
 
@@ -93,7 +94,9 @@ def load_equilibrium_data(equilibirum_ids):
 
     psi_lcfs = global_quantities.psi_boundary
     if psi_lcfs == EMPTY_DOUBLE:
-        raise RuntimeError("Unable to read equilibrium: 'global_quantities.psi_boundary' is not set.")
+        raise RuntimeError(
+            "Unable to read equilibrium: 'global_quantities.psi_boundary' is not set."
+        )
 
     psi_norm = (psi1d - psi_axis) / (psi_lcfs - psi_axis)
     psi_norm, indx = np.unique(psi_norm, return_index=True)
@@ -134,7 +137,9 @@ def load_equilibrium_data(equilibirum_ids):
         lcfs_polygon = lcfs_polygon[:, np.sort(indx)]
 
     if lcfs_polygon.shape[1] < 3:
-        raise RuntimeError("Unable to read equilibrium: boundary.outline contains less than 3 unique points.")
+        raise RuntimeError(
+            "Unable to read equilibrium: boundary.outline contains less than 3 unique points."
+        )
 
     b_vacuum_radius = equilibirum_ids.vacuum_toroidal_field.r0
     if b_vacuum_radius == EMPTY_DOUBLE:
@@ -147,21 +152,21 @@ def load_equilibrium_data(equilibirum_ids):
     time = equilibirum_ids.time[0]
 
     return {
-        'r': r,
-        'z': z,
-        'psi_grid': psi_grid,
-        'psi_axis': psi_axis,
-        'psi_lcfs': psi_lcfs,
-        'magnetic_axis': magnetic_axis,
-        'x_points': x_points,
-        'strike_points': strike_points,
-        'psi_norm': psi_norm,
-        'f': f,
-        'q': q,
-        'phi': phi,
-        'rho_tor_norm': rho_tor_norm,
-        'b_vacuum_radius': b_vacuum_radius,
-        'b_vacuum_magnitude': b_vacuum_magnitude,
-        'lcfs_polygon': lcfs_polygon,
-        'time': time
+        "r": r,
+        "z": z,
+        "psi_grid": psi_grid,
+        "psi_axis": psi_axis,
+        "psi_lcfs": psi_lcfs,
+        "magnetic_axis": magnetic_axis,
+        "x_points": x_points,
+        "strike_points": strike_points,
+        "psi_norm": psi_norm,
+        "f": f,
+        "q": q,
+        "phi": phi,
+        "rho_tor_norm": rho_tor_norm,
+        "b_vacuum_radius": b_vacuum_radius,
+        "b_vacuum_magnitude": b_vacuum_magnitude,
+        "lcfs_polygon": lcfs_polygon,
+        "time": time,
     }

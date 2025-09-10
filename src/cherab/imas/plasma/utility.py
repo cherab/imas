@@ -16,19 +16,20 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-def warn_unsupported_species(composition, species_type):
 
+def warn_unsupported_species(composition, species_type):
     if species_type in composition and len(composition[species_type]):
-        print("Warning! Species of type '{}' are currently not supported. The follwoing species will be skipped:".format(species_type))
+        print(
+            f"Warning! Species of type '{species_type}' are currently not supported. The follwoing species will be skipped:"
+        )
         labels = []
         for species_id in composition[species_type]:
             d = {first: second for first, second in species_id}
-            labels.append(d['label'])
-        print('; '.join(labels))
+            labels.append(d["label"])
+        print("; ".join(labels))
 
 
 def get_subset_name_index(subset_id_dict, grid_subset_id):
-
     subset_id = subset_id_dict.copy()
     subset_id.update({value: key for key, value in subset_id.items()})
 
@@ -40,8 +41,8 @@ def get_subset_name_index(subset_id_dict, grid_subset_id):
             grid_subset_name = str(grid_subset_id)
             grid_subset_index = subset_id[grid_subset_name]
         except KeyError:
-            raise ValueError("Unable to find a grid subset with ID {}.".format(grid_subset_id))
+            raise ValueError(f"Unable to find a grid subset with ID {grid_subset_id}.")
     except KeyError:
-        raise ValueError("Unable to find a grid subset with ID {}.".format(grid_subset_id))
+        raise ValueError(f"Unable to find a grid subset with ID {grid_subset_id}.")
 
     return grid_subset_name, grid_subset_index

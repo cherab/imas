@@ -16,7 +16,7 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .equilibrium import load_equilibrium, load_magnetic_field
-from .edge import load_edge_plasma
-from .core import load_core_plasma
 from .blend import load_plasma
+from .core import load_core_plasma
+from .edge import load_edge_plasma
+from .equilibrium import load_equilibrium, load_magnetic_field

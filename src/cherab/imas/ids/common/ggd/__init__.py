@@ -16,5 +16,5 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .load_unstruct_2d import load_unstruct_grid_2d
 from .load_grid import load_grid
+from .load_unstruct_2d import load_unstruct_grid_2d

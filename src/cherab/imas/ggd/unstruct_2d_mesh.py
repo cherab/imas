@@ -16,20 +16,19 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import PolyCollection
-
 from raysect.core.math import Vector3D
 from raysect.core.math.polygon import triangulate2d
 
 from cherab.imas.math import UnstructGridFunction2D, UnstructGridVectorFunction2D
+
 from .base_mesh import GGDGrid
 
 
 class UnstructGrid2D(GGDGrid):
-    """
-    Unstructured 2D grid object.
+    """Unstructured 2D grid object.
 
     The grid cells are polygons. Vertices may be shared with neighbouring cells.
 
@@ -37,29 +36,32 @@ class UnstructGrid2D(GGDGrid):
 
     :param object vertices: Array-like of shape (N, 2) containing coordinates of the polygon
         vertices.
-    :param list cells: A list of (n,)-shaped arrays containing the vertex indices
-        in clockwise or counterclockwise order for each polygonal cell in the list
-        (the starting vertex must not be included twice).
+    :param list cells: A list of (n,)-shaped arrays containing the vertex indices in clockwise or
+        counterclockwise order for each polygonal cell in the list (the starting vertex must not be
+        included twice).
     :param str name: A name of the grid. Default is 'Cells'.
     """
 
-    def __init__(self, vertices, cells, name='Cells', coordinate_system='cylindrical'):
-
+    def __init__(self, vertices, cells, name="Cells", coordinate_system="cylindrical"):
         vertices = np.array(vertices, dtype=np.float64)
         vertices.setflags(write=False)
 
         if vertices.ndim != 2:
-            raise ValueError("Attribute 'vertices' must be a 2D array-like. The number of dimensions in 'vertices' is {}.".format(vertices.ndim))
+            raise ValueError(
+                f"Attribute 'vertices' must be a 2D array-like. The number of dimensions in 'vertices' is {vertices.ndim}."
+            )
 
         if vertices.shape[1] != 2:
-            raise ValueError("Attribute 'vertices' must be a (N, 2) array-like. The shape of 'vertices' is {}.".format(vertices.shape))
+            raise ValueError(
+                f"Attribute 'vertices' must be a (N, 2) array-like. The shape of 'vertices' is {vertices.shape}."
+            )
 
         if not len(cells):
             raise ValueError("The list of cells must contain at least one element.")
 
         for cell in cells:
             if len(cell) < 3:
-                raise ValueError("Cell {} is not a polygon.".format(np.array2string(cell)))
+                raise ValueError(f"Cell {np.array2string(cell)} is not a polygon.")
 
         self._vertices = vertices
 
@@ -68,7 +70,6 @@ class UnstructGrid2D(GGDGrid):
         super().__init__(name, 2, coordinate_system)
 
     def _initial_setup(self):
-
         self._interpolator = None
 
         self._num_cell = len(self._cells)
@@ -81,10 +82,16 @@ class UnstructGrid2D(GGDGrid):
             ntri_total += len(cell) - 2
 
         # Work out the extent of the mesh (both Cartesian and cylindrical).
-        self._mesh_extent = {"xmin": x.min(), "xmax": x.max(),
-                             "ymin": y.min(), "ymax": y.max(),
-                             "rmin": x.min(), "rmax": x.max(),
-                             "zmin": y.min(), "zmax": y.max()}
+        self._mesh_extent = {
+            "xmin": x.min(),
+            "xmax": x.max(),
+            "ymin": y.min(),
+            "ymax": y.max(),
+            "rmin": x.min(),
+            "rmax": x.max(),
+            "zmin": y.min(),
+            "zmax": y.max(),
+        }
 
         # Triangulate cells
         self._triangles = np.empty((ntri_total, 3), dtype=np.int32)
@@ -99,9 +106,9 @@ class UnstructGrid2D(GGDGrid):
             else:
                 vert = self._vertices[cell]
                 tri = triangulate2d(vert)
-                self._triangles[itri:itri + ntri] = cell[tri]
+                self._triangles[itri : itri + ntri] = cell[tri]
             self._cell_to_triangle_map[i] = [itri, ntri]
-            self._triangle_to_cell_map[itri:itri + ntri] = i
+            self._triangle_to_cell_map[itri : itri + ntri] = i
             itri += ntri
 
         self._triangles.setflags(write=False)
@@ -114,18 +121,20 @@ class UnstructGrid2D(GGDGrid):
 
         vx = x[self._triangles]
         vy = y[self._triangles]
-        area = 0.5 * np.abs((vx[:, 0] - vx[:, 2]) * (vy[:, 1] - vy[:, 2]) -
-                            (vx[:, 1] - vx[:, 2]) * (vy[:, 0] - vy[:, 2]))
+        area = 0.5 * np.abs(
+            (vx[:, 0] - vx[:, 2]) * (vy[:, 1] - vy[:, 2])
+            - (vx[:, 1] - vx[:, 2]) * (vy[:, 0] - vy[:, 2])
+        )
 
         for i, cell in enumerate(self._cells):
             self._cell_centre[i] = self._vertices[cell].mean(0)
             ist, ntri = self._cell_to_triangle_map[i]
-            self._cell_area[i] = area[ist:ist + ntri].sum()
+            self._cell_area[i] = area[ist : ist + ntri].sum()
 
         self._cell_centre.setflags(write=False)
         self._cell_area.setflags(write=False)
 
-        if self._coordinate_system == 'cylindrical':
+        if self._coordinate_system == "cylindrical":
             self._cell_volume = 0.5 * np.pi * self._cell_centre[:, 0] * self._cell_area
             self._cell_volume.setflags(write=False)
 
@@ -146,28 +155,24 @@ class UnstructGrid2D(GGDGrid):
 
     @property
     def triangle_to_cell_map(self):
-        """
-        Array of shape (M,) mapping every triangle index to a grid cell ID.
-        """
+        """Array of shape (M,) mapping every triangle index to a grid cell ID."""
         return self._triangle_to_cell_map
 
     @property
     def cell_to_triangle_map(self):
-        """
-        Array of shape (K, 2) mapping every grid cell index to triangle IDs.
-        The first column is the index of the first triangle forming the cell.
-        The second column is the number of triangles forming the cell.
+        """Array of shape (K, 2) mapping every grid cell index to triangle IDs. The first column is
+        the index of the first triangle forming the cell. The second column is the number of
+        triangles forming the cell.
 
         .. code-block:: pycon
 
             >>> itri, ntri = mesh.cell_to_triangle_map[icell]
-            >>> tri_cell = mesh.triangles[itri:itri + ntri]
+            >>> tri_cell = mesh.triangles[itri : itri + ntri]
         """
         return self._cell_to_triangle_map
 
     def subset(self, indices, name=None):
-        """
-        Creates a subset UnstructGrid2D from this instance.
+        """Creates a subset UnstructGrid2D from this instance.
 
         :param indices: Indices of the cells of the original grid in the subset.
         :param name: Name of the grid subset. Default is instance.name + ' subset'.
@@ -175,14 +180,20 @@ class UnstructGrid2D(GGDGrid):
 
         grid = UnstructGrid2D.__new__(UnstructGrid2D)
 
-        grid._name = name or self.name + ' subset'
+        grid._name = name or self.name + " subset"
         grid._coordinate_system = self._coordinate_system
         grid._dimension = self._dimension
         grid._interpolator = None
 
-        cells_original = tuple(self.cells[i] for i in indices)  # all cells in this subset but with original vertex indices
-        cells_all = np.concatenate(cells_original)  # all vertex indices in this subset with repetitions
-        vert_indx, inv_indx = np.unique(cells_all, return_inverse=True)  # all unique vertex indices in this subset
+        cells_original = tuple(
+            self.cells[i] for i in indices
+        )  # all cells in this subset but with original vertex indices
+        cells_all = np.concatenate(
+            cells_original
+        )  # all vertex indices in this subset with repetitions
+        vert_indx, inv_indx = np.unique(
+            cells_all, return_inverse=True
+        )  # all unique vertex indices in this subset
         grid._vertices = np.array(self.vertices[vert_indx])  # vertices in this subset
         grid._vertices.setflags(write=False)
 
@@ -190,7 +201,7 @@ class UnstructGrid2D(GGDGrid):
         cells = []  # and split
         ist = 0
         for cell in cells_original:
-            cells.append(inv_indx[ist:ist + len(cell)])
+            cells.append(inv_indx[ist : ist + len(cell)])
             ist += len(cell)
         grid._cells = tuple(cells)
         grid._num_cell = len(grid._cells)
@@ -205,10 +216,16 @@ class UnstructGrid2D(GGDGrid):
         # mesh extent of this subset
         xmin, ymin = grid._vertices.min(0)
         xmax, ymax = grid._vertices.max(0)
-        grid._mesh_extent = {"xmin": xmin, "xmax": xmax,
-                             "ymin": ymin, "ymax": ymax,
-                             "rmin": xmin, "rmax": xmax,
-                             "zmin": ymin, "zmax": ymax}
+        grid._mesh_extent = {
+            "xmin": xmin,
+            "xmax": xmax,
+            "ymin": ymin,
+            "ymax": ymax,
+            "rmin": xmin,
+            "rmax": xmax,
+            "zmin": ymin,
+            "zmax": ymax,
+        }
 
         # triangles and maps of this subset
         grid._triangles = np.empty((ntri_total, 3), dtype=np.int32)
@@ -227,10 +244,10 @@ class UnstructGrid2D(GGDGrid):
                 grid._triangles[i] = cell
             else:
                 c2t = c2t_map[i]
-                tri = self.triangles[c2t[0]:c2t[0] + c2t[1]]
-                grid._triangles[itri:itri + ntri] = subset_vertex_map[tri]
+                tri = self.triangles[c2t[0] : c2t[0] + c2t[1]]
+                grid._triangles[itri : itri + ntri] = subset_vertex_map[tri]
             grid._cell_to_triangle_map[i] = [itri, ntri]
-            grid._triangle_to_cell_map[itri:itri + ntri] = i
+            grid._triangle_to_cell_map[itri : itri + ntri] = i
             itri += ntri
 
         grid._triangles.setflags(write=False)
@@ -240,65 +257,69 @@ class UnstructGrid2D(GGDGrid):
         return grid
 
     def interpolator(self, grid_data, fill_value=0):
-        """
-        Returns an UnstructGridFunction2D interpolator instance for the data defined on this grid.
+        """Returns an UnstructGridFunction2D interpolator instance for the data defined on this
+        grid.
 
-        On the second and subsequent calls, the interpolator is created as an instance
-        of the previously created interpolator sharing the same KDtree structure.
+        On the second and subsequent calls, the interpolator is created as an instance of the
+        previously created interpolator sharing the same KDtree structure.
 
         :param grid_data: An array containing data in the grid cells.
         :param fill_value: A value returned outside the gird. Default is 0.
-
         :returns: UnstructGridFunction2D interpolator
         """
         if self._interpolator is None:
-            self._interpolator = UnstructGridFunction2D(self._vertices, self._triangles, self._triangle_to_cell_map, grid_data, fill_value)
+            self._interpolator = UnstructGridFunction2D(
+                self._vertices, self._triangles, self._triangle_to_cell_map, grid_data, fill_value
+            )
             return self._interpolator
 
         return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
 
     def vector_interpolator(self, grid_vectors, fill_vector=Vector3D(0, 0, 0)):
-        """
-        Returns an UnstructGridVectorFunction2D interpolator instance for the vector data
-        defined on this grid.
+        """Returns an UnstructGridVectorFunction2D interpolator instance for the vector data defined
+        on this grid.
 
-        On the second and subsequent calls, the interpolator is created as an instance
-        of the previously created interpolator sharing the same KDtree structure.
+        On the second and subsequent calls, the interpolator is created as an instance of the
+        previously created interpolator sharing the same KDtree structure.
 
         :param grid_vectors: A (3,K) array containing 3D vectors in the grid cells.
         :param fill_vector: A 3D vector returned outside the gird. Default is (0, 0, 0).
-
         :returns: UnstructGridVectorFunction2D interpolator
         """
         if self._interpolator is None:
-            self._interpolator = UnstructGridVectorFunction2D(self._vertices, self._triangles, self._triangle_to_cell_map, grid_vectors, fill_vector)
+            self._interpolator = UnstructGridVectorFunction2D(
+                self._vertices,
+                self._triangles,
+                self._triangle_to_cell_map,
+                grid_vectors,
+                fill_vector,
+            )
             return self._interpolator
 
         return UnstructGridVectorFunction2D.instance(self._interpolator, grid_vectors, fill_vector)
 
     def __getstate__(self):
         state = {
-            'name': self._name,
-            'dimension': self._dimension,
-            'coordinate_system': self._coordinate_system,
-            'vertices': self._vertices,
-            'cells': self._cells
+            "name": self._name,
+            "dimension": self._dimension,
+            "coordinate_system": self._coordinate_system,
+            "vertices": self._vertices,
+            "cells": self._cells,
         }
         return state
 
     def __setstate__(self, state):
-        self._name = state['name']
-        self._dimension = state['dimension']
-        self._coordinate_system = state['coordinate_system']
-        self._vertices = state['vertices']
+        self._name = state["name"]
+        self._dimension = state["dimension"]
+        self._coordinate_system = state["coordinate_system"]
+        self._vertices = state["vertices"]
         self._vertices.setflags(write=False)
-        self._cells = state['cells']
+        self._cells = state["cells"]
 
         self._initial_setup()
 
     def plot_triangle_mesh(self, data=None, ax=None):
-        """
-        Plot the triangle mesh grid geometry to a matplotlib figure.
+        """Plot the triangle mesh grid geometry to a matplotlib figure.
 
         :param data: Data array defined on the polygonal mesh
         """
@@ -307,7 +328,7 @@ class UnstructGrid2D(GGDGrid):
 
         verts = self._vertices[self._triangles]
         if data is None:
-            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor='b', linewidth=0.25)
+            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor="b", linewidth=0.25)
         else:
             collection_mesh = PolyCollection(verts)
             collection_mesh.set_array(data[self._triangle_to_cell_map])
@@ -316,18 +337,17 @@ class UnstructGrid2D(GGDGrid):
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
 
-        if self._coordinate_system == 'cartesian':
+        if self._coordinate_system == "cartesian":
             ax.set_xlabel("X [m]")
             ax.set_ylabel("Y [m]")
-        elif self._coordinate_system == 'cylindrical':
+        elif self._coordinate_system == "cylindrical":
             ax.set_xlabel("R [m]")
             ax.set_ylabel("Z [m]")
 
         return ax
 
     def plot_mesh(self, data=None, ax=None):
-        """
-        Plot the polygonal mesh grid geometry to a matplotlib figure.
+        """Plot the polygonal mesh grid geometry to a matplotlib figure.
 
         :param data: Data array defined on the polygonal mesh
         """
@@ -337,7 +357,7 @@ class UnstructGrid2D(GGDGrid):
 
         verts = [self._vertices[cell] for cell in self._cells]
         if data is None:
-            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor='b', linewidth=0.25)
+            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor="b", linewidth=0.25)
         else:
             collection_mesh = PolyCollection(verts)
             collection_mesh.set_array(data)
@@ -346,10 +366,10 @@ class UnstructGrid2D(GGDGrid):
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
 
-        if self._coordinate_system == 'cartesian':
+        if self._coordinate_system == "cartesian":
             ax.set_xlabel("X [m]")
             ax.set_ylabel("Y [m]")
-        elif self._coordinate_system == 'cylindrical':
+        elif self._coordinate_system == "cylindrical":
             ax.set_xlabel("R [m]")
             ax.set_ylabel("Z [m]")
 

@@ -18,10 +18,10 @@
 
 import numpy as np
 
-from imas.imasdef import EMPTY_INT
-
 from cherab.imas.ggd import UnstructGrid2D
+from imas.ids_defs import EMPTY_INT
 
+__all__ = ["load_unstruct_grid_2d"]
 
 VERTEX_DIMENSION = 0
 EDGE_DIMENSION = 1
@@ -29,23 +29,30 @@ FACE_DIMENSION = 2
 
 
 def load_unstruct_grid_2d(grid_ggd, space_index=0, with_subsets=False):
-    """
-    Loads unstructured 2D grid from the grid_ggd structure.
+    """Loads unstructured 2D grid from the grid_ggd structure.
 
-    :param grid_ggd: The grid_ggd structure.
-    :param space_index: The index of the grid space. Default is 0.
-    :param with_subsets: Read grid subset data if True. Default is True.
+    Parameters
+    ----------
+    grid_ggd
+        The grid_ggd structure.
+    space_index : int, optional
+        The index of the grid space, by default 0.
+    with_subsets : bool, optional
+        Read grid subset data, by default False.
 
-    :returns:
-    |   grid: An UnstructGrid2D instance.
-    |   subsets (optional): Dictionary with grid subsets for each subset name containing the indices
-    |       of the cells from that subset. Note that 'Cells' subset is included only if cell indices
-    |       are specified.
-    |   subset_id (optional): Dictionary with grid subset identifier indices.
+    Returns
+    -------
+    grid : UnstructGrid2D
+        Unstructured 2D grid object.
+    subsets : dict, optional
+        Dictionary with grid subsets for each subset name containing the indices of the cells from
+        that subset. Note that 'Cells' subset is included only if cell indices are specified.
+    subset_id : dict, optional
+        Dictionary with grid subset indices.
     """
 
     space = grid_ggd.space[space_index]
-    
+
     # Check if the grid is 2D
     if len(space.objects_per_dimension) != 3:
         raise ValueError("The load_unstruct_grid_2d() supports only unstructured 2D grids.")
@@ -68,7 +75,9 @@ def load_unstruct_grid_2d(grid_ggd, space_index=0, with_subsets=False):
             # trying to get the nodes in winding order by parsing the edges
             edge_dict = {}
             for boundary in object.boundary:
-                n1, n2 = space.objects_per_dimension[EDGE_DIMENSION].object[boundary.index - 1].nodes - 1 # Fortran to C indexing
+                n1, n2 = (
+                    space.objects_per_dimension[EDGE_DIMENSION].object[boundary.index - 1].nodes - 1
+                )  # Fortran to C indexing
                 if n1 not in cell or n2 not in cell:  # fail, error in the data
                     edge_dict = {}
                     break
@@ -99,28 +108,33 @@ def load_unstruct_grid_2d(grid_ggd, space_index=0, with_subsets=False):
                 winding_ok = False
 
         cells.append(cell)
-    
+
     if not winding_ok:
         print("Warning! Unable to verify that the cell nodes are in the winging order.")
-    
+
     grid = UnstructGrid2D(vertices, cells, name=grid_name)
-    
+
     if not with_subsets:
         return grid
-    
+
     # Reading grid subsets (2D only)
     cell_subset_ids = (5, 22, 23, 24, 25, 38, 39, 40)
     subsets = {}
     subset_id = {}
     for subset in grid_ggd.grid_subset:
-        dimension_is_2d = (subset.dimension == FACE_DIMENSION + 1)  # C to Fortran indexing
-        known_subset_id = (subset.dimension == EMPTY_INT and subset.identifier.index in cell_subset_ids)
+        dimension_is_2d = subset.dimension == FACE_DIMENSION + 1  # C to Fortran indexing
+        known_subset_id = (
+            subset.dimension == EMPTY_INT and subset.identifier.index in cell_subset_ids
+        )
         if (dimension_is_2d or known_subset_id) and len(subset.element):
             name = subset.identifier.name
             indices = np.empty(len(subset.element), dtype=np.int32)
             for i, element in enumerate(subset.element):
                 if len(element.object) > 1:
-                    print('Warning! Skipping grid subset {}, because it includes cells not present in the original grid.'.format(name))
+                    print(
+                        f"Warning! Skipping grid subset {name}, "
+                        "because it includes cells not present in the original grid."
+                    )
                     break
                 indices[i] = element.object[0].index
             subsets[name] = indices - 1  # Fortran to C indexing

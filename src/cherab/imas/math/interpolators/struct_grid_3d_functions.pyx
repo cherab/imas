@@ -27,10 +27,10 @@ cimport cython
 
 
 cdef class StructGridFunction3D(Function3D):
-    """
-    A simple interpolator for the data defined on the 3D structured grid.
-    Finds the cell containing the point (x, y, z). Returns the data value for this cell
-    or the `fill_value` if the points lies outside the grid.
+    """Simple interpolator for the data defined on the 3D structured grid.
+
+    Finds the cell containing the point (x, y, z).
+    Returns the data value for this cell or the `fill_value` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.
@@ -104,14 +104,14 @@ cdef class StructGridFunction3D(Function3D):
 
 
 cdef class StructGridVectorFunction3D(VectorFunction3D):
-    """
-    A simple vector interpolator for the data defined on the 3D structured grid.
-    Finds the cell containing the point (x, y, z). Returns the 3D vector value this cell
-    or the `fill_vector` if the points lies outside the grid.
+    """Simple vector interpolator for the data defined on the 3D structured grid.
+
+    Finds the cell containing the point (x, y, z).
+    Returns the 3D vector value this cell or the `fill_vector` if the points lies outside the grid.
 
     :param object x: The corners of the quadrilateral cells along x axis.
     :param object y: The corners of the quadrilateral cells along y axis.
-    :param object z: The corners of the quadrilateral cells along y axis.
+    :param object z: The corners of the quadrilateral cells along z axis.
     :param ndarray grid_vectors: An (3, x.size - 1, y.size - 1, z.size - 1)-shaped array
         containing 3D vectors in the grid cells.
     :param Vector3D fill_vector: A 3D vector returned outside the gird. Default is (0, 0, 0).
