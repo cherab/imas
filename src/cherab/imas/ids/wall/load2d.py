@@ -18,12 +18,23 @@
 
 import numpy as np
 
+from imas.ids_structure import IDSStructure
 
-def load_wall_2d(description_2d):
-    """Loads 2D wall outline (limiter contour only) from IMAS wall IDS and returns a dictionary.
+__all__ = ["load_wall_2d"]
 
-    :param description_2d: IDS structure with 2D description of the wall.
-    :returns: A dictionary of wall unit outlines given in RZ coordinates.
+
+def load_wall_2d(description_2d: IDSStructure) -> dict[str, np.ndarray]:
+    """Load 2D wall outline (limiter contour only) from IMAS wall IDS.
+
+    Parameters
+    ----------
+    description_2d : IDSStructure
+        IDS structure with 2D description of the wall.
+
+    Returns
+    -------
+    dict[str, np.ndarray]
+        Dictionary of wall unit outlines given in RZ coordinates.
     """
 
     wall_outline = {}
@@ -31,6 +42,6 @@ def load_wall_2d(description_2d):
     for unit in description_2d.limiter.unit:
         r = unit.outline.r
         z = unit.outline.z
-        wall_outline[unit.name] = np.array([r, z]).T
+        wall_outline[unit.name.value] = np.array([r, z]).T
 
     return wall_outline

@@ -15,26 +15,39 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading wall components from wall IDSs."""
 
 import numpy as np
 from raysect.core.math.polygon import triangulate2d
+
+from imas.ids_structure import IDSStructure
+
+__all__ = ["load_wall_3d"]
 
 VERTEX_DIMENSION = 0
 POLYGON_DIMENSION = 2
 
 
 # TODO: Check coordinate types and convert to Cartesian if required
-def load_wall_3d(description_ggd, subsets=None):
-    """Loads machine wall components from IMAS wall IDS and returns a dictionary.
+def load_wall_3d(
+    description_ggd: IDSStructure, subsets: list[str] | None = None
+) -> dict[str, dict[str, np.ndarray]]:
+    """Load machine wall components from IMAS wall IDS.
 
-    :param description_ggd: description_ggd structure from the 'wall' IDS.
-    :param subsets: A list of names of specific ggd subsets to load.
-                    Default is None (load all subsets).
+    Parameters
+    ----------
+    description_ggd : IDSStructure
+        description_ggd structure from the 'wall' IDS.
+    subsets : list[str], optional
+        List of names of specific ggd subsets to load, by default None (loads all subsets).
 
-    :returns: A dictionary of wall components defined by vertices and triangles.
+    Returns
+    -------
+    dict[str, dict[str, np.ndarray]]
+        Dictionary of wall components defined by vertices and triangles.
         The dictionary keys for components are assignes as follows:
-        "{grid_name}.{subset_name}.{material_name}"
-        E.g.: "FullTokamak.full_main_chamber_wall.Be".
+        ``"{grid_name}.{subset_name}.{material_name}"``
+        E.g.: ``"FullTokamak.full_main_chamber_wall.Be"``.
     """
 
     if not len(description_ggd.grid_ggd):
