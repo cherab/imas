@@ -37,5 +37,5 @@ cdef class StructGridVectorFunction2D(VectorFunction2D):
     cdef:
         np.ndarray _x, _y, _grid_vectors
         double[::1] _x_mv, _y_mv
-        double[:,:,::1] _grid_vectors_mv
+        double[:, :, ::1] _grid_vectors_mv
         Vector3D _fill_vector
