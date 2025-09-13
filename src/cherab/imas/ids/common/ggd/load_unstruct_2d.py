@@ -15,11 +15,13 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading unstructured 2D grids from IMAS grid_ggd IDS structure."""
 
 import numpy as np
 
 from cherab.imas.ggd import UnstructGrid2D
 from imas.ids_defs import EMPTY_INT
+from imas.ids_structure import IDSStructure
 
 __all__ = ["load_unstruct_grid_2d"]
 
@@ -28,12 +30,12 @@ EDGE_DIMENSION = 1
 FACE_DIMENSION = 2
 
 
-def load_unstruct_grid_2d(grid_ggd, space_index=0, with_subsets=False):
-    """Loads unstructured 2D grid from the grid_ggd structure.
+def load_unstruct_grid_2d(grid_ggd: IDSStructure, space_index=0, with_subsets=False):
+    """Load unstructured 2D grid from the grid_ggd structure.
 
     Parameters
     ----------
-    grid_ggd
+    grid_ggd : IDSStructure
         The grid_ggd structure.
     space_index : int, optional
         The index of the grid space, by default 0.

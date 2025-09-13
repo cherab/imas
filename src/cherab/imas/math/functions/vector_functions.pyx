@@ -17,11 +17,14 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module defining unit vector functions."""
 
 from raysect.core.math cimport Vector3D
 from raysect.core.math.function.vector3d cimport autowrap_function1d as autowrap_vectorfunction1d
 from raysect.core.math.function.vector3d cimport autowrap_function2d as autowrap_vectorfunction2d
 from raysect.core.math.function.vector3d cimport autowrap_function3d as autowrap_vectorfunction3d
+
+__all__ = ["UnitVector1D", "UnitVector2D", "UnitVector3D"]
 
 
 cdef class UnitVector1D(VectorFunction1D):

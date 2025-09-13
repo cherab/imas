@@ -37,7 +37,7 @@ def load_wall_3d(
     Parameters
     ----------
     description_ggd : IDSStructure
-        description_ggd structure from the 'wall' IDS.
+        A description_ggd structure from the 'wall' IDS.
     subsets : list[str], optional
         List of names of specific ggd subsets to load, by default None (loads all subsets).
 
@@ -45,7 +45,7 @@ def load_wall_3d(
     -------
     dict[str, dict[str, np.ndarray]]
         Dictionary of wall components defined by vertices and triangles.
-        The dictionary keys for components are assignes as follows:
+        The dictionary keys for components are assigns as follows:
         ``"{grid_name}.{subset_name}.{material_name}"``
         E.g.: ``"FullTokamak.full_main_chamber_wall.Be"``.
     """

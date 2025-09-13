@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading magnetic field data from the equilibrium IDS."""
 
 import numpy as np
 
@@ -27,24 +28,24 @@ __all__ = ["load_magnetic_field_data"]
 
 
 def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
-    """Loads 2D profiles of the magnetic field components from the profiles_2d structure of the
-    equilibirum IDS.
+    """Load 2D profiles of the magnetic field components from the profiles_2d structure of the
+    equilibrium IDS.
 
     Parameters
     ----------
     profiles_2d : IDSStructArray
-        The profiles_2d structure of the equilibirum IDS.
+        The profiles_2d structure of the equilibrium IDS.
 
     Returns
     -------
     dict[str, ndarray]
         Dictionary with the following keys:
 
-            - 'r': (N,) ndarray with R coordinates of rectangular grid
-            - 'z': (M,) ndarray with Z coordinates of rectangular grid
-            - 'b_field_r': (N, M) ndarray with R component of the magnetic field
-            - 'b_field_z': (N, M) ndarray with Z component of the magnetic field
-            - 'b_field_tor': (N, M) ndarray with toroidal component of the magnetic field
+        :r: (N,) ndarray with R coordinates of rectangular grid.
+        :z: (M,) ndarray with Z coordinates of rectangular grid.
+        :b_field_r: (N, M) ndarray with R component of the magnetic field.
+        :b_field_z: (N, M) ndarray with Z component of the magnetic field.
+        :b_field_tor: (N, M) ndarray with toroidal component of the magnetic field.
     """
 
     rectangular_grid = False

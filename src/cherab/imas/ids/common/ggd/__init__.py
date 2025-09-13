@@ -15,6 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for loading GGD grids from IMAS IDS structures."""
 
 from .load_grid import load_grid
 from .load_unstruct_2d import load_unstruct_grid_2d
+
+__all__ = ["load_grid", "load_unstruct_grid_2d"]

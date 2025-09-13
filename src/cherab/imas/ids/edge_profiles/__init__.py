@@ -15,5 +15,8 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for loading edge profiles from IMAS IDS structures."""
 
 from .load_profiles import load_edge_profiles, load_edge_species
+
+__all__ = ["load_edge_profiles", "load_edge_species"]

@@ -15,17 +15,21 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading GGD grids from IMAS grid_ggd IDS structures."""
 
+from imas.ids_structure import IDSStructure
 
 from .load_unstruct_2d import load_unstruct_grid_2d
 
+__all__ = ["load_grid", "load_unstruct_grid_2d"]
 
-def load_grid(grid_ggd, with_subsets=False):
-    """Loads grid from the grid_ggd structure.
+
+def load_grid(grid_ggd: IDSStructure, with_subsets=False):
+    """Load grid from the grid_ggd structure.
 
     Parameters
     ----------
-    grid_ggd
+    grid_ggd : IDSStructure
         The grid_ggd structure.
     with_subsets : bool, optional
         Read grid subset data, by default is False.
@@ -83,11 +87,18 @@ def load_grid(grid_ggd, with_subsets=False):
     raise RuntimeError("Unsupported grid type.")
 
 
-def get_standard_spaces(grid_ggd):
-    """Gets a list of standard non-empty spaces from the grid_ggd structure.
+def get_standard_spaces(grid_ggd: IDSStructure) -> list[IDSStructure]:
+    """Get a list of standard non-empty spaces from the grid_ggd structure.
 
-    :param grid_ggd: The grid_ggd structure.
-    :returns: A list of standard spaces.
+    Parameters
+    ----------
+    grid_ggd : IDSStructure
+        The grid_ggd structure.
+
+    Returns
+    -------
+    list[IDSStructure]
+        List of standard spaces.
     """
 
     if not len(grid_ggd.space):

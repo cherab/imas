@@ -15,69 +15,88 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading edge plasma profiles from the edge_profiles IDS."""
 
 import numpy as np
 from raysect.core.math import Vector3D, translate
-from raysect.core.math.function.float import Constant2D, Constant3D, Function2D
+from raysect.core.math.function.float import Constant2D, Constant3D, Function2D, Function3D
 from raysect.core.math.function.vector3d import Constant2D as ConstantVector2D
 from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
+from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
-import imas
 from cherab.core import Maxwellian, Plasma, Species
 from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
 from cherab.core.utility import RecursiveDict
-from cherab.imas.ids.common import get_ids_time_slice
-from cherab.imas.ids.common.ggd import load_grid
-from cherab.imas.ids.edge_profiles import load_edge_species
-from cherab.imas.math import UnitVector2D
-from cherab.imas.plasma.equilibrium import load_equilibrium, load_magnetic_field
-from cherab.imas.plasma.utility import get_subset_name_index, warn_unsupported_species
 from cherab.tools.equilibrium.efit import FluxSurfaceNormal, PoloidalFieldVector
+from imas import DBEntry
+from imas.ids_structure import IDSStructure
+
+from ..ggd.base_mesh import GGDGrid
+from ..ids.common import get_ids_time_slice
+from ..ids.common.ggd import load_grid
+from ..ids.edge_profiles import load_edge_species
+from ..math import UnitVector2D
+from .equilibrium import load_equilibrium, load_magnetic_field
+from .utility import get_subset_name_index, warn_unsupported_species
+
+__all__ = ["load_edge_plasma"]
 
 
 def load_edge_plasma(
-    shot,
-    run,
-    user,
-    database,
-    backend=imas.imasdef.MDSPLUS_BACKEND,
-    time=0,
-    occurrence=0,
-    grid_ggd=None,
-    grid_subset_id=5,
-    b_field=None,
-    time_threshold=np.inf,
-    parent=None,
-):
-    """Loads edge profiles and creates a Plasma object.
+    *args,
+    time: float = 0,
+    occurrence: int = 0,
+    grid_ggd: IDSStructure | None = None,
+    grid_subset_id: int | str = 5,
+    b_field: VectorFunction2D | None = None,
+    time_threshold: float = np.inf,
+    parent: _NodeBase | None = None,
+    **kwargs,
+) -> Plasma:
+    """Load edge profiles and Create a `~cherab.core.plasma.node.Plasma` object.
 
-    :param shot: IMAS shot number.
-    :param run: IMAS run number for a given shot.
-    :param user: IMAS username.
-    :param database: IMAS database name.
-    :param backend: IMAS database backend. Default is imas.imasdef.MDSPLUS_BACKEND.
-    :param time: Time moment. Default is 0.
-    :param occurrence: Instance index of the 'edge_profiles' IDS. Default is 0.
-    :param grid_ggd: An alternative grid_ggd structure with the grid description. Default is None.
-    :param grid_subset_id: Identifier of the grid subset. Either index or name. Default is 5 ("Cells").
-    :param b_field: An alternative 2D interpolator of the magnetic field vector (Br, Btor, Bz).
-        Default is None: the magnetic field will be loaded from the 'equilibrium' IDS.
-    :param time_threshold: Sets the maximum allowable difference between the specified time and the nearest
-        available time. Default is np.inf.
-    :param parent: The parent node in the Raysect scene-graph. Default is None.
+    Parameters
+    ----------
+    *args
+        Arguments passed to the `imas.DBEntry` constructor.
+    time : float, optional
+        Time moment for the edge plasma, by default 0.
+    occurrence : int, optional
+        Instance index of the 'edge_profiles' IDS, by default 0.
+    grid_ggd : IDSStructure, optional
+        Alternative grid_ggd structure with the grid description, by default None.
+    grid_subset_id : int | str, optional
+        Identifier of the grid subset. Either index or name, by default 5 ("Cells").
+    b_field : VectorFunction2D, optional
+        Alternative 2D interpolator of the magnetic field vector (Br, Btor, Bz).
+        Default is None. The magnetic field will be loaded from the 'equilibrium' IDS.
+    time_threshold : float, optional
+        Sets the maximum allowable difference between the specified time and the nearest
+        available time, by default `numpy.inf`.
+    parent : _NodeBase, optional
+        Parent node in the Raysect scene-graph, by default None.
+        Normally, `~raysect.optical.scenegraph.world.World` instance.
+    **kwargs
+        Keyword arguments passed to the `imas.DBEntry` constructor.
+
+    Returns
+    -------
+    `~cherab.core.plasma.node.Plasma`
+        Plasma object with edge profiles.
     """
 
-    entry = imas.DBEntry(backend, database, shot, run, user)
-    edge_profiles_ids = get_ids_time_slice(
-        entry, "edge_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
-    )
+    with DBEntry(*args, **kwargs) as entry:
+        edge_profiles_ids = get_ids_time_slice(
+            entry, "edge_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
+        )
 
     if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
         raise RuntimeError(
-            "The 'grid_ggd' AOS of the edge_profiles IDS is empty and an alternative grid_ggd structure is not provided."
+            "The 'grid_ggd' AOS of the edge_profiles IDS is empty "
+            "and an alternative grid_ggd structure is not provided."
         )
 
     if not len(edge_profiles_ids.ggd):
@@ -94,7 +113,7 @@ def load_edge_plasma(
 
     composition = load_edge_species(edge_profiles_ids.ggd[0], grid_subset_index=grid_subset_index)
 
-    name = f"IMAS edge plasma: shot {shot}, run {run}, time {edge_profiles_ids.time[0]}."
+    name = f"IMAS edge plasma: time {edge_profiles_ids.time[0]}, uri {entry.uri}."
     plasma = Plasma(parent=parent, name=name)
 
     # Create plasma geometry
@@ -107,11 +126,11 @@ def load_edge_plasma(
 
     if b_field is None:
         try:
-            b_field = load_magnetic_field(shot, run, user, database, backend=backend, time=time)
+            b_field = load_magnetic_field(*args, time=time, occurrence=occurrence, **kwargs)
         except RuntimeError:
             try:
                 b_field = load_equilibrium(
-                    shot, run, user, database, backend=backend, time=time
+                    *args, time=time, occurrence=occurrence, **kwargs
                 ).b_field
             except RuntimeError:
                 print("Warning! No magnetic field data available in the equilibrium IDS.")
@@ -144,18 +163,17 @@ def load_edge_plasma(
         sp_key = (species_type, charge)
         if sp_key in plasma.composition:
             print(
-                "Warning! Skipping {} species. Species with the same (element, charge): {} is already added.".format(
-                    d["label"], sp_key
-                )
+                f"Warning! Skipping {d['label']} species. "
+                f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
 
         interp = get_edge_interpolators(grid, profiles, b_field, return3d=True)
 
         if interp["density"] is None:
-            print("Warning! Skipping {} species: density is not available.".format(d["label"]))
+            print(f"Warning! Skipping {d['label']} species: density is not available.")
         if interp["temperature"] is None:
-            print("Warning! Skipping {} species: temperature is not available.".format(d["label"]))
+            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],
@@ -169,15 +187,30 @@ def load_edge_plasma(
     return plasma
 
 
-def get_edge_interpolators(grid, profiles, b_field=None, return3d=False):
+def get_edge_interpolators(
+    grid: GGDGrid,
+    profiles: dict[str, np.ndarray | None],
+    b_field: VectorFunction2D | None = None,
+    return3d: bool = False,
+) -> dict[str, Function3D | Function2D | VectorFunction2D | VectorFunction2D | None]:
     """Create interpolators for the profiles defined on a grid.
 
-    :param grid: GGD-compatible grid object.
-    :param profiles: A dictionary with edge plasma profiles.
-    :param b_field: 2D interpolator of the magnetic field vector (Br, Btor, Bz). Default is None.
-    :param return3d: If True, convert 2D interpolators to 3D assuming rotational symmetry. Default
-        is False.
-    :returns: A dictionary with edge interpolators.
+    Parameters
+    ----------
+    grid : GGDGrid
+        GGD-compatible grid object.
+    profiles : dict[str, np.ndarray | None]
+        Dictionary with edge plasma profiles.
+    b_field : VectorFunction2D, optional
+        2D interpolator of the magnetic field vector (Br, Btor, Bz), by default None.
+    return3d : bool, optional
+        If True, return the 3D functions for 2D interpolators assuming
+        rotational symmetry, by default False.
+
+    Returns
+    -------
+    dict[str, Function3D | Function2D | None]
+        Dictionary with edge interpolators.
     """
 
     interpolators = RecursiveDict()
@@ -193,7 +226,7 @@ def get_edge_interpolators(grid, profiles, b_field=None, return3d=False):
         else:
             interpolators[prof_key] = None
 
-    vector_func = get_velocity_interpolators(grid, profiles, b_field)
+    vector_func = _get_velocity_interpolators(grid, profiles, b_field)
     if isinstance(vector_func, VectorFunction2D) and return3d:
         vector_func = VectorAxisymmetricMapper(vector_func)
     interpolators["velocity"] = vector_func
@@ -201,7 +234,7 @@ def get_edge_interpolators(grid, profiles, b_field=None, return3d=False):
     return interpolators.freeze()
 
 
-def get_velocity_interpolators(grid, profiles, b_field=None):
+def _get_velocity_interpolators(grid, profiles, b_field=None):
     # Note: np.all(None == 0) returns False
     vrad = None if np.all(profiles["velocity_radial"] == 0) else profiles["velocity_radial"]
     vpol = None if np.all(profiles["velocity_poloidal"] == 0) else profiles["velocity_poloidal"]
@@ -211,20 +244,20 @@ def get_velocity_interpolators(grid, profiles, b_field=None):
     vz = None if np.all(profiles["velocity_z"] == 0) else profiles["velocity_z"]
 
     if not b_field:
-        return get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
+        return _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
 
     if vrad is None and vr is not None and vz is not None:
         if vtor is None and vpar is not None:
             _, vtor = _get_components_from_vpar(grid, vpar, b_field)
-        return get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
+        return _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
 
     if vpar is None:
-        return get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field)
+        return _get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field)
 
-    return get_parallel_velocity_interpolators(grid, vpar, vrad, b_field)
+    return _get_parallel_velocity_interpolators(grid, vpar, vrad, b_field)
 
 
-def get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
+def _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
     if vr is None and vz is None and vtor is None:
         if grid.dimension == 2:
             return ConstantVector2D(
@@ -243,7 +276,7 @@ def get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
     return grid.vector_interpolator(np.array([vr, vtor, vz]))
 
 
-def get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
+def _get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
     if vpar is None and vrad is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(
@@ -267,7 +300,7 @@ def get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
     return vpar_i * parallel_vector + vrad_i * surface_normal
 
 
-def get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field):
+def _get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field):
     if vpol is None and vrad is None and vtor is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(

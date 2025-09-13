@@ -15,52 +15,64 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading plasma equilibrium and magnetic field from the equilibrium IDS."""
 
 import numpy as np
 from raysect.core.math.function.float import Interpolator1DArray, Interpolator2DArray
 from raysect.core.math.function.vector3d import FloatToVector3DFunction2D
 
-import imas
-from cherab.imas.ids.common import get_ids_time_slice
-from cherab.imas.ids.equilibrium import load_equilibrium_data, load_magnetic_field_data
 from cherab.tools.equilibrium import EFITEquilibrium
+from imas import DBEntry
+
+from ..ids.common import get_ids_time_slice
+from ..ids.equilibrium import load_equilibrium_data, load_magnetic_field_data
+
+__all__ = ["load_equilibrium", "load_magnetic_field"]
 
 
 def load_equilibrium(
-    shot,
-    run,
-    user,
-    database,
-    backend=imas.imasdef.MDSPLUS_BACKEND,
-    time=0,
-    occurrence=0,
-    time_threshold=np.inf,
-    with_psi_interpolator=False,
-):
-    """Loads plasma equilibrium from the equilibrium IDS and creates EFITEquilibrium object.
+    *args,
+    time: float = 0,
+    occurrence: int = 0,
+    time_threshold: float = np.inf,
+    with_psi_interpolator: bool = False,
+    **kwargs,
+) -> tuple[EFITEquilibrium, Interpolator1DArray | None] | EFITEquilibrium:
+    """Load plasma equilibrium from the equilibrium IDS and create an `EFITEquilibrium` object.
 
-    :param shot: IMAS shot number.
-    :param run: IMAS run number for a given shot.
-    :param user: IMAS username.
-    :param database: IMAS database name.
-    :param backend: IMAS database backend. Default is imas.imasdef.MDSPLUS_BACKEND.
-    :param time: Time moment. Default is 0.
-    :param occurrence: Instance index of the 'equilibrium' IDS. Default is 0.
-    :param time_threshold: Sets the maximum allowable difference between the specified time and the
-        nearest available time. Default is np.inf.
-    :param with_psi_interpolator: If True, return the psi_norm(rho_tor_norm) interpolator.
-    :returns: EFITEquilibrium object and Function1D interpolator for the psi_norm(rho_tor_norm)
-        (optionaly).
+    Parameters
+    ----------
+    *args
+        Arguments passed to `imas.DBEntry`.
+    time : float, optional
+        Time moment, by default 0.
+    occurrence : int, optional
+        Instance index of the 'equilibrium' IDS, by default 0.
+    time_threshold : float, optional
+        Maximum allowable difference between the specified time and the nearest available
+        time, by default `numpy.inf`.
+    with_psi_interpolator : bool, optional
+        If True, returns the ``psi_norm(rho_tor_norm)`` interpolator; otherwise, returns only the
+        equilibrium object.
+    **kwargs
+        Keyword arguments passed to `imas.DBEntry`.
+
+    Returns
+    -------
+    equilibrium : EFITEquilibrium
+        The `EFITEquilibrium` object.
+    psi_interpolator : Function1D, optional
+        If ``with_psi_interpolator`` is True and ``rho_tor_norm`` is available, returns the
+        ``psi_norm(rho_tor_norm)`` interpolator.
+        If rho_tor_norm is not available, returns None.
+        Otherwise, returns only the equilibrium object.
     """
-
-    entry = imas.DBEntry(backend, database, shot, run, user)
-    equilibrium_ids = get_ids_time_slice(
-        entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
-    )
+    with DBEntry(*args, **kwargs) as entry:
+        equilibrium_ids = get_ids_time_slice(
+            entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
+        )
 
     equilibrium_dict = load_equilibrium_data(equilibrium_ids)
-
-    entry.close()
 
     cocos_11to3(equilibrium_dict)
 
@@ -102,34 +114,38 @@ def load_equilibrium(
 
 
 def load_magnetic_field(
-    shot,
-    run,
-    user,
-    database,
-    backend=imas.imasdef.MDSPLUS_BACKEND,
-    time=0,
-    occurrence=0,
-    time_threshold=np.inf,
-):
-    """Loads the magnetic field from the equilibrium IDS and returns a VectorFunction2D
-    interpolator.
+    *args,
+    time: float = 0,
+    occurrence: int = 0,
+    time_threshold: float = np.inf,
+    **kwargs,
+) -> FloatToVector3DFunction2D:
+    """Load the magnetic field from the equilibrium IDS and returns a VectorFunction2D interpolator.
 
-    :param shot: IMAS shot number.
-    :param run: IMAS run number for a given shot.
-    :param user: IMAS username.
-    :param database: IMAS database name.
-    :param backend: IMAS database backend. Default is imas.imasdef.MDSPLUS_BACKEND.
-    :param time: Time moment. Default is 0.
-    :param occurrence: Instance index of the 'equilibrium' IDS. Default is 0.
-    :param time_threshold: Sets the maximum allowable difference between the specified time and the
-        nearest available time. Default is np.inf.
-    :returns: VectorFunction2D.
+    Parameters
+    ----------
+    *args
+        Arguments passed to `imas.DBEntry`.
+    time : float, optional
+        Time moment, by default 0.
+    occurrence : int, optional
+        Instance index of the 'equilibrium' IDS, by default 0.
+    time_threshold : float, optional
+        Sets the maximum allowable difference between the specified time and the nearest available
+        time, by default `numpy.inf`.
+    **kwargs
+        Keyword arguments passed to `imas.DBEntry`.
+
+    Returns
+    -------
+    VectorFunction2D
+        The magnetic field interpolator.
     """
 
-    entry = imas.DBEntry(backend, database, shot, run, user)
-    equilibrium_ids = get_ids_time_slice(
-        entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
-    )
+    with DBEntry(*args, **kwargs) as entry:
+        equilibrium_ids = get_ids_time_slice(
+            entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
+        )
 
     if not len(equilibrium_ids.time_slice):
         raise RuntimeError("Equilibrium IDS does not have a time slice.")
@@ -145,12 +161,21 @@ def load_magnetic_field(
     return FloatToVector3DFunction2D(br, btor, bz)
 
 
-def cocos_11to3(equilibrium_dict):
-    """Converts from COCOS 11 convention used in IMAS to COCOS 3 convention used in EFIT."""
+def cocos_11to3(equilibrium_dict: dict) -> None:
+    """Convert from COCOS 11 convention used in IMAS to COCOS 3 convention used in EFIT.
 
-    equilibrium_dict["psi_grid"] = -equilibrium_dict["psi_grid"] / (2 * np.pi)
-    equilibrium_dict["psi_axis"] = -equilibrium_dict["psi_axis"] / (2 * np.pi)
-    equilibrium_dict["psi_lcfs"] = -equilibrium_dict["psi_lcfs"] / (2 * np.pi)
+    This function modifies the equilibrium_dict in place to convert the coordinates
+    and other relevant data from the COCOS 11 convention to the COCOS 3 convention.
+
+    Parameters
+    ----------
+    equilibrium_dict : dict
+        The equilibrium data dictionary to modify in place.
+    """
+
+    equilibrium_dict["psi_grid"] = -equilibrium_dict["psi_grid"] / (2.0 * np.pi)
+    equilibrium_dict["psi_axis"] = -equilibrium_dict["psi_axis"] / (2.0 * np.pi)
+    equilibrium_dict["psi_lcfs"] = -equilibrium_dict["psi_lcfs"] / (2.0 * np.pi)
     equilibrium_dict["q"] = -equilibrium_dict["q"]
     if equilibrium_dict["phi"] is not None:
         equilibrium_dict["phi"] = -equilibrium_dict["phi"]

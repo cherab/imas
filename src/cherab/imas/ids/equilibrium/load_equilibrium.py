@@ -15,44 +15,58 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading 2D plasma equilibrium data from the equilibrium IDS."""
+
+from typing import Any
 
 import numpy as np
 from raysect.core.math import Point2D
 
-from imas.imasdef import EMPTY_DOUBLE, EMPTY_INT
+from imas.ids_defs import EMPTY_FLOAT, EMPTY_INT
+from imas.ids_toplevel import IDSToplevel
 
 RECTANGULAR_GRID = 1
 
+__all__ = ["load_equilibrium_data"]
 
-def load_equilibrium_data(equilibirum_ids):
-    """Loads 2D plasma equilibrium data from the equilibrium IDS.
 
-    :param equilibirum_ids: The time-slice of the equilibrium IDS.
+def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
+    """Load 2D plasma equilibrium data from the equilibrium IDS.
 
-    :returns: A dictionary with the following keys:
-        'r': A N-size array with R coordinates of rectangular grid,
-        'z': A M-size array with Z coordinates of rectangular grid,
-        'psi_grid': A NxM  array of shape (N, M) with psi grid values,
-        'psi_axis': The psi value at the magnetic axis,
-        'psi_lcfs': The psi value at the LCFS,
-        'magnetic_axis': A Point2D containing the coordinates of the magnetic axis,
-        'x_points': A list or tuple of Point2D x-points,
-        'strike_points': A list or tuple of Point2D strike-points,
-        'psi_norm': A K-size array with the values of psi_norm,
-        'f': A K-size array with the current flux profile on psi_norm,
-        'q': A K-size array with the safety factor (q) profile on psi_norm,
-        'phi': A K-size array with the toroidal flux profile on psi_norm,
-        'rho_tor_norm': A K-size array with the normalised toroidal flux coordinate on psi_norm,
-        'b_vacuum_radius': Vacuum B-field reference radius (in meters),
-        'b_vacuum_magnitude': Vacuum B-Field magnitude at the reference radius,
-        'lcfs_polygon': A 2xL array of [[x0, ...], [y0, ...]] vertices specifying the LCFS boundary
-        'time': The time stamp of the time-slice (in seconds).
+    Parameters
+    ----------
+    equilibrium_ids : IDSToplevel
+        The time-slice of the equilibrium IDS.
+
+    Returns
+    -------
+    dict[str, Any]
+        Dictionary with the following keys and values:
+
+        :r: (N, ) ndarray with R coordinates of rectangular grid,
+        :z: (M, ) ndarray with Z coordinates of rectangular grid,
+        :psi_grid: (N, M) ndarray with psi grid values,
+        :psi_axis: The psi value at the magnetic axis,
+        :psi_lcfs: The psi value at the LCFS,
+        :magnetic_axis: Point2D containing the coordinates of the magnetic axis,
+        :x_points: list or tuple of Point2D x-points,
+        :strike_points: list or tuple of Point2D strike-points,
+        :psi_norm: (K, ) ndarray with the values of psi_norm,
+        :f: (K, ) ndarray with the current flux profile on psi_norm,
+        :q: (K, ) ndarray with the safety factor (q) profile on psi_norm,
+        :phi: (K, ) ndarray with the toroidal flux profile on psi_norm,
+        :rho_tor_norm: (K, ) ndarray with the normalised toroidal flux coordinate on psi_norm,
+        :b_vacuum_radius: Vacuum B-field reference radius (in meters),
+        :b_vacuum_magnitude: Vacuum B-Field magnitude at the reference radius,
+        :lcfs_polygon: (2, L) ndarray of ``[[x0, ...], [y0, ...]]`` vertices specifying the LCFS
+            boundary
+        :time: The time stamp of the time-slice (in seconds).
     """
 
-    if not len(equilibirum_ids.time_slice):
+    if not len(equilibrium_ids.time_slice):
         raise RuntimeError("Equilibrium IDS does not have a time slice.")
 
-    profiles_2d = equilibirum_ids.time_slice[0].profiles_2d
+    profiles_2d = equilibrium_ids.time_slice[0].profiles_2d
 
     rectangular_grid = False
     for prof2d in profiles_2d:
@@ -74,7 +88,7 @@ def load_equilibrium_data(equilibirum_ids):
             "Unable to read equilibrium: the shape of 'profiles_2d[i].psi' does not match the grid shape."
         )
 
-    profiles_1d = equilibirum_ids.time_slice[0].profiles_1d
+    profiles_1d = equilibrium_ids.time_slice[0].profiles_1d
 
     psi1d = np.array(profiles_1d.psi)
     if not psi1d.size:
@@ -86,14 +100,14 @@ def load_equilibrium_data(equilibirum_ids):
     if not len(profiles_1d.q):
         raise RuntimeError("Unable to read equilibrium: 'profiles_1d.q' is empty.")
 
-    global_quantities = equilibirum_ids.time_slice[0].global_quantities
+    global_quantities = equilibrium_ids.time_slice[0].global_quantities
 
     psi_axis = global_quantities.psi_axis
-    if psi_axis == EMPTY_DOUBLE:
+    if psi_axis == EMPTY_FLOAT:
         raise RuntimeError("Unable to read equilibrium: 'global_quantities.psi_axis' is not set.")
 
     psi_lcfs = global_quantities.psi_boundary
-    if psi_lcfs == EMPTY_DOUBLE:
+    if psi_lcfs == EMPTY_FLOAT:
         raise RuntimeError(
             "Unable to read equilibrium: 'global_quantities.psi_boundary' is not set."
         )
@@ -109,21 +123,21 @@ def load_equilibrium_data(equilibirum_ids):
 
     r_axis = global_quantities.magnetic_axis.r
     z_axis = global_quantities.magnetic_axis.z
-    if r_axis == EMPTY_DOUBLE or z_axis == EMPTY_DOUBLE:
+    if r_axis == EMPTY_FLOAT or z_axis == EMPTY_FLOAT:
         raise RuntimeError("Unable to read equilibrium: magnetic axis is not set.")
 
     magnetic_axis = Point2D(r_axis, z_axis)
 
-    boundary = equilibirum_ids.time_slice[0].boundary
+    boundary = equilibrium_ids.time_slice[0].boundary
 
     x_points = []
     for x_point in boundary.x_point:
-        if x_point.r != EMPTY_DOUBLE and x_point.z != EMPTY_DOUBLE:
+        if x_point.r != EMPTY_FLOAT and x_point.z != EMPTY_FLOAT:
             x_points.append(Point2D(x_point.r, x_point.z))
 
     strike_points = []
     for strike_point in boundary.strike_point:
-        if strike_point.r != EMPTY_DOUBLE and strike_point.z != EMPTY_DOUBLE:
+        if strike_point.r != EMPTY_FLOAT and strike_point.z != EMPTY_FLOAT:
             strike_points.append(Point2D(strike_point.r, strike_point.z))
 
     r_lcfs = boundary.outline.r
@@ -141,15 +155,15 @@ def load_equilibrium_data(equilibirum_ids):
             "Unable to read equilibrium: boundary.outline contains less than 3 unique points."
         )
 
-    b_vacuum_radius = equilibirum_ids.vacuum_toroidal_field.r0
-    if b_vacuum_radius == EMPTY_DOUBLE:
+    b_vacuum_radius = equilibrium_ids.vacuum_toroidal_field.r0
+    if b_vacuum_radius == EMPTY_FLOAT:
         raise RuntimeError("Unable to read equilibrium: vacuum_toroidal_field.r0 is not set.")
 
-    b_vacuum_magnitude = equilibirum_ids.vacuum_toroidal_field.b0[0]
-    if b_vacuum_magnitude == EMPTY_DOUBLE:
+    b_vacuum_magnitude = equilibrium_ids.vacuum_toroidal_field.b0[0]
+    if b_vacuum_magnitude == EMPTY_FLOAT:
         raise RuntimeError("Unable to read equilibrium: vacuum_toroidal_field.b0 is not set.")
 
-    time = equilibirum_ids.time[0]
+    time = equilibrium_ids.time[0]
 
     return {
         "r": r,

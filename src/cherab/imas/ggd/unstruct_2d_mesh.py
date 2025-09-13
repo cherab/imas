@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module defining unstructured 2D mesh class and related methods."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,6 +27,10 @@ from cherab.imas.math import UnstructGridFunction2D, UnstructGridVectorFunction2
 
 from .base_mesh import GGDGrid
 
+__all__ = ["UnstructGrid2D"]
+
+ZERO_VECTOR = Vector3D(0, 0, 0)
+
 
 class UnstructGrid2D(GGDGrid):
     """Unstructured 2D grid object.
@@ -34,12 +39,18 @@ class UnstructGrid2D(GGDGrid):
 
     To use Raysect's KDtree accelerator, each polygonal cell is triangulated.
 
-    :param object vertices: Array-like of shape (N, 2) containing coordinates of the polygon
-        vertices.
-    :param list cells: A list of (n,)-shaped arrays containing the vertex indices in clockwise or
+    Parameters
+    ----------
+    vertices : (N, 2) array_like
+        Array-like of shape (N, 2) containing coordinates of the polygon vertices.
+    cells : list of (N,) array_like
+        List of (N,)-shaped arrays containing the vertex indices in clockwise or
         counterclockwise order for each polygonal cell in the list (the starting vertex must not be
         included twice).
-    :param str name: A name of the grid. Default is 'Cells'.
+    name : str, optional
+        Name of the grid, by default 'Cells'.
+    coordinate_system : {'cylindrical', 'cartesian'}, optional
+        Coordinate system of the grid, by default 'cylindrical'.
     """
 
     def __init__(self, vertices, cells, name="Cells", coordinate_system="cylindrical"):
@@ -48,12 +59,14 @@ class UnstructGrid2D(GGDGrid):
 
         if vertices.ndim != 2:
             raise ValueError(
-                f"Attribute 'vertices' must be a 2D array-like. The number of dimensions in 'vertices' is {vertices.ndim}."
+                "Attribute 'vertices' must be a 2D array-like. "
+                f"The number of dimensions in 'vertices' is {vertices.ndim}."
             )
 
         if vertices.shape[1] != 2:
             raise ValueError(
-                f"Attribute 'vertices' must be a (N, 2) array-like. The shape of 'vertices' is {vertices.shape}."
+                "Attribute 'vertices' must be a (N, 2) array-like. "
+                f"The shape of 'vertices' is {vertices.shape}."
             )
 
         if not len(cells):
@@ -69,7 +82,7 @@ class UnstructGrid2D(GGDGrid):
 
         super().__init__(name, 2, coordinate_system)
 
-    def _initial_setup(self):
+    def _initial_setup(self) -> None:
         self._interpolator = None
 
         self._num_cell = len(self._cells)
@@ -128,8 +141,8 @@ class UnstructGrid2D(GGDGrid):
 
         for i, cell in enumerate(self._cells):
             self._cell_centre[i] = self._vertices[cell].mean(0)
-            ist, ntri = self._cell_to_triangle_map[i]
-            self._cell_area[i] = area[ist : ist + ntri].sum()
+            i_start, ntri = self._cell_to_triangle_map[i]
+            self._cell_area[i] = area[i_start : i_start + ntri].sum()
 
         self._cell_centre.setflags(write=False)
         self._cell_area.setflags(write=False)
@@ -160,22 +173,25 @@ class UnstructGrid2D(GGDGrid):
 
     @property
     def cell_to_triangle_map(self):
-        """Array of shape (K, 2) mapping every grid cell index to triangle IDs. The first column is
-        the index of the first triangle forming the cell. The second column is the number of
-        triangles forming the cell.
+        """Array of shape (K, 2) mapping every grid cell index to triangle IDs.
 
-        .. code-block:: pycon
+        The first column is the index of the first triangle forming the cell.
+        The second column is the number of triangles forming the cell.
 
-            >>> itri, ntri = mesh.cell_to_triangle_map[icell]
-            >>> tri_cell = mesh.triangles[itri : itri + ntri]
+        >>> itri, ntri = mesh.cell_to_triangle_map[icell]
+        >>> tri_cell = mesh.triangles[itri : itri + ntri]
         """
         return self._cell_to_triangle_map
 
     def subset(self, indices, name=None):
-        """Creates a subset UnstructGrid2D from this instance.
+        """Create a subset UnstructGrid2D from this instance.
 
-        :param indices: Indices of the cells of the original grid in the subset.
-        :param name: Name of the grid subset. Default is instance.name + ' subset'.
+        Parameters
+        ----------
+        indices : array_like
+            Indices of the cells of the original grid in the subset.
+        name : str, optional
+            Name of the grid subset. Default is instance.name + ' subset'.
         """
 
         grid = UnstructGrid2D.__new__(UnstructGrid2D)
@@ -199,13 +215,13 @@ class UnstructGrid2D(GGDGrid):
 
         # renumerating vertex indices
         cells = []  # and split
-        ist = 0
+        i_start = 0
         for cell in cells_original:
-            cells.append(inv_indx[ist : ist + len(cell)])
-            ist += len(cell)
+            cells.append(inv_indx[i_start : i_start + len(cell)])
+            i_start += len(cell)
         grid._cells = tuple(cells)
         grid._num_cell = len(grid._cells)
-        ntri_total = ist - 2 * len(cells_original)
+        ntri_total = i_start - 2 * len(cells_original)
 
         # cell area and centres of this subset
         grid._cell_area = np.array(self.cell_area[indices])
@@ -257,15 +273,23 @@ class UnstructGrid2D(GGDGrid):
         return grid
 
     def interpolator(self, grid_data, fill_value=0):
-        """Returns an UnstructGridFunction2D interpolator instance for the data defined on this
+        """Return an `UnstructGridFunction2D` interpolator instance for the data defined on this
         grid.
 
         On the second and subsequent calls, the interpolator is created as an instance of the
         previously created interpolator sharing the same KDtree structure.
 
-        :param grid_data: An array containing data in the grid cells.
-        :param fill_value: A value returned outside the gird. Default is 0.
-        :returns: UnstructGridFunction2D interpolator
+        Parameters
+        ----------
+        grid_data : array_like
+            Array containing data in the grid cells.
+        fill_value : float, optional
+            Value returned outside the grid, by default is 0.
+
+        Returns
+        -------
+        UnstructGridFunction2D
+            Interpolator instance.
         """
         if self._interpolator is None:
             self._interpolator = UnstructGridFunction2D(
@@ -275,16 +299,24 @@ class UnstructGrid2D(GGDGrid):
 
         return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
 
-    def vector_interpolator(self, grid_vectors, fill_vector=Vector3D(0, 0, 0)):
-        """Returns an UnstructGridVectorFunction2D interpolator instance for the vector data defined
-        on this grid.
+    def vector_interpolator(self, grid_vectors, fill_vector=ZERO_VECTOR):
+        """Return an `UnstructGridVectorFunction2D` interpolator instance for the vector data
+        defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance of the
         previously created interpolator sharing the same KDtree structure.
 
-        :param grid_vectors: A (3,K) array containing 3D vectors in the grid cells.
-        :param fill_vector: A 3D vector returned outside the gird. Default is (0, 0, 0).
-        :returns: UnstructGridVectorFunction2D interpolator
+        Parameters
+        ----------
+        grid_vectors : (3, K) array_like
+            Array containing 3D vectors in the grid cells.
+        fill_vector : Vector3D, optional
+            3D vector returned outside the grid, by default Vector3D(0, 0, 0).
+
+        Returns
+        -------
+        UnstructGridVectorFunction2D
+            Interpolator instance.
         """
         if self._interpolator is None:
             self._interpolator = UnstructGridVectorFunction2D(
@@ -321,7 +353,12 @@ class UnstructGrid2D(GGDGrid):
     def plot_triangle_mesh(self, data=None, ax=None):
         """Plot the triangle mesh grid geometry to a matplotlib figure.
 
-        :param data: Data array defined on the polygonal mesh
+        Parameters
+        ----------
+        data : array_like
+            Data array defined on the polygonal mesh.
+        ax : matplotlib.axes.Axes, optional
+            Matplotlib axes to plot on. If None, a new figure and axes are created.
         """
         if ax is None:
             _, ax = plt.subplots(constrained_layout=True)
@@ -349,7 +386,12 @@ class UnstructGrid2D(GGDGrid):
     def plot_mesh(self, data=None, ax=None):
         """Plot the polygonal mesh grid geometry to a matplotlib figure.
 
-        :param data: Data array defined on the polygonal mesh
+        Parameters
+        ----------
+        data : array_like, optional
+            Data array defined on the polygonal mesh.
+        ax : matplotlib.axes.Axes, optional
+            Matplotlib axes to plot on. If None, a new figure and axes are created.
         """
 
         if ax is None:

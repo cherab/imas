@@ -48,8 +48,6 @@ def load_wall_mesh(
     ----------
     *args
         Arguments passed to the `imas.DBEntry` constructor.
-    **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
     time : float, optional
         Time moment for the edge plasma, by default 0.
     occurrence : int, optional
@@ -60,9 +58,9 @@ def load_wall_mesh(
         List of names of specific ggd subsets to load, by default None (loads all subsets).
     materials : dict[str, Material], optional
         Optional dictionary with Raysect materials for each wall component, by default None.
-        Use component names as keys. The components are splitted by their grid subsets and for
+        Use component names as keys. The components are split by their grid subsets and for
         each grid subset by materials. All elements of the grid subset that share the same material
-        are combined into a single component. The component names are assignes as follows:
+        are combined into a single component. The component names are assigns as follows:
         ``"{grid_name}.{subset_name}.{material_name}"``
         E.g.: ``"TokamakWall.full_main_chamber_wall.Be"``.
     time_threshold : float, optional
@@ -71,11 +69,13 @@ def load_wall_mesh(
     parent : _NodeBase, optional
         Parent node in the Raysect scene-graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
+    **kwargs
+        Keyword arguments passed to the `imas.DBEntry` constructor.
 
     Returns
     -------
     dict[str, Mesh]
-        Dictinary with the Raysect Mesh instants.
+        Dictionary with the Raysect Mesh instances.
 
     Example
     -------
@@ -117,12 +117,12 @@ def load_wall_outline(
     ----------
     *args
         Arguments passed to the `imas.DBEntry` constructor.
-    **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
     occurrence : int, optional
         Instance index of the 'wall' IDS, by default 0.
     desc_index : int, optional
         Index of 'description_2d', by default 0.
+    **kwargs
+        Keyword arguments passed to the `imas.DBEntry` constructor.
 
     Returns
     -------

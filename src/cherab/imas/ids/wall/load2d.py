@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading 2D wall description from IMAS wall IDS."""
 
 import numpy as np
 

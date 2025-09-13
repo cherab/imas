@@ -15,6 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for common utilities for loading data from IMAS IDS structures."""
 
 from . import species
 from .slice import get_ids_time_slice
+
+__all__ = ["species", "get_ids_time_slice"]

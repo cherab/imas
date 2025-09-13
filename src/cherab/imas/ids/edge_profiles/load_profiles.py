@@ -15,10 +15,13 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading edge-profile-related data from IMAS IDS structures."""
 
 import numpy as np
 
-from cherab.imas.ids.common.species import (
+from imas.ids_structure import IDSStructure
+
+from ..common.species import (
     get_element_list,
     get_ion,
     get_ion_state,
@@ -26,20 +29,37 @@ from cherab.imas.ids.common.species import (
     get_neutral_state,
 )
 
+__all__ = ["load_edge_profiles", "load_edge_species"]
 
-def load_edge_profiles(species_struct, grid_subset_index=5, backup_species_struct=None):
-    """Loads edge profiles from a given species structe (e.g. ggd[i1].electrons,
-    ggd[i1].ion[i2].states[i3]) for a given grid and subset indices.
+
+def load_edge_profiles(
+    species_struct: IDSStructure,
+    grid_subset_index: int = 5,
+    backup_species_struct: IDSStructure | None = None,
+) -> dict[str, np.ndarray | None]:
+    """Load edge profiles from a given species structure.
+
+    The profiles are taken from the arrays with the given grid and subset indices
+    (e.g. ``ggd[i1].electrons``, ``ggd[i1].ion[i2].states[i3]``).
 
     The returned dictionary values for missing profiles are None.
 
-    :param species_struct: The ids structure containing the profiles for a single species.
-    :param grid_subset_index: Identifier index of the grid subset. Default is 5 ("Cells").
-    :param backup_species_struct: The backup ids structure that is used if the profile is missing in
-        species_struct. Default is None.
-    :returns: A dictionary with the following keys: 'density', 'density_fast', 'temperature',
-        'velocity_radial', 'velocity_parallel', 'velocity_poloidal', 'velocity_toroidal',
-        'velocity_r', 'velocity_z', 'z_average'.
+    Parameters
+    ----------
+    species_struct : IDSStructure
+        The ids structure containing the profiles for a single species.
+    grid_subset_index : int, optional
+        Identifier index of the grid subset, by default 5 ("Cells").
+    backup_species_struct : IDSStructure, optional
+        The backup ids structure that is used if the profile is missing in
+        species_struct, by default None.
+
+    Returns
+    -------
+    dict[str, np.ndarray | None]
+        Dictionary with the following keys: ``density``, ``density_fast``, ``temperature``,
+        ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_toroidal``,
+        ``velocity_r``, ``velocity_z``, ``z_average``.
     """
 
     profiles = {
@@ -84,56 +104,77 @@ def load_edge_profiles(species_struct, grid_subset_index=5, backup_species_struc
     return profiles
 
 
-def load_edge_species(ggd_struct, grid_subset_index=5):
-    """Loads edge plasma species and their profiles from a given GGD structure for a given grid and
+def load_edge_species(
+    ggd_struct: IDSStructure, grid_subset_index: int = 5
+) -> dict[str, dict[str, np.ndarray | None]]:
+    """Load edge plasma species and their profiles from a given GGD structure for a given grid and
     subset indices.
 
-    :param ggd_struct: The ggd ids structure containing the profiles.
-    :param grid_subset_index: Identifier index of the grid subset. Default is 5 ("Cells").
-
     The returned dictionary has the following structure:
-    {
-        'electron': {
-            'density': array,
-            'temperature': array,
-            ...
-        },
-        'molecule': {
-            molecule_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            ...
-        'molecular_bundle': {
-            molecular_bundle_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            ...
-        'ion': {
-            ion_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            ...
-        'ion_bundle': {
-            ion_bundle_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-        },
-    },
-    where species are identified by frozensets with (key, value) pairs with the following keys:
-        molecule: 'label', 'elements', 'z', 'electron_configuration', 'vibrational_level', 'vibrational_mode';
-        molecular_bundle: 'label', 'elements', 'z_min', 'z_max';
-        ion: 'label', 'element', 'z', 'electron_configuration';
-        ion_bundle: 'label', 'element', 'z_min', 'z_max';
 
-    :returns: A dictionary with plasma profiles.
+    .. code-block:: python
+
+        {
+            'electron': {
+                'density': array,
+                'temperature': array,
+                ...
+            },
+            'molecule': {
+                molecule_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+                ...
+            'molecular_bundle': {
+                molecular_bundle_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+                ...
+            'ion': {
+                ion_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+                ...
+            'ion_bundle': {
+                ion_bundle_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+            },
+        },
+
+    where species are identified by frozensets with (key, value) pairs with the following keys:
+    * ``molecule``
+        - ``label``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
+          ``vibrational_mode``;
+
+    * ``molecular_bundle``
+        - ``label``, ``elements``, ``z_min``, ``z_max``;
+
+    * ``ion``
+        - ``label``, ``element``, ``z``, ``electron_configuration``;
+
+    * ``ion_bundle``
+        - ``label``, ``element``, ``z_min``, ``z_max``.
+
+    Parameters
+    ----------
+    ggd_struct : IDSStructure
+        The ggd ids structure containing the profiles.
+    grid_subset_index : int, optional
+        Identifier index of the grid subset, by default 5 ("Cells").
+
+    Returns
+    -------
+    dict[str, dict[str, ndarray | None]]
+        Dictionary with plasma profiles.
     """
 
     species_types = ("molecule", "molecular_bundle", "ion", "ion_bundle")

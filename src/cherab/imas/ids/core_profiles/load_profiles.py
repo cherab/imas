@@ -15,10 +15,13 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading core-profile-related data from IMAS IDS structures."""
 
 import numpy as np
 
-from cherab.imas.ids.common.species import (
+from imas.ids_structure import IDSStructure
+
+from ..common.species import (
     get_element_list,
     get_ion,
     get_ion_state,
@@ -26,17 +29,29 @@ from cherab.imas.ids.common.species import (
     get_neutral_state,
 )
 
+__all__ = ["load_core_profiles", "load_core_grid", "load_core_species"]
 
-def load_core_profiles(species_struct, backup_species_struct=None):
-    """Loads core profiles from a given species structe.
+
+def load_core_profiles(
+    species_struct: IDSStructure, backup_species_struct: IDSStructure | None = None
+) -> dict[str, np.ndarray | None]:
+    """Load core profiles from a given species structure.
 
     The returned dictionary values for missing profiles are None.
 
-    :param species_struct: The IDS structure containing the profiles for a single species.
-    :param backup_species_struct: The backup ids structure that is used if the profile is missing in
-        species_struct. Default is None.
-    :returns: A dictionary with the following keys: 'density', 'density_thermal' 'density_fast',
-        'temperature', 'z_average_1d'.
+    Parameters
+    ----------
+    species_struct : IDSStructure
+        IDS structure containing the profiles for a single species.
+    backup_species_struct : IDSStructure | None, optional
+        The backup ids structure that is used if the profile is missing in species_struct,
+        by default None.
+
+    Returns
+    -------
+    dict[str, ndarray | None]
+        Dictionary with the profiles: ``density``, ``density_thermal``, ``density_fast``,
+        ``temperature`` and ``z_average_1d``.
     """
 
     profiles = {
@@ -55,15 +70,21 @@ def load_core_profiles(species_struct, backup_species_struct=None):
     return profiles
 
 
-def load_core_grid(grid_struct):
-    """Loads grid properties of the core profiles.
+def load_core_grid(grid_struct: IDSStructure) -> dict[str, np.ndarray | None]:
+    """Load grid properties of the core profiles.
 
     The returned dictionary values for missing data are None.
 
-    :param grid_struct The IDS structure containing the grid data for 1D profiles.
+    Parameters
+    ----------
+    grid_struct : IDSStructure
+        The IDS structure containing the grid data for 1D profiles.
 
-    :returns: A dictionary with the following keys: 'rho_tor_norm', 'psi', 'volume', 'area'
-        'surface'.
+    Returns
+    -------
+    dict[str, np.ndarray | None]
+        A dictionary with the following keys: ``rho_tor_norm``, ``psi``, ``volume``,
+        ``area``, ``surface``.
     """
 
     grid = {
@@ -80,52 +101,72 @@ def load_core_grid(grid_struct):
     return grid
 
 
-def load_core_species(profiles_struct):
-    """Loads core plasma species and their profiles from a given profiles IDS structure.
+def load_core_species(profiles_struct: IDSStructure) -> dict[str, dict[str, np.ndarray | None]]:
+    """Load core plasma species and their profiles from a given profiles IDS structure.
 
     The returned dictionary has the following structure:
-    {
-        'electron': {
-            'density': array,
-            'temperature': array,
-            ...
-        },
-        'molecule': {
-            molecule_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            ...
-        'molecular_bundle': {
-            molecular_bundle_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            ...
-        'ion': {
-            ion_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            ...
-        'ion_bundle': {
-            ion_bundle_id: {  # frozenset identifier
-                'density': array,
-                'temperature': array,
-                ...
-            },
-        },
-    },
-    where species are identified by frozensets with (key, value) pairs with the following keys:
-        molecule: 'label', 'elements', 'z', 'electron_configuration', 'vibrational_level', 'vibrational_mode';
-        molecular_bundle: 'label', 'elements', 'z_min', 'z_max';
-        ion: 'label', 'element', 'z', 'electron_configuration';
-        ion_bundle: 'label', 'element', 'z_min', 'z_max';
 
-    :returns: A dictionary with plasma profiles.
+    .. code-block:: python
+
+        {
+            'electron': {
+                'density': array,
+                'temperature': array,
+                ...
+            },
+            'molecule': {
+                molecule_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+                ...
+            'molecular_bundle': {
+                molecular_bundle_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+                ...
+            'ion': {
+                ion_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+                ...
+            'ion_bundle': {
+                ion_bundle_id: {  # frozenset identifier
+                    'density': array,
+                    'temperature': array,
+                    ...
+                },
+            },
+        },
+
+    where species are identified by frozensets with (key, value) pairs with the following keys:
+    * ``molecule``
+        - ``label``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
+          ``vibrational_mode``;
+
+    * ``molecular_bundle``
+        - ``label``, ``elements``, ``z_min``, ``z_max``;
+
+    * ``ion``
+        - ``label``, ``element``, ``z``, ``electron_configuration``;
+
+    * ``ion_bundle``
+        - ``label``, ``element``, ``z_min``, ``z_max``.
+
+    Parameters
+    ----------
+    profiles_struct : IDSStructure
+        The IDS structure containing the core profiles data.
+
+    Returns
+    -------
+    dict[str, dict[str, ndarray | None]]
+        Dictionary with the species and their profiles.
     """
 
     species_types = ("molecule", "molecular_bundle", "ion", "ion_bundle")

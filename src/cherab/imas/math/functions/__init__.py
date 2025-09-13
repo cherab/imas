@@ -17,3 +17,5 @@
 # under the Licence.
 
 from .vector_functions import UnitVector1D, UnitVector2D, UnitVector3D
+
+__all__ = ["UnitVector1D", "UnitVector2D", "UnitVector3D"]
