@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading bolometer cameras from IMAS bolometer IDS."""
 
 from __future__ import annotations
 
@@ -211,17 +212,17 @@ def load_geometry(sensor: IDSStructure) -> dict[str, Any]:
     return geometry
 
 
-def _cylin_to_cart(r, phi, z) -> tuple[float, float, float]:
+def _cylin_to_cart(r: float, phi: float, z: float) -> tuple[float, float, float]:
     """Convert cylindrical coordinates to cartesian coordinates.
 
     Parameters
     ----------
     r : float
-        Radial coordinate
+        Radial coordinate.
     phi : float
-        Azimuthal coordinate
+        Azimuthal coordinate.
     z : float
-        Vertical coordinate
+        Vertical coordinate.
 
     Returns
     -------

@@ -15,14 +15,15 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading bolometer cameras from IMAS bolometer IDS."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from raysect.core import Node
-
 from cherab.tools.observers.bolometry import BolometerCamera, BolometerFoil, BolometerSlit
+from raysect.core.scenegraph._nodebase import _NodeBase
+
 from imas import DBEntry
 
 from ..ids.bolometer import GeometryType, load_cameras
@@ -31,7 +32,7 @@ from ..ids.common import get_ids_time_slice
 __all__ = ["load_bolometers"]
 
 
-def load_bolometers(*args, parent: Node | None = None, **kwargs) -> list[BolometerCamera]:
+def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[BolometerCamera]:
     """Load bolometer cameras from IMAS bolometer IDS.
 
     .. note::
@@ -58,15 +59,16 @@ def load_bolometers(*args, parent: Node | None = None, **kwargs) -> list[Bolomet
     >>> world = World()
 
     If you have a local IMAS database and store the "bolometer.h5" file there:
-    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", parent=world)
+    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", "r", parent=world)
 
     If you want to load netCDF files directly:
     >>> bolometers = load_bolometers("path/to/bolometer_file.nc", parent=world)
     """
     # Load bolometer IDS
     kwargs["mode"] = "r"
-    entry = DBEntry(*args, **kwargs)
-    ids = get_ids_time_slice(entry, "bolometer")
+    with DBEntry(*args, **kwargs) as entry:
+        # Get available time slices
+        ids = get_ids_time_slice(entry, "bolometer")
 
     # Extract bolometer data
     bolo_data = load_cameras(ids)

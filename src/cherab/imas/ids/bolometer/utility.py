@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for bolometer utility functions."""
 
 from enum import Enum
 
@@ -25,6 +26,15 @@ class GeometryType(Enum):
     """Enum for geometry type.
 
     The geometry type of the bolometer foil or slit.
+
+    Attributes
+    ----------
+    OUTLINE : int
+        The geometry is defined by an outline.
+    CIRCULAR : int
+        The geometry is circular.
+    RECTANGLE : int
+        The geometry is rectangular.
     """
 
     OUTLINE = 1
@@ -32,10 +42,13 @@ class GeometryType(Enum):
     RECTANGLE = 3
 
     @classmethod
-    def from_value(cls, value):
+    def from_value(cls, value: int):
         """Get the geometry type from a value.
 
-        :param value: The integer value to convert to a geometry type.
+        Parameters
+        ----------
+        value : int
+            The integer value to convert to a geometry type.
             If the value is not a valid geometry type, the default is `RECTANGLE`.
         """
         if value in cls._value2member_map_:
