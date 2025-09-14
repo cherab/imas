@@ -55,6 +55,7 @@ lefthook = "*"
 ruff = "*"
 typos = "*"
 mypy = "*"
+basedpyright = "*"
 numpydoc = "*"
 actionlint = "*"
 shellcheck = "*"
@@ -68,6 +69,20 @@ taplo = "*"
 lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
 hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks" }
 pre-commit = { cmd = "lefthook run pre-commit", description = "🔗 Run pre-commit checks" }
+mypy = { cmd = "mypy", description = "Type check with mypy" }
+pyright = { cmd = "basedpyright", description = "Type check with basedpyright" }
+docify = { cmd = "docify --in-place", description = "Generate your own stubs with docstrings" }
+ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
+ruff-format = { cmd = "ruff format", description = "Format with ruff" }
+dprint = { cmd = "dprint fmt", description = "Format with dprint" }
+typos = { cmd = "typos --write-changes --force-exclude", description = "Fix typos" }
+taplo = { cmd = "taplo fmt", description = "Format toml files with taplo" }
+actionlint = { cmd = "actionlint", description = "Lint actions with actionlint" }
+blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blocks with Black" }
+validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
+numpydoc = { cmd = "numpydoc lint", description = "Validate docstrings with numpydoc" }
+docformatter = { cmd = "docformatter --in-place", description = "Format docstrings with docformatter" }
+cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
 # === Python environment features ===
@@ -81,8 +96,8 @@ default = { features = ["py313"], solve-group = "py313" }
 # docs = { features = ["py313", "docs"], solve-group = "py313" }
 tests = { features = ["py313", "tests"], solve-group = "py313" }
 tests-py313 = { features = [
-    "py313",
-    "tests",
+  "py313",
+  "tests",
 ], solve-group = "py313" } # alias of tests
 tests-py310 = ["py310", "tests"]
 lint = { features = ["lint"], no-default-feature = true }

@@ -6,26 +6,26 @@ build-backend = "hatchling.build"
 name = "cherab-imas"
 description = "Cherab spectroscopy framework: IMAS submodule"
 authors = [
-    { name = "munechika-koyo", email = "munechika.koyo@gmail.com" },
-    { name = "vsnever" },
-    { name = "jacklovell" },
+  { name = "munechika-koyo", email = "munechika.koyo@gmail.com" },
+  { name = "vsnever" },
+  { name = "jacklovell" },
 ]
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENCE.txt" }
 keywords = ["cherab", "IMAS", "imas", "tokamak", "fusion", "plasma"]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Education",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
-    "Natural Language :: English",
-    "Operating System :: Unix",
-    "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: Physics",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
+  "Natural Language :: English",
+  "Operating System :: Unix",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = ["cherab==1.5.*", "imas-python"]
 dynamic = ["version"]
@@ -97,20 +97,20 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle
-    "B",   # flake8-bugbear
-    "F",   # pyflakes
-    "I",   # isort (import order)
-    "N",   # pep8-naming
-    "W",   # Warning
-    "UP",  # pyupgrade
-    "NPY", # numpy specific rules
+  "E",   # pycodestyle
+  "B",   # flake8-bugbear
+  "F",   # pyflakes
+  "I",   # isort (import order)
+  "N",   # pep8-naming
+  "W",   # Warning
+  "UP",  # pyupgrade
+  "NPY", # numpy specific rules
 ]
 ignore = [
-    # Recommended ignores by ruff when using formatter
-    "E501", # line too long
-    "N803", # argument name should be lowercase
-    "N806", # variable in function should be lowercase
+  # Recommended ignores by ruff when using formatter
+  "E501", # line too long
+  "N803", # argument name should be lowercase
+  "N806", # variable in function should be lowercase
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -130,22 +130,41 @@ blank = false
 
 [tool.numpydoc_validation]
 checks = [
-    "all",  # report on all checks, except the below
-    "GL01", # Docstring text (summary) should start in the line immediately
-    "EX01", # No examples section found
-    "SA01", # See Also section not found
-    "ES01", # No extended summary found
-    "GL08", # The object does not have a docstring
-    "RT01", # No Returns section found
-    "PR01", # Parameters {missing_params} not documented
-    "SS06", # Summary should fit in a single line
+  "all",  # report on all checks, except the below
+  "GL01", # Docstring text (summary) should start in the line immediately
+  "EX01", # No examples section found
+  "SA01", # See Also section not found
+  "ES01", # No extended summary found
+  "GL08", # The object does not have a docstring
+  "RT01", # No Returns section found
+  "PR01", # Parameters {missing_params} not documented
+  "SS06", # Summary should fit in a single line
 ]
 # remember to use single quotes for regex in TOML
 exclude = [ # don't report on objects that match any of these regex
-    '\.__repr__$',
+  '\.__repr__$',
 ]
 override_SS05 = ['^Process ', '^Assess ', '^Access ']
 
+# ------------------------------
+# === Type checking settings ===
+# ------------------------------
 [tool.mypy]
-check_untyped_defs = true
-disallow_untyped_defs = true
+files = ["src", "tests"]
+warn_unused_configs = true
+strict = true
+enable_error_code = ["ignore-without-code", "truthy-bool"]
+disable_error_code = ["no-any-return"]
+
+[tool.basedpyright]
+include = ["src", "tests"]
+pythonPlatform = "All"
+typeCheckingMode = "all"
+reportMissingTypeStubs = true
+
+# no raysect/cherab type stubs; pytest fixtures
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+
+# ruff handles this
+reportUnusedParameter = false
