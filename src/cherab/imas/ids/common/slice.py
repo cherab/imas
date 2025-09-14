@@ -15,28 +15,60 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for common functions used to get IDS time slices."""
 
 from numpy import inf
 
-from imas.imasdef import CLOSEST_INTERP
+import imas
+from imas.ids_defs import CLOSEST_INTERP
+from imas.ids_toplevel import IDSToplevel
+
+__all__ = ["get_ids_time_slice"]
 
 
-def get_ids_time_slice(entry, ids_name, time=0, occurrence=0, time_threshold=inf):
+def get_ids_time_slice(
+    entry: imas.DBEntry,
+    ids_name: str,
+    time: float = 0,
+    occurrence: int = 0,
+    time_threshold: float = inf,
+) -> IDSToplevel:
+    """Get a time slice of the specified IDS from the given IMAS entry.
 
+    Parameters
+    ----------
+    entry : imas.DBEntry
+        The IMAS entry. The entry must be opened in read mode.
+    ids_name : str
+        The name of the IDS.
+    time : float, optional
+        The time in seconds of the requested time slice, by default is 0.
+    occurrence : int, optional
+        The occurrence of the IDS, by default is 0.
+    time_threshold : float, optional
+        The maximum allowed time difference in seconds between the actual time of the nearest time
+        slice and the given time, by default is infinity.
+
+    Returns
+    -------
+    IDSToplevel
+        The requested IDS time slice.
+    """
     if time < 0:
-        raise ValueError("Argument 'time' must be >=0.")
+        raise ValueError(f"Argument 'time' must be >=0 ({time} s).")
     if time_threshold < 0:
-        raise ValueError("Argument 'time_threshold' must be >=0.")
+        raise ValueError(f"Argument 'time_threshold' must be >=0 ({time_threshold} s).")
 
-    entry.open()
     ids = entry.get_slice(ids_name, time, CLOSEST_INTERP, occurrence=occurrence)
-    entry.close()
 
     if not len(ids.time):
-        raise RuntimeError('The {} IDS is empty.'.format(ids_name))
+        raise RuntimeError(f"The '{ids_name}' IDS is empty.")
 
     if abs(ids.time[0] - time) > time_threshold:
-        raise RuntimeError('The time difference between the actual time ({} s) of the nearest {}'.format(ids.time[0], ids_name) +
-                           ' time slice and the given time ({} s) exceeds the specified threshold ({} s).'.format(time, time_threshold))
+        raise RuntimeError(
+            f"The time difference between the actual time ({ids.time[0]} s) "
+            f"of the nearest '{ids_name}' time slice and the given time ({time} s) "
+            f"exceeds the specified threshold ({time_threshold} s)."
+        )
 
     return ids

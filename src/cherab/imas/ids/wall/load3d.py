@@ -15,33 +15,43 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading wall components from wall IDSs."""
 
 import numpy as np
-
 from raysect.core.math.polygon import triangulate2d
 
+from imas.ids_structure import IDSStructure
+
+__all__ = ["load_wall_3d"]
 
 VERTEX_DIMENSION = 0
 POLYGON_DIMENSION = 2
 
 
 # TODO: Check coordinate types and convert to Cartesian if required
-def load_wall_3d(description_ggd, subsets=None):
-    """
-    Loads machine wall components from IMAS wall IDS and returns a dictionary.
+def load_wall_3d(
+    description_ggd: IDSStructure, subsets: list[str] | None = None
+) -> dict[str, dict[str, np.ndarray]]:
+    """Load machine wall components from IMAS wall IDS.
 
-    :param description_ggd: description_ggd structure from the 'wall' IDS.
-    :param subsets: A list of names of specific ggd subsets to load.
-                    Default is None (load all subsets).
+    Parameters
+    ----------
+    description_ggd : IDSStructure
+        A description_ggd structure from the 'wall' IDS.
+    subsets : list[str], optional
+        List of names of specific ggd subsets to load, by default None (loads all subsets).
 
-    :returns: A dictionary of wall components defined by vertices and triangles.
-        The dictionary keys for components are assignes as follows:
-        "{grid_name}.{subset_name}.{material_name}"
-        E.g.: "FullTokamak.full_main_chamber_wall.Be".
+    Returns
+    -------
+    dict[str, dict[str, np.ndarray]]
+        Dictionary of wall components defined by vertices and triangles.
+        The dictionary keys for components are assigns as follows:
+        ``"{grid_name}.{subset_name}.{material_name}"``
+        E.g.: ``"FullTokamak.full_main_chamber_wall.Be"``.
     """
 
     if not len(description_ggd.grid_ggd):
-        raise RuntimeError('The grid_ggd AOS is empty in the given description_ggd.')
+        raise RuntimeError("The grid_ggd AOS is empty in the given description_ggd.")
 
     # get the grid
     grid = description_ggd.grid_ggd[0]
@@ -64,7 +74,6 @@ def load_wall_3d(description_ggd, subsets=None):
 
     # iterate over the grid subsets to get individual wall components and their materials
     for subset in grid.grid_subset:
-
         subset_name = subset.identifier.name
         subset_index = subset.identifier.index
 
@@ -75,28 +84,31 @@ def load_wall_3d(description_ggd, subsets=None):
 
         if subset_index in materials:
             # materials are specified for this subset
-            for (material_name, element_indices) in materials[subset_index]:
-                component_name = '{}.{}.{}'.format(grid_name, subset_name, material_name)
-                vert, tri = _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subsets)
-                components[component_name] = {'vertices': vert, 'triangles': tri}
+            for material_name, element_indices in materials[subset_index]:
+                component_name = f"{grid_name}.{subset_name}.{material_name}"
+                vert, tri = _get_mesh_from_subset(
+                    grid, subset, element_indices, vertices, poly_in_subsets
+                )
+                components[component_name] = {"vertices": vert, "triangles": tri}
         else:
             # materials are not specified
-            component_name = '{}.{}.none'.format(grid_name, subset_name)
+            component_name = f"{grid_name}.{subset_name}.none"
             element_indices = range(len(subset.element)) if len(subset.element) else [0]
-            vert, tri = _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subsets)
-            components[component_name] = {'vertices': vert, 'triangles': tri}
+            vert, tri = _get_mesh_from_subset(
+                grid, subset, element_indices, vertices, poly_in_subsets
+            )
+            components[component_name] = {"vertices": vert, "triangles": tri}
 
     # add all remaining polygons to a dedicated component
     if not subsets:
         vert, tri = _get_mesh_from_remaining_polygons(grid, vertices, poly_in_subsets)
-        component_name = '{}.none.none'.format(grid_name)
-        components[component_name] = {'vertices': vert, 'triangles': tri}
+        component_name = f"{grid_name}.none.none"
+        components[component_name] = {"vertices": vert, "triangles": tri}
 
     return components
 
 
 def _get_materials(material_struct):
-
     materials = {}
 
     if len(material_struct):  # check if the material structure is defined in this IDS
@@ -106,7 +118,7 @@ def _get_materials(material_struct):
             unique_names = np.unique(names)
             material_list = []
             for name in unique_names:
-                elements, = np.where(names == name)
+                (elements,) = np.where(names == name)
                 material_list.append((name, elements))
             materials[subset.grid_subset_index] = material_list
 
@@ -114,12 +126,13 @@ def _get_materials(material_struct):
 
 
 def _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subsets):
-
     space = grid.space[0]  # wall grid has only a single space (unstructured grid)
     triangles = []
 
     if len(subset.element):  # complex subset
-        indices = [subset.element[iel].object[0].index - 1 for iel in element_indices]  # indexing: 1 -> 0
+        indices = [
+            subset.element[iel].object[0].index - 1 for iel in element_indices
+        ]  # indexing: 1 -> 0
     else:  # trivial subset, includes all polygons, element index equals to polygon index
         if len(element_indices) == 1 and element_indices[0] == 0:  # trivial case, use all polygons
             indices = range(len(space.objects_per_dimension[POLYGON_DIMENSION].object))
@@ -127,14 +140,16 @@ def _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subse
             indices = element_indices
 
     for i in indices:
-        polygon = space.objects_per_dimension[POLYGON_DIMENSION].object[i].nodes - 1  # indexing: 1 -> 0
+        polygon = (
+            space.objects_per_dimension[POLYGON_DIMENSION].object[i].nodes - 1
+        )  # indexing: 1 -> 0
         if len(polygon) == 3:
             triangles.append(polygon)
         elif len(polygon) > 3:
             tri_array = polygon[_triangulate_polygon(vertices[polygon])]
             triangles += [tri for tri in tri_array]
         else:
-            raise RuntimeError("Not a polygon: {}.".format(np.array2string(polygon)))
+            raise RuntimeError(f"Not a polygon: {np.array2string(polygon)}.")
 
     poly_in_subsets.update(indices)
 
@@ -147,23 +162,24 @@ def _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subse
 
 
 def _get_mesh_from_remaining_polygons(grid, vertices, poly_in_subsets):
-
     space = grid.space[0]  # wall grid has only a single space (unstructured grid)
     num_poly = len(space.objects_per_dimension[POLYGON_DIMENSION].object)
     mask = np.ones(num_poly, dtype=bool)
     mask[list(poly_in_subsets)] = False
-    poly_remain, = np.where(mask)
+    (poly_remain,) = np.where(mask)
 
     triangles = []
     for i in poly_remain:
-        polygon = space.objects_per_dimension[POLYGON_DIMENSION].object[i].nodes - 1  # indexing: 1 -> 0
+        polygon = (
+            space.objects_per_dimension[POLYGON_DIMENSION].object[i].nodes - 1
+        )  # indexing: 1 -> 0
         if len(polygon) == 3:
             triangles.append(polygon)
         elif len(polygon) > 3:
             tri_array = polygon[_triangulate_polygon(vertices[polygon])]
             triangles += [tri for tri in tri_array]
         else:
-            raise RuntimeError("Not a polygon: {}.".format(np.array2string(polygon)))
+            raise RuntimeError(f"Not a polygon: {np.array2string(polygon)}.")
 
     triangles = np.array(triangles, dtype=np.int32)
     vert_indx, inv_indx = np.unique(triangles, return_inverse=True)
@@ -174,7 +190,6 @@ def _get_mesh_from_remaining_polygons(grid, vertices, poly_in_subsets):
 
 
 def _triangulate_polygon(vert):
-
     # convert to 2d coordinates
     vert -= vert[0]
     e1 = np.copy(vert[1])

@@ -16,6 +16,15 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .unstruct_grid_2d_functions import UnstructGridFunction2D, UnstructGridVectorFunction2D
 from .struct_grid_2d_functions import StructGridFunction2D, StructGridVectorFunction2D
 from .struct_grid_3d_functions import StructGridFunction3D, StructGridVectorFunction3D
+from .unstruct_grid_2d_functions import UnstructGridFunction2D, UnstructGridVectorFunction2D
+
+__all__ = [
+    "StructGridFunction2D",
+    "StructGridVectorFunction2D",
+    "StructGridFunction3D",
+    "StructGridVectorFunction3D",
+    "UnstructGridFunction2D",
+    "UnstructGridVectorFunction2D",
+]

@@ -16,6 +16,12 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from cherab.imas.math.interpolators.unstruct_grid_2d_functions cimport UnstructGridFunction2D, UnstructGridVectorFunction2D
-from cherab.imas.math.interpolators.struct_grid_2d_functions cimport StructGridFunction2D, StructGridVectorFunction2D
-from cherab.imas.math.interpolators.struct_grid_3d_functions cimport StructGridFunction3D, StructGridVectorFunction3D
+from cherab.imas.math.interpolators.unstruct_grid_2d_functions cimport (
+    UnstructGridFunction2D, UnstructGridVectorFunction2D
+)
+from cherab.imas.math.interpolators.struct_grid_2d_functions cimport (
+    StructGridFunction2D, StructGridVectorFunction2D
+)
+from cherab.imas.math.interpolators.struct_grid_3d_functions cimport (
+    StructGridFunction3D, StructGridVectorFunction3D
+)

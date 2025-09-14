@@ -15,5 +15,8 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for loading wall data from IMAS IDS structures."""
 
 from .wall import load_wall_mesh, load_wall_outline
+
+__all__ = ["load_wall_mesh", "load_wall_outline"]

@@ -15,58 +15,90 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Module for loading wall components from wall IDSs."""
 
-from numpy import inf
-
-import imas
-
+import numpy as np
+from raysect.core.scenegraph._nodebase import _NodeBase
+from raysect.optical.material.material import Material
 from raysect.primitive import Mesh
 
-from cherab.imas.ids.common import get_ids_time_slice
-from cherab.imas.ids.wall import load_wall_3d, load_wall_2d
+from imas import DBEntry
+
+from ..ids.common import get_ids_time_slice
+from ..ids.wall import load_wall_2d, load_wall_3d
+
+__all__ = ["load_wall_mesh", "load_wall_outline"]
 
 
-def load_wall_mesh(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND, time=0, occurrence=0,
-                   desc_ggd_index=0, subsets=None, materials=None, time_threshold=inf, parent=None):
+def load_wall_mesh(
+    *args,
+    time: float = 0,
+    occurrence: int = 0,
+    desc_ggd_index: int = 0,
+    subsets: list[str] | None = None,
+    materials: dict[str, Material] | None = None,
+    time_threshold: float = np.inf,
+    parent: _NodeBase | None = None,
+    **kwargs,
+) -> dict[str, Mesh]:
+    """Load machine wall components from IMAS wall IDS and Create a dictionary of Raysect mesh
+    primitives.
+
+    Parameters
+    ----------
+    *args
+        Arguments passed to the `imas.DBEntry` constructor.
+    time : float, optional
+        Time moment for the edge plasma, by default 0.
+    occurrence : int, optional
+        Instance index of the 'wall' IDS, by default 0.
+    desc_ggd_index : int
+        Index of 'description_ggd', by default 0.
+    subsets : list[str], optional
+        List of names of specific ggd subsets to load, by default None (loads all subsets).
+    materials : dict[str, Material], optional
+        Optional dictionary with Raysect materials for each wall component, by default None.
+        Use component names as keys. The components are split by their grid subsets and for
+        each grid subset by materials. All elements of the grid subset that share the same material
+        are combined into a single component. The component names are assigns as follows:
+        ``"{grid_name}.{subset_name}.{material_name}"``
+        E.g.: ``"TokamakWall.full_main_chamber_wall.Be"``.
+    time_threshold : float, optional
+        Sets the maximum allowable difference between the specified time and the nearest
+        available time, by default `numpy.inf`.
+    parent : _NodeBase, optional
+        Parent node in the Raysect scene-graph, by default None.
+        Normally, `~raysect.optical.scenegraph.world.World` instance.
+    **kwargs
+        Keyword arguments passed to the `imas.DBEntry` constructor.
+
+    Returns
+    -------
+    dict[str, Mesh]
+        Dictionary with the Raysect Mesh instances.
+
+    Example
+    -------
+    >>> from raysect.optical import World
+    >>> world = World()
+    >>> meshes = load_wall_mesh(
+    ...     "imas:uda?path=/work/imas/shared/imasdb/ITER_MD/3/116100/1001/", "r", parent=world
+    ... )
+    >>> meshes
+    {'FullTokamak.none.none': <raysect.primitive.mesh.mesh.Mesh at 0x1766322a0>}
     """
-    Loads machine wall components from IMAS wall IDS and creates a dictionary
-    of Raysect mesh primitives.
 
-    :param shot: IMAS shot number.
-    :param run: IMAS run number for a given shot.
-    :param user: IMAS username.
-    :param database: IMAS database name.
-    :param backend: IMAS database backend. Default is imas.imasdef.MDSPLUS_BACKEND.
-    :param time: Time moment. Default is 0.
-    :param occurrence: Instance index of the 'wall' IDS. Default is 0.
-    :param desc_ggd_index: Index of description_ggd. Default is 0.
-    :param subsets: A list of names of specific ggd subsets to load.
-                    Default is None (loads all subsets).
-    :param materials: Optional dictionary with Raysect materials for each wall component.
-        Default is None. Use component names as keys.
-        The components are splitted by their grid subsets and for each grid subset by materials.
-        All elements of the grid subset that share the same material are combined into
-        a single component. The component names are assignes as follows:
-        "{grid_name}.{subset_name}.{material_name}"
-        E.g.: "TokamakWall.full_main_chamber_wall.Be".
-    :param time_threshold: Sets the maximum allowable difference between the specified time and the nearest
-        available time. Default is np.inf.
-    :param parent: The parent node in the Raysect scene-graph.
-
-    :returns: A dictinary with the Raysect Mesh instants.
-    """
-
-    entry = imas.DBEntry(backend, database, shot, run, user)
-    wall_ids = get_ids_time_slice(entry, 'wall', time=time, occurrence=occurrence, time_threshold=time_threshold)
+    with DBEntry(*args, **kwargs) as entry:
+        wall_ids = get_ids_time_slice(
+            entry, "wall", time=time, occurrence=occurrence, time_threshold=time_threshold
+        )
 
     wall_dict = load_wall_3d(wall_ids.description_ggd[desc_ggd_index], subsets)
-
-    entry.close()
 
     components = {}
 
     for key, value in wall_dict.items():
-        mesh = Mesh(value['vertices'], value['triangles'], closed=False)
+        mesh = Mesh(value["vertices"], value["triangles"], closed=False)
         mesh.parent = parent
         mesh.name = key
         components[key] = mesh
@@ -76,28 +108,43 @@ def load_wall_mesh(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKE
     return components
 
 
-def load_wall_outline(shot, run, user, database, backend=imas.imasdef.MDSPLUS_BACKEND,
-                      occurrence=0, desc_index=0):
+def load_wall_outline(
+    *args, occurrence: int = 0, desc_index: int = 0, **kwargs
+) -> dict[str, np.ndarray]:
+    """Load 2D wall outline (limiter contour only) from IMAS wall IDS.
+
+    Parameters
+    ----------
+    *args
+        Arguments passed to the `imas.DBEntry` constructor.
+    occurrence : int, optional
+        Instance index of the 'wall' IDS, by default 0.
+    desc_index : int, optional
+        Index of 'description_2d', by default 0.
+    **kwargs
+        Keyword arguments passed to the `imas.DBEntry` constructor.
+
+    Returns
+    -------
+    dict[str, (N, 2) ndarray]
+       Dictionary of wall unit outlines (N, 2) array given in RZ coordinates.
+
+    Example
+    -------
+    >>> load_wall_outline("imas:uda?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/", "r")
+    {'First Wall': array([[ 4.11129713, -2.49559808],
+                          [ 4.11129713, -1.48329401],
+                          ...
+                          [ 6.21105623, -3.06856108]]),
+     'Divertor': array([[ 3.94210005, -2.53570008],
+                        ...
+                        [ 6.36320019, -3.24460006]])}
     """
-    Loads 2D wall outline (limiter contour only) from IMAS wall IDS and returns a dictionary.
 
-    :param shot: IMAS shot number.
-    :param run: IMAS run number for a given shot.
-    :param user: IMAS username.
-    :param database: IMAS database name.
-    :param backend: IMAS database backend. Default is imas.imasdef.MDSPLUS_BACKEND.
-    :param occurrence: Instance index of the 'wall' IDS. Default is 0.
-    :param desc_index: Index of description_2d. Default is 0.
-
-    :returns: A dictionary of wall unit outlines given in RZ coordinates.
-    """
-
-    entry = imas.DBEntry(backend, database, shot, run, user)
-    entry.open()
-
-    description2d = entry.partial_get('wall', 'description_2d({})'.format(desc_index), occurrence=occurrence)
-
-    entry.close()
+    with DBEntry(*args, **kwargs) as entry:
+        description2d = entry.get("wall", occurrence=occurrence, autoconvert=False).description_2d[
+            desc_index
+        ]
 
     wall_outline = load_wall_2d(description2d)
 

@@ -15,6 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for handling equilibrium data from IMAS."""
 
 from .load_equilibrium import load_equilibrium_data
 from .load_field import load_magnetic_field_data
+
+__all__ = ["load_equilibrium_data", "load_magnetic_field_data"]

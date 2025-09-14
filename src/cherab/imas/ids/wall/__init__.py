@@ -15,6 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for loading wall description from IMAS wall IDS."""
 
-from .load3d import load_wall_3d
 from .load2d import load_wall_2d
+from .load3d import load_wall_3d
+
+__all__ = ["load_wall_2d", "load_wall_3d"]

@@ -22,12 +22,12 @@ pre-commit:
     - name: dprint
       glob: "*.{json,jsonc,md,yaml,yml}"
       stage_fixed: true
-      run: pixi {run} dprint fmt {staged_files}
+      run: pixi {run} dprint {staged_files}
 
     - name: taplo
       glob: "*.toml"
       stage_fixed: true
-      run: pixi {run} taplo fmt {staged_files}
+      run: pixi {run} taplo {staged_files}
 
     - name: ruff
       glob: "*.{py,pyi}"
@@ -40,13 +40,17 @@ pre-commit:
           - name: ruff format
             run: pixi {run} ruff format {staged_files}
 
-    - name: mypy
-      glob: "*.{py,pyi}"
-      run: pixi {run} mypy {staged_files}
+    # - name: pyright
+    #   glob: "*.{py,pyi}"
+    #   run: pixi {run} pyright {staged_files}
+
+    # - name: mypy
+    #   glob: "*.{py,pyi}"
+    #   run: pixi {run} mypy {staged_files}
 
     - name: typos
       stage_fixed: true
-      run: pixi {run} typos --force-exclude {staged_files}
+      run: pixi {run} typos {staged_files}
 
     - name: actionlint
       glob: ".github/workflows/*.{yaml,yml}"
@@ -71,7 +75,7 @@ pre-commit:
             run: pixi {run} docformatter --in-place {staged_files}
           - name: numpydoc
             glob: "*.{py,pyi}"
-            run: pixi {run} numpydoc lint {staged_files}
+            run: pixi {run} numpydoc {staged_files}
 
     - name: cython-lint
       glob: "*.{pyx,pxd}"

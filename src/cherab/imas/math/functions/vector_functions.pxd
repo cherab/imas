@@ -25,14 +25,14 @@ from raysect.core.math.function.vector3d cimport Function3D as VectorFunction3D
 
 cdef class UnitVector1D(VectorFunction1D):
 
-   cdef VectorFunction1D _vector
+    cdef VectorFunction1D _vector
 
 
 cdef class UnitVector2D(VectorFunction2D):
 
-   cdef VectorFunction2D _vector
+    cdef VectorFunction2D _vector
 
 
 cdef class UnitVector3D(VectorFunction3D):
 
-   cdef VectorFunction3D _vector
+    cdef VectorFunction3D _vector

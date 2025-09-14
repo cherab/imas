@@ -15,7 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
-"""The Cherab subpackage for the IMAS tokamak."""
+"""The Cherab subpackage for the IMAS."""
 
 from __future__ import annotations
 
