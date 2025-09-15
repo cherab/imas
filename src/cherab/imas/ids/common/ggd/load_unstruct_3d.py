@@ -21,7 +21,7 @@ import numpy as np
 
 from imas.ids_structure import IDSStructure
 
-from ..ggd.unstruct_2d_extend_mesh import UnstructGrid2DExtended
+from ....ggd import UnstructGrid2DExtended
 
 __all__ = ["load_unstruct_grid_2d_extended", "load_unstruct_grid_3d"]
 

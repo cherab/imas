@@ -18,6 +18,7 @@
 """Subpackage for handling general grids (GGD) for IMAS IDSs."""
 
 from .base_mesh import GGDGrid
+from .unstruct_2d_extend_mesh import UnstructGrid2DExtended
 from .unstruct_2d_mesh import UnstructGrid2D
 
-__all__ = ["GGDGrid", "UnstructGrid2D"]
+__all__ = ["GGDGrid", "UnstructGrid2D", "UnstructGrid2DExtended"]

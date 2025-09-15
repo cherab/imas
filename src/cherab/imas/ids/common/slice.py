@@ -67,8 +67,8 @@ def get_ids_time_slice(
     if abs(ids.time[0] - time) > time_threshold:
         raise RuntimeError(
             f"The time difference between the actual time ({ids.time[0]} s) "
-            f"of the nearest '{ids_name}' time slice and the given time ({time} s) "
-            f"exceeds the specified threshold ({time_threshold} s)."
+            + f"of the nearest '{ids_name}' time slice and the given time ({time} s) "
+            + f"exceeds the specified threshold ({time_threshold} s)."
         )
 
     return ids
