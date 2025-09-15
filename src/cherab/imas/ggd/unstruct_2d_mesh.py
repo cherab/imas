@@ -53,20 +53,20 @@ class UnstructGrid2D(GGDGrid):
         Coordinate system of the grid, by default 'cylindrical'.
     """
 
-    def __init__(self, vertices, cells, name="Cells", coordinate_system="cylindrical"):
+    def __init__(self, vertices, cells, name: str = "Cells", coordinate_system="cylindrical"):
         vertices = np.array(vertices, dtype=np.float64)
         vertices.setflags(write=False)
 
         if vertices.ndim != 2:
             raise ValueError(
                 "Attribute 'vertices' must be a 2D array-like. "
-                f"The number of dimensions in 'vertices' is {vertices.ndim}."
+                + f"The number of dimensions in 'vertices' is {vertices.ndim}."
             )
 
         if vertices.shape[1] != 2:
             raise ValueError(
                 "Attribute 'vertices' must be a (N, 2) array-like. "
-                f"The shape of 'vertices' is {vertices.shape}."
+                + f"The shape of 'vertices' is {vertices.shape}."
             )
 
         if not len(cells):
@@ -191,7 +191,7 @@ class UnstructGrid2D(GGDGrid):
         indices : array_like
             Indices of the cells of the original grid in the subset.
         name : str, optional
-            Name of the grid subset. Default is instance.name + ' subset'.
+            Name of the grid subset. Default is `instance.name` + `' subset'`.
         """
 
         grid = UnstructGrid2D.__new__(UnstructGrid2D)

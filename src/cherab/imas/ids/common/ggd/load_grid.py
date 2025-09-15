@@ -20,11 +20,12 @@
 from imas.ids_structure import IDSStructure
 
 from .load_unstruct_2d import load_unstruct_grid_2d
+from .load_unstruct_3d import load_unstruct_grid_2d_extended
 
 __all__ = ["load_grid", "load_unstruct_grid_2d"]
 
 
-def load_grid(grid_ggd: IDSStructure, with_subsets=False):
+def load_grid(grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = None):
     """Load grid from the grid_ggd structure.
 
     Parameters
@@ -33,6 +34,8 @@ def load_grid(grid_ggd: IDSStructure, with_subsets=False):
         The grid_ggd structure.
     with_subsets : bool, optional
         Read grid subset data, by default is False.
+    num_toroidal : int, optional
+        Number of toroidal points, by default None.
 
     Returns
     -------
@@ -62,8 +65,8 @@ def load_grid(grid_ggd: IDSStructure, with_subsets=False):
 
     if len(spaces) == 2:  # 2D structured grid or 2D unstructured grid extended in 3D
         if len(spaces[0].objects_per_dimension) == 3 and len(spaces[1].objects_per_dimension) < 3:
-            raise NotImplementedError(
-                "Loading unstructured 2D grids extended in 3D will be implemented in the future."
+            return load_unstruct_grid_2d_extended(
+                grid_ggd, with_subsets=with_subsets, num_toroidal=num_toroidal
             )
         if len(spaces[0].objects_per_dimension) < 3 and len(spaces[1].objects_per_dimension) < 3:
             raise NotImplementedError(

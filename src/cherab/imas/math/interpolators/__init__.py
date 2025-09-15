@@ -19,6 +19,7 @@
 from .struct_grid_2d_functions import StructGridFunction2D, StructGridVectorFunction2D
 from .struct_grid_3d_functions import StructGridFunction3D, StructGridVectorFunction3D
 from .unstruct_grid_2d_functions import UnstructGridFunction2D, UnstructGridVectorFunction2D
+from .unstruct_grid_3d_functions import UnstructGridFunction3D, UnstructGridVectorFunction3D
 
 __all__ = [
     "StructGridFunction2D",
@@ -27,4 +28,6 @@ __all__ = [
     "StructGridVectorFunction3D",
     "UnstructGridFunction2D",
     "UnstructGridVectorFunction2D",
+    "UnstructGridFunction3D",
+    "UnstructGridVectorFunction3D",
 ]
