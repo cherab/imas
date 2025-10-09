@@ -20,7 +20,6 @@ classifiers = [
   "Intended Audience :: Developers",
   "Intended Audience :: Education",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)",
   "Natural Language :: English",
   "Operating System :: Unix",
   "Programming Language :: Python :: 3",
