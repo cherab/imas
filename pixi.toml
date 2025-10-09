@@ -7,8 +7,7 @@ preview = ["pixi-build"]
 # === Packaging Configuration ===
 # -------------------------------
 [package]
-name = "cherab-imas"
-version = "0.1.1"
+version = "0.1.1" # this will be overridden by setuptools-scm
 
 [package.build]
 backend = { name = "pixi-build-python", version = "*" }
@@ -21,6 +20,8 @@ env = { SETUPTOOLS_SCM_PRETEND_VERSION = "0.1.1" }
 python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
 
 [package.host-dependencies]
+uv = "*"
+python = "*"
 hatchling = "*"
 hatch-vcs = "*"
 hatch-cython = ">=0.6.0rc0"
@@ -41,6 +42,7 @@ ipython = "*"
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
 
+# === Testing feature ===
 [feature.tests.dependencies]
 pytest = "*"
 pytest-cov = "*"
