@@ -42,11 +42,11 @@ ipython = "*"
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
 
 # === Testing feature ===
-[feature.tests.dependencies]
+[feature.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
 
-[feature.tests.tasks]
+[feature.test.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
 
 # === Linting feature ===
@@ -94,10 +94,10 @@ python = "3.13.*"
 [environments]
 default = { features = ["py313"], solve-group = "py313" }
 # docs = { features = ["py313", "docs"], solve-group = "py313" }
-tests = { features = ["py313", "tests"], solve-group = "py313" }
-tests-py313 = { features = [
+test = { features = ["py313", "test"], solve-group = "py313" }
+test-py313 = { features = [
   "py313",
-  "tests",
-], solve-group = "py313" } # alias of tests
-tests-py310 = ["py310", "tests"]
+  "test",
+], solve-group = "py313" } # alias of test
+test-py310 = ["py310", "test"]
 lint = { features = ["lint"], no-default-feature = true }
