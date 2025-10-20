@@ -131,14 +131,16 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
     boundary = equilibrium_ids.time_slice[0].boundary
 
     x_points = []
-    for x_point in boundary.x_point:
-        if x_point.r != EMPTY_FLOAT and x_point.z != EMPTY_FLOAT:
-            x_points.append(Point2D(x_point.r, x_point.z))
+    if hasattr(boundary, "x_point"):  # DD4 no longer has x_point
+        for x_point in boundary.x_point:
+            if x_point.r != EMPTY_FLOAT and x_point.z != EMPTY_FLOAT:
+                x_points.append(Point2D(x_point.r, x_point.z))
 
     strike_points = []
-    for strike_point in boundary.strike_point:
-        if strike_point.r != EMPTY_FLOAT and strike_point.z != EMPTY_FLOAT:
-            strike_points.append(Point2D(strike_point.r, strike_point.z))
+    if hasattr(boundary, "strike_point"):  # DD4 no longer has strike_point
+        for strike_point in boundary.strike_point:
+            if strike_point.r != EMPTY_FLOAT and strike_point.z != EMPTY_FLOAT:
+                strike_points.append(Point2D(strike_point.r, strike_point.z))
 
     r_lcfs = boundary.outline.r
     z_lcfs = boundary.outline.z
