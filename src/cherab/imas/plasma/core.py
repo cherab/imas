@@ -222,7 +222,7 @@ def get_core_interpolators(
     if not isinstance(equilibrium, EFITEquilibrium):
         raise ValueError("Argiment equilibrium must be a EFITEquilibrium instance.")
 
-    psi_norm, indx = np.unique(psi_norm, return_index=True)
+    psi_norm, index = np.unique(psi_norm, return_index=True)
 
     interpolators = RecursiveDict()
 
@@ -230,7 +230,7 @@ def get_core_interpolators(
         if profile is not None:
             extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
             func = Interpolator1DArray(
-                psi_norm, profile[indx], "cubic", "nearest", extrapolation_range
+                psi_norm, profile[index], "cubic", "nearest", extrapolation_range
             )
             interpolators[prof_key] = (
                 equilibrium.map3d(func) if return3d else equilibrium.map2d(func)

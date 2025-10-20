@@ -113,13 +113,13 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
         )
 
     psi_norm = (psi1d - psi_axis) / (psi_lcfs - psi_axis)
-    psi_norm, indx = np.unique(psi_norm, return_index=True)
-    f = profiles_1d.f[indx]
-    q = profiles_1d.q[indx]
+    psi_norm, index = np.unique(psi_norm, return_index=True)
+    f = profiles_1d.f[index]
+    q = profiles_1d.q[index]
 
     # additional 1D profiles
-    phi = profiles_1d.phi[indx] if len(profiles_1d.phi) else None
-    rho_tor_norm = profiles_1d.rho_tor_norm[indx] if len(profiles_1d.rho_tor_norm) else None
+    phi = profiles_1d.phi[index] if len(profiles_1d.phi) else None
+    rho_tor_norm = profiles_1d.rho_tor_norm[index] if len(profiles_1d.rho_tor_norm) else None
 
     r_axis = global_quantities.magnetic_axis.r
     z_axis = global_quantities.magnetic_axis.z
@@ -147,8 +147,8 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
 
     # exclude the recurring points from the polygon
     if lcfs_polygon.shape[1]:
-        _, indx = np.unique(lcfs_polygon, return_index=True, axis=1)
-        lcfs_polygon = lcfs_polygon[:, np.sort(indx)]
+        _, index = np.unique(lcfs_polygon, return_index=True, axis=1)
+        lcfs_polygon = lcfs_polygon[:, np.sort(index)]
 
     if lcfs_polygon.shape[1] < 3:
         raise RuntimeError(
