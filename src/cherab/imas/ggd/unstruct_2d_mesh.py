@@ -207,17 +207,17 @@ class UnstructGrid2D(GGDGrid):
         cells_all = np.concatenate(
             cells_original
         )  # all vertex indices in this subset with repetitions
-        vert_indx, inv_indx = np.unique(
+        vert_index, inv_index = np.unique(
             cells_all, return_inverse=True
         )  # all unique vertex indices in this subset
-        grid._vertices = np.array(self.vertices[vert_indx])  # vertices in this subset
+        grid._vertices = np.array(self.vertices[vert_index])  # vertices in this subset
         grid._vertices.setflags(write=False)
 
         # renumerating vertex indices
         cells = []  # and split
         i_start = 0
         for cell in cells_original:
-            cells.append(inv_indx[i_start : i_start + len(cell)])
+            cells.append(inv_index[i_start : i_start + len(cell)])
             i_start += len(cell)
         grid._cells = tuple(cells)
         grid._num_cell = len(grid._cells)
@@ -251,7 +251,7 @@ class UnstructGrid2D(GGDGrid):
         c2t_map = self.cell_to_triangle_map[indices]  # map with original triangle indices
         # maps original vertices to the subset, -1 if not in the subset
         subset_vertex_map = -1 * np.ones(self.vertices.shape[0], dtype=np.int32)
-        subset_vertex_map[vert_indx] = np.arange(vert_indx.size, dtype=np.int32)
+        subset_vertex_map[vert_index] = np.arange(vert_index.size, dtype=np.int32)
 
         itri = 0
         for i, cell in enumerate(cells):

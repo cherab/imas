@@ -243,17 +243,17 @@ class UnstructGrid2DExtended(GGDGrid):
         cells_original = self.cells[
             index_flags
         ]  # all cells in this subset but with original vertex indices
-        vert_indx, inv_indx = np.unique(
+        vert_index, inv_index = np.unique(
             cells_original, return_inverse=True
         )  # all unique vertex indices in this subset
-        grid._vertices = np.array(self.vertices[vert_indx])  # vertices in this subset
+        grid._vertices = np.array(self.vertices[vert_index])  # vertices in this subset
         grid._vertices.setflags(write=False)
 
         # renumerating vertex indices
         cells = []  # and split
         ist = 0
         for cell in cells_original:
-            cells.append(inv_indx[ist : ist + len(cell)])
+            cells.append(inv_index[ist : ist + len(cell)])
             ist += len(cell)
         grid._cells = np.array(cells, dtype=np.int32)
         grid._cells.setflags(write=False)
@@ -323,17 +323,17 @@ class UnstructGrid2DExtended(GGDGrid):
         cells_original = self.cells[
             indices
         ]  # all cells in this subset but with original vertex indices
-        vert_indx, inv_indx = np.unique(
+        vert_index, inv_index = np.unique(
             cells_original, return_inverse=True
         )  # all unique vertex indices in this subset
-        grid._vertices = np.array(self.vertices[vert_indx])  # vertices in this subset
+        grid._vertices = np.array(self.vertices[vert_index])  # vertices in this subset
         grid._vertices.setflags(write=False)
 
         # renumerating vertex indices
         cells = []  # and split
         ist = 0
         for cell in cells_original:
-            cells.append(inv_indx[ist : ist + len(cell)])
+            cells.append(inv_index[ist : ist + len(cell)])
             ist += len(cell)
         grid._cells = np.array(cells, dtype=np.int32)
         grid._cells.setflags(write=False)
