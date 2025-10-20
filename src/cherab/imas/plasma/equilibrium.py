@@ -154,7 +154,7 @@ def load_magnetic_field(
 
     br = Interpolator2DArray(b_dict["r"], b_dict["z"], b_dict["b_field_r"], "cubic", "none", 0, 0)
     btor = Interpolator2DArray(
-        b_dict["r"], b_dict["z"], b_dict["b_field_tor"], "cubic", "none", 0, 0
+        b_dict["r"], b_dict["z"], b_dict["b_field_phi"], "cubic", "none", 0, 0
     )
     bz = Interpolator2DArray(b_dict["r"], b_dict["z"], b_dict["b_field_z"], "cubic", "none", 0, 0)
 

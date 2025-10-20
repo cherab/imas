@@ -45,7 +45,7 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
         :z: (M,) ndarray with Z coordinates of rectangular grid.
         :b_field_r: (N, M) ndarray with R component of the magnetic field.
         :b_field_z: (N, M) ndarray with Z component of the magnetic field.
-        :b_field_tor: (N, M) ndarray with toroidal component of the magnetic field.
+        :b_field_phi: (N, M) ndarray with toroidal component of the magnetic field.
     """
 
     rectangular_grid = False
@@ -67,12 +67,12 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
     shape = (b_dict["r"].size, b_dict["z"].size)
 
     b_dict["b_field_r"] = np.array(prof2d.b_field_r)
-    b_dict["b_field_tor"] = np.array(prof2d.b_field_tor)
+    b_dict["b_field_phi"] = np.array(prof2d.b_field_phi)
     b_dict["b_field_z"] = np.array(prof2d.b_field_z)
 
     if (
         b_dict["b_field_r"].shape != shape
-        or b_dict["b_field_tor"].shape != shape
+        or b_dict["b_field_phi"].shape != shape
         or b_dict["b_field_z"].shape != shape
     ):
         raise RuntimeError(
