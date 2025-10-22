@@ -168,8 +168,8 @@ def load_core_plasma(
         sp_key = (species_type, charge)
         if sp_key in plasma.composition:
             print(
-                f"Warning! Skipping {d['label']} species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                f"Warning! Skipping {d['name']} species. "
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
 
@@ -178,9 +178,9 @@ def load_core_plasma(
             interp["density"] = interp["density_thermal"]
 
         if interp["density"] is None:
-            print(f"Warning! Skipping {d['label']} species: density is not available.")
+            print(f"Warning! Skipping {d['name']} species: density is not available.")
         if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
+            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],

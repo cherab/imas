@@ -163,7 +163,7 @@ def load_edge_plasma(
         sp_key = (species_type, charge)
         if sp_key in plasma.composition:
             print(
-                f"Warning! Skipping {d['label']} species. "
+                f"Warning! Skipping {d['name']} species. "
                 f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
@@ -171,9 +171,9 @@ def load_edge_plasma(
         interp = get_edge_interpolators(grid, profiles, b_field, return3d=True)
 
         if interp["density"] is None:
-            print(f"Warning! Skipping {d['label']} species: density is not available.")
+            print(f"Warning! Skipping {d['name']} species: density is not available.")
         if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
+            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],

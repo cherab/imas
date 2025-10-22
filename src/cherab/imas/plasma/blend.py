@@ -284,7 +284,7 @@ def load_plasma(
         sp_key = (d["element"], int(round(d["z"])))
         if sp_key in core_species:
             print(
-                f"Warning! Skipping {d['label']} core species. "
+                f"Warning! Skipping {d['name']} core species. "
                 f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
@@ -299,7 +299,7 @@ def load_plasma(
         sp_key = (d["element"], int(round(d["z"])))
         if sp_key in edge_species:
             print(
-                f"Warning! Skipping {d['label']} edge species. "
+                f"Warning! Skipping {d['name']} edge species. "
                 f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
@@ -329,9 +329,9 @@ def load_plasma(
             interp["velocity"] = ConstantVector3D(Vector3D(0, 0, 0))
 
         if interp["density"] is None:
-            print(f"Warning! Skipping {d['label']} species: density is not available.")
+            print(f"Warning! Skipping {d['name']} species: density is not available.")
         if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
+            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],

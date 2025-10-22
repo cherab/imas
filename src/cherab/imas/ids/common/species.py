@@ -74,7 +74,7 @@ def get_ion_state(
         z_min = state.z_min
         z_max = state.z_max
 
-    state_dict = {"label": state.label.strip()}
+    state_dict = {"name": state.name.strip()}
 
     if len(elements) > 1:  # molecular ions and bundles
         state_dict["elements"] = elements
@@ -128,7 +128,7 @@ def get_neutral_state(state: IDSStructure, elements: list[Element]) -> tuple[str
     species_id : frozenset
         A frozenset of key-value pairs that uniquely identify the species.
     """
-    state_dict = {"label": state.label.strip()}
+    state_dict = {"name": state.name.strip()}
 
     if len(elements) > 1:  # molecules
         species_type = "molecule"
@@ -177,7 +177,7 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
     if len(elements) > 1:
         species_id = frozenset(
             {
-                ("label", ion.label.strip()),
+                ("name", ion.name.strip()),
                 ("elements", elements),
                 ("z", z_ion),
                 ("electron_configuration", None),
@@ -189,7 +189,7 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
 
     species_id = frozenset(
         {
-            ("label", ion.label.strip()),
+            ("name", ion.name.strip()),
             ("element", elements[0]),
             ("z", z_ion),
             ("electron_configuration", None),
@@ -218,7 +218,7 @@ def get_neutral(neutral, elements):
     if len(elements) > 1:
         species_id = frozenset(
             {
-                ("label", neutral.label.strip()),
+                ("name", neutral.name.strip()),
                 ("elements", elements),
                 ("z", 0),
                 ("electron_configuration", None),
@@ -230,7 +230,7 @@ def get_neutral(neutral, elements):
 
     species_id = frozenset(
         {
-            ("label", neutral.label.strip()),
+            ("name", neutral.name.strip()),
             ("element", elements[0]),
             ("z", 0),
             ("electron_configuration", None),
@@ -259,7 +259,7 @@ def get_element_list(element_aos: IDSStructArray) -> list[Element]:
         isotope = lookup_isotope(zn, number=mass_number)
         if int(round(isotope.element.atomic_weight)) == mass_number:
             isotope = isotope.element  # prefer element over isotope
-        atoms_n = 1 if element.atoms_n == EMPTY_INT else element.atoms_n
+        atoms_n = 1 if element.atoms_n == EMPTY_INT else element.atoms_n.value
         for _ in range(atoms_n):
             elements.append(isotope)
 

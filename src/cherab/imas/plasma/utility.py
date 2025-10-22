@@ -35,11 +35,11 @@ def warn_unsupported_species(composition: dict[str, dict], species_type: str):
             f"Warning! Species of type '{species_type}' are currently not supported. "
             "The following species will be skipped:"
         )
-        labels = []
+        names = []
         for species_id in composition[species_type]:
             d = {first: second for first, second in species_id}
-            labels.append(d["label"])
-        print("; ".join(labels))
+            names.append(d["name"])
+        print("; ".join(names))
 
 
 def get_subset_name_index(subset_id_dict: dict, grid_subset_id: int | str) -> tuple[str, int]:
