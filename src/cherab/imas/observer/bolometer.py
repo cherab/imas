@@ -21,9 +21,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from cherab.tools.observers.bolometry import BolometerCamera, BolometerFoil, BolometerSlit
 from raysect.core.scenegraph._nodebase import _NodeBase
 
+from cherab.tools.observers.bolometry import BolometerCamera, BolometerFoil, BolometerSlit
 from imas import DBEntry
 
 from ..ids.bolometer import GeometryType, load_cameras
@@ -65,7 +65,8 @@ def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[Bo
     >>> bolometers = load_bolometers("path/to/bolometer_file.nc", parent=world)
     """
     # Load bolometer IDS
-    kwargs["mode"] = "r"
+    if "r" not in args and "mode" not in kwargs:
+        kwargs["mode"] = "r"
     with DBEntry(*args, **kwargs) as entry:
         # Get available time slices
         ids = get_ids_time_slice(entry, "bolometer")
