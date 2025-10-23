@@ -65,14 +65,14 @@ def get_ion_state(
                 if s.grid_subset_index == grid_subset_index:
                     z_average = s.values
         if len(z_average):  # probably, a bundle
-            z_min = state.z_min if state.z_min != EMPTY_FLOAT else z_average.min()
-            z_max = state.z_max if state.z_max != EMPTY_FLOAT else z_average.max()
+            z_min = state.z_min.value if state.z_min != EMPTY_FLOAT else z_average.min()
+            z_max = state.z_max.value if state.z_max != EMPTY_FLOAT else z_average.max()
         else:  # probably, a single ion
-            z_min = state.z_min if state.z_min != EMPTY_FLOAT else state_index + 1
-            z_max = state.z_max if state.z_max != EMPTY_FLOAT else z_min
+            z_min = state.z_min.value if state.z_min != EMPTY_FLOAT else state_index + 1
+            z_max = state.z_max.value if state.z_max != EMPTY_FLOAT else z_min
     else:
-        z_min = state.z_min
-        z_max = state.z_max
+        z_min = state.z_min.value
+        z_max = state.z_max.value
 
     state_dict = {"name": state.name.strip()}
 
@@ -80,7 +80,7 @@ def get_ion_state(
         state_dict["elements"] = elements
         if z_min == z_max:
             species_type = "molecule"
-            state_dict["z"] = z_min.value
+            state_dict["z"] = z_min
             state_dict["electron_configuration"] = (
                 str(state.electron_configuration) if len(state.electron_configuration) else None
             )
@@ -88,24 +88,24 @@ def get_ion_state(
                 str(state.vibrational_mode) if len(state.vibrational_mode) else None
             )
             state_dict["vibrational_level"] = (
-                state.vibrational_level.value if state.vibrational_level != EMPTY_FLOAT else None
+                state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
             )
         else:
             species_type = "molecular_bundle"
-            state_dict["z_min"] = z_min.value
-            state_dict["z_max"] = z_max.value
+            state_dict["z_min"] = z_min
+            state_dict["z_max"] = z_max
     else:  # ions and bundles
         state_dict["element"] = elements[0]
         if z_min == z_max:
             species_type = "ion"
-            state_dict["z"] = z_min.value
+            state_dict["z"] = z_min
             state_dict["electron_configuration"] = (
                 str(state.electron_configuration) if len(state.electron_configuration) else None
             )
         else:
             species_type = "ion_bundle"
-            state_dict["z_min"] = z_min.value
-            state_dict["z_max"] = z_max.value
+            state_dict["z_min"] = z_min
+            state_dict["z_max"] = z_max
     species_id = frozenset(state_dict.items())
 
     return species_type, species_id
