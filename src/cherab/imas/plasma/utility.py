@@ -33,7 +33,7 @@ def warn_unsupported_species(composition: dict[str, dict], species_type: str):
     if species_type in composition and len(composition[species_type]):
         print(
             f"Warning! Species of type '{species_type}' are currently not supported. "
-            "The following species will be skipped:"
+            + "The following species will be skipped:"
         )
         names = []
         for species_id in composition[species_type]:
