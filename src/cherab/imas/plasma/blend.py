@@ -178,7 +178,7 @@ def load_plasma(
     if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
         raise RuntimeError(
             "The 'grid_ggd' AOS of the edge_profiles IDS is empty "
-            "and an alternative grid_ggd structure is not provided."
+            + "and an alternative grid_ggd structure is not provided."
         )
 
     if not len(edge_profiles_ids.ggd):
@@ -285,7 +285,7 @@ def load_plasma(
         if sp_key in core_species:
             print(
                 f"Warning! Skipping {d['name']} core species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
         if profiles["density_thermal"] is not None:
@@ -300,7 +300,7 @@ def load_plasma(
         if sp_key in edge_species:
             print(
                 f"Warning! Skipping {d['name']} edge species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
         edge_species[sp_key] = profiles
