@@ -37,6 +37,8 @@ imas-python = "*"
 [dependencies]
 cherab-imas = { path = "." }
 ipython = "*"
+pooch = "*"
+rich = "*"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
