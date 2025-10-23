@@ -65,16 +65,16 @@ def get_ion_state(
                 if s.grid_subset_index == grid_subset_index:
                     z_average = s.values
         if len(z_average):  # probably, a bundle
-            z_min = state.z_min if state.z_min != EMPTY_FLOAT else z_average.min()
-            z_max = state.z_max if state.z_max != EMPTY_FLOAT else z_average.max()
+            z_min = state.z_min.value if state.z_min != EMPTY_FLOAT else z_average.min()
+            z_max = state.z_max.value if state.z_max != EMPTY_FLOAT else z_average.max()
         else:  # probably, a single ion
-            z_min = state.z_min if state.z_min != EMPTY_FLOAT else state_index + 1
-            z_max = state.z_max if state.z_max != EMPTY_FLOAT else z_min
+            z_min = state.z_min.value if state.z_min != EMPTY_FLOAT else state_index + 1
+            z_max = state.z_max.value if state.z_max != EMPTY_FLOAT else z_min
     else:
-        z_min = state.z_min
-        z_max = state.z_max
+        z_min = state.z_min.value
+        z_max = state.z_max.value
 
-    state_dict = {"label": state.label.strip()}
+    state_dict = {"name": state.name.strip()}
 
     if len(elements) > 1:  # molecular ions and bundles
         state_dict["elements"] = elements
@@ -82,10 +82,10 @@ def get_ion_state(
             species_type = "molecule"
             state_dict["z"] = z_min
             state_dict["electron_configuration"] = (
-                state.electron_configuration if len(state.electron_configuration) else None
+                str(state.electron_configuration) if len(state.electron_configuration) else None
             )
             state_dict["vibrational_mode"] = (
-                state.vibrational_mode if len(state.vibrational_mode) else None
+                str(state.vibrational_mode) if len(state.vibrational_mode) else None
             )
             state_dict["vibrational_level"] = (
                 state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
@@ -100,7 +100,7 @@ def get_ion_state(
             species_type = "ion"
             state_dict["z"] = z_min
             state_dict["electron_configuration"] = (
-                state.electron_configuration if len(state.electron_configuration) else None
+                str(state.electron_configuration) if len(state.electron_configuration) else None
             )
         else:
             species_type = "ion_bundle"
@@ -128,27 +128,27 @@ def get_neutral_state(state: IDSStructure, elements: list[Element]) -> tuple[str
     species_id : frozenset
         A frozenset of key-value pairs that uniquely identify the species.
     """
-    state_dict = {"label": state.label.strip()}
+    state_dict = {"name": state.name.strip()}
 
     if len(elements) > 1:  # molecules
         species_type = "molecule"
         state_dict["elements"] = elements
         state_dict["z"] = 0
         state_dict["electron_configuration"] = (
-            state.electron_configuration if len(state.electron_configuration) else None
+            str(state.electron_configuration) if len(state.electron_configuration) else None
         )
         state_dict["vibrational_mode"] = (
-            state.vibrational_mode if len(state.vibrational_mode) else None
+            str(state.vibrational_mode) if len(state.vibrational_mode) else None
         )
         state_dict["vibrational_level"] = (
-            state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
+            state.vibrational_level.value if state.vibrational_level != EMPTY_FLOAT else None
         )
     else:  # atoms
         species_type = "ion"
         state_dict["element"] = elements[0]
         state_dict["z"] = 0
         state_dict["electron_configuration"] = (
-            state.electron_configuration if len(state.electron_configuration) else None
+            str(state.electron_configuration) if len(state.electron_configuration) else None
         )
 
     species_id = frozenset(state_dict.items())
@@ -173,11 +173,11 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
     species_id : frozenset
         A frozenset of key-value pairs that uniquely identify the species.
     """
-    z_ion = ion.z_ion if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
+    z_ion = int(ion.z_ion) if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
     if len(elements) > 1:
         species_id = frozenset(
             {
-                ("label", ion.label.strip()),
+                ("name", ion.name.strip()),
                 ("elements", elements),
                 ("z", z_ion),
                 ("electron_configuration", None),
@@ -189,7 +189,7 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
 
     species_id = frozenset(
         {
-            ("label", ion.label.strip()),
+            ("name", ion.name.strip()),
             ("element", elements[0]),
             ("z", z_ion),
             ("electron_configuration", None),
@@ -218,7 +218,7 @@ def get_neutral(neutral, elements):
     if len(elements) > 1:
         species_id = frozenset(
             {
-                ("label", neutral.label.strip()),
+                ("name", neutral.name.strip()),
                 ("elements", elements),
                 ("z", 0),
                 ("electron_configuration", None),
@@ -230,7 +230,7 @@ def get_neutral(neutral, elements):
 
     species_id = frozenset(
         {
-            ("label", neutral.label.strip()),
+            ("name", neutral.name.strip()),
             ("element", elements[0]),
             ("z", 0),
             ("electron_configuration", None),
@@ -259,7 +259,7 @@ def get_element_list(element_aos: IDSStructArray) -> list[Element]:
         isotope = lookup_isotope(zn, number=mass_number)
         if int(round(isotope.element.atomic_weight)) == mass_number:
             isotope = isotope.element  # prefer element over isotope
-        atoms_n = 1 if element.atoms_n == EMPTY_INT else element.atoms_n
+        atoms_n = 1 if element.atoms_n == EMPTY_INT else element.atoms_n.value
         for _ in range(atoms_n):
             elements.append(isotope)
 

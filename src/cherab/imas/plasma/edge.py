@@ -96,7 +96,7 @@ def load_edge_plasma(
     if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
         raise RuntimeError(
             "The 'grid_ggd' AOS of the edge_profiles IDS is empty "
-            "and an alternative grid_ggd structure is not provided."
+            + "and an alternative grid_ggd structure is not provided."
         )
 
     if not len(edge_profiles_ids.ggd):
@@ -163,17 +163,17 @@ def load_edge_plasma(
         sp_key = (species_type, charge)
         if sp_key in plasma.composition:
             print(
-                f"Warning! Skipping {d['label']} species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                f"Warning! Skipping {d['name']} species. "
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
 
         interp = get_edge_interpolators(grid, profiles, b_field, return3d=True)
 
         if interp["density"] is None:
-            print(f"Warning! Skipping {d['label']} species: density is not available.")
+            print(f"Warning! Skipping {d['name']} species: density is not available.")
         if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
+            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],
@@ -239,7 +239,7 @@ def _get_velocity_interpolators(grid, profiles, b_field=None):
     vrad = None if np.all(profiles["velocity_radial"] == 0) else profiles["velocity_radial"]
     vpol = None if np.all(profiles["velocity_poloidal"] == 0) else profiles["velocity_poloidal"]
     vpar = None if np.all(profiles["velocity_parallel"] == 0) else profiles["velocity_parallel"]
-    vtor = None if np.all(profiles["velocity_toroidal"] == 0) else profiles["velocity_toroidal"]
+    vtor = None if np.all(profiles["velocity_phi"] == 0) else profiles["velocity_phi"]
     vr = None if np.all(profiles["velocity_r"] == 0) else profiles["velocity_r"]
     vz = None if np.all(profiles["velocity_z"] == 0) else profiles["velocity_z"]
 

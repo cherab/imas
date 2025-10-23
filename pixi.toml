@@ -7,20 +7,20 @@ preview = ["pixi-build"]
 # === Packaging Configuration ===
 # -------------------------------
 [package]
-name = "cherab-imas"
-version = "0.1.1"
+version = "dynamic" # Until pixi recommends something else
 
 [package.build]
 backend = { name = "pixi-build-python", version = "*" }
 
 [package.build.config]
 noarch = false
-env = { SETUPTOOLS_SCM_PRETEND_VERSION = "0.1.1" }
 
 [workspace.build-variants]
 python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
 
 [package.host-dependencies]
+uv = "*"
+python = "*"
 hatchling = "*"
 hatch-vcs = "*"
 hatch-cython = ">=0.6.0rc0"
@@ -37,15 +37,18 @@ imas-python = "*"
 [dependencies]
 cherab-imas = { path = "." }
 ipython = "*"
+pooch = "*"
+rich = "*"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
 
-[feature.tests.dependencies]
+# === Testing feature ===
+[feature.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
 
-[feature.tests.tasks]
+[feature.test.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
 
 # === Linting feature ===
@@ -71,7 +74,6 @@ hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks
 pre-commit = { cmd = "lefthook run pre-commit", description = "🔗 Run pre-commit checks" }
 mypy = { cmd = "mypy", description = "Type check with mypy" }
 pyright = { cmd = "basedpyright", description = "Type check with basedpyright" }
-docify = { cmd = "docify --in-place", description = "Generate your own stubs with docstrings" }
 ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
 ruff-format = { cmd = "ruff format", description = "Format with ruff" }
 dprint = { cmd = "dprint fmt", description = "Format with dprint" }
@@ -94,10 +96,10 @@ python = "3.13.*"
 [environments]
 default = { features = ["py313"], solve-group = "py313" }
 # docs = { features = ["py313", "docs"], solve-group = "py313" }
-tests = { features = ["py313", "tests"], solve-group = "py313" }
-tests-py313 = { features = [
+test = { features = ["py313", "test"], solve-group = "py313" }
+test-py313 = { features = [
   "py313",
-  "tests",
-], solve-group = "py313" } # alias of tests
-tests-py310 = ["py310", "tests"]
+  "test",
+], solve-group = "py313" } # alias of test
+test-py310 = ["py310", "test"]
 lint = { features = ["lint"], no-default-feature = true }

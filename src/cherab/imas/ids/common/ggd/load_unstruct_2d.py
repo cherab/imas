@@ -59,7 +59,7 @@ def load_unstruct_grid_2d(grid_ggd: IDSStructure, space_index=0, with_subsets=Fa
     if len(space.objects_per_dimension) != 3:
         raise ValueError("The load_unstruct_grid_2d() supports only unstructured 2D grids.")
 
-    grid_name = grid_ggd.identifier.name
+    grid_name = str(grid_ggd.identifier.name)
 
     # Reading vertices
     num_vert = len(space.objects_per_dimension[VERTEX_DIMENSION].object)
@@ -126,20 +126,20 @@ def load_unstruct_grid_2d(grid_ggd: IDSStructure, space_index=0, with_subsets=Fa
     for subset in grid_ggd.grid_subset:
         dimension_is_2d = subset.dimension == FACE_DIMENSION + 1  # C to Fortran indexing
         known_subset_id = (
-            subset.dimension == EMPTY_INT and subset.identifier.index in cell_subset_ids
+            subset.dimension != EMPTY_INT and subset.identifier.index in cell_subset_ids
         )
         if (dimension_is_2d or known_subset_id) and len(subset.element):
-            name = subset.identifier.name
+            name = str(subset.identifier.name)
             indices = np.empty(len(subset.element), dtype=np.int32)
             for i, element in enumerate(subset.element):
                 if len(element.object) > 1:
                     print(
                         f"Warning! Skipping grid subset {name}, "
-                        "because it includes cells not present in the original grid."
+                        + "because it includes cells not present in the original grid."
                     )
                     break
-                indices[i] = element.object[0].index
+                indices[i] = element.object[0].index.value
             subsets[name] = indices - 1  # Fortran to C indexing
-            subset_id[name] = subset.identifier.index
+            subset_id[name] = subset.identifier.index.value
 
     return grid, subsets, subset_id

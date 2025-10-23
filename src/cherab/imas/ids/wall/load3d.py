@@ -154,9 +154,9 @@ def _get_mesh_from_subset(grid, subset, element_indices, vertices, poly_in_subse
     poly_in_subsets.update(indices)
 
     triangles = np.array(triangles, dtype=np.int32)
-    vert_indx, inv_indx = np.unique(triangles, return_inverse=True)
-    vert = vertices[vert_indx]  # vertices in this subset
-    tri = np.arange(len(vert), dtype=np.int32)[inv_indx].reshape(triangles.shape)  # renumerate
+    vert_index, inv_index = np.unique(triangles, return_inverse=True)
+    vert = vertices[vert_index]  # vertices in this subset
+    tri = np.arange(len(vert), dtype=np.int32)[inv_index].reshape(triangles.shape)  # renumerate
 
     return vert, tri
 
@@ -182,9 +182,9 @@ def _get_mesh_from_remaining_polygons(grid, vertices, poly_in_subsets):
             raise RuntimeError(f"Not a polygon: {np.array2string(polygon)}.")
 
     triangles = np.array(triangles, dtype=np.int32)
-    vert_indx, inv_indx = np.unique(triangles, return_inverse=True)
-    vert = vertices[vert_indx]  # vertices in this subset
-    tri = np.arange(len(vert), dtype=np.int32)[inv_indx].reshape(triangles.shape)  # renumerate
+    vert_index, inv_index = np.unique(triangles, return_inverse=True)
+    vert = vertices[vert_index]  # vertices in this subset
+    tri = np.arange(len(vert), dtype=np.int32)[inv_index].reshape(triangles.shape)  # renumerate
 
     return vert, tri
 

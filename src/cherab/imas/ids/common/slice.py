@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for common functions used to get IDS time slices."""
 
+import warnings
+
 from numpy import inf
 
 import imas
@@ -34,6 +36,11 @@ def get_ids_time_slice(
     time_threshold: float = inf,
 ) -> IDSToplevel:
     """Get a time slice of the specified IDS from the given IMAS entry.
+
+    .. note::
+        If the `~imas.DBEntry.get_slice` method is not implemented for the given IMAS entry URI,
+        this function will fall back to using the `~imas.DBEntry.get` method and return the entire
+        IDS.
 
     Parameters
     ----------
@@ -59,7 +66,22 @@ def get_ids_time_slice(
     if time_threshold < 0:
         raise ValueError(f"Argument 'time_threshold' must be >=0 ({time_threshold} s).")
 
-    ids = entry.get_slice(ids_name, time, CLOSEST_INTERP, occurrence=occurrence)
+    try:
+        ids = entry.get_slice(
+            ids_name,
+            time,
+            CLOSEST_INTERP,
+            occurrence=occurrence,
+        )
+    except NotImplementedError:
+        # Fallback to `get` method to retrieve the entire IDS
+        warnings.warn(
+            f"The 'get_slice' method is not implemented for the URI '{entry.uri}'. "
+            + "Falling back to 'get' method to retrieve the entire IDS.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        ids = entry.get(ids_name, occurrence=occurrence)
 
     if not len(ids.time):
         raise RuntimeError(f"The '{ids_name}' IDS is empty.")
@@ -67,8 +89,8 @@ def get_ids_time_slice(
     if abs(ids.time[0] - time) > time_threshold:
         raise RuntimeError(
             f"The time difference between the actual time ({ids.time[0]} s) "
-            f"of the nearest '{ids_name}' time slice and the given time ({time} s) "
-            f"exceeds the specified threshold ({time_threshold} s)."
+            + f"of the nearest '{ids_name}' time slice and the given time ({time} s) "
+            + f"exceeds the specified threshold ({time_threshold} s)."
         )
 
     return ids

@@ -58,7 +58,7 @@ def load_edge_profiles(
     -------
     dict[str, np.ndarray | None]
         Dictionary with the following keys: ``density``, ``density_fast``, ``temperature``,
-        ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_toroidal``,
+        ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_phi``,
         ``velocity_r``, ``velocity_z``, ``z_average``.
     """
 
@@ -69,7 +69,7 @@ def load_edge_profiles(
         "velocity_radial": None,
         "velocity_parallel": None,
         "velocity_poloidal": None,
-        "velocity_toroidal": None,
+        "velocity_phi": None,
         "velocity_r": None,
         "velocity_z": None,
         "z_average": None,
@@ -83,7 +83,7 @@ def load_edge_profiles(
             profiles[name] = _get_profile(backup_species_struct, name, grid_subset_index)
 
     # velocity
-    velocity_profiles = ("radial", "parallel", "poloidal", "toroidal", "r", "z")
+    velocity_profiles = ("radial", "parallel", "poloidal", "phi", "r", "z")
     for s in species_struct.velocity:
         if s.grid_subset_index == grid_subset_index:
             for name in velocity_profiles:
@@ -152,17 +152,17 @@ def load_edge_species(
 
     where species are identified by frozensets with (key, value) pairs with the following keys:
     * ``molecule``
-        - ``label``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
+        - ``name``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
           ``vibrational_mode``;
 
     * ``molecular_bundle``
-        - ``label``, ``elements``, ``z_min``, ``z_max``;
+        - ``name``, ``elements``, ``z_min``, ``z_max``;
 
     * ``ion``
-        - ``label``, ``element``, ``z``, ``electron_configuration``;
+        - ``name``, ``element``, ``z``, ``electron_configuration``;
 
     * ``ion_bundle``
-        - ``label``, ``element``, ``z_min``, ``z_max``.
+        - ``name``, ``element``, ``z_min``, ``z_max``.
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ def load_edge_species(
             for i, state in enumerate(ion.state):
                 species_type, species_id = get_ion_state(state, i, elements, grid_subset_index)
                 if species_id in composition[species_type]:
-                    print(f"Warning! Skipping duplicated ion: {state.label.strip()}")
+                    print(f"Warning! Skipping duplicated ion: {state.name.strip()}")
                     continue
                 profiles = load_edge_profiles(state, grid_subset_index, backup_ids)
                 if backup_ids is None and profiles["temperature"] is None:
@@ -205,7 +205,7 @@ def load_edge_species(
         else:
             species_type, species_id = get_ion(ion, elements)
             if species_id in composition[species_type]:
-                print(f"Warning! Skipping duplicated ion: {ion.label.strip()}")
+                print(f"Warning! Skipping duplicated ion: {ion.name.strip()}")
             else:
                 composition[species_type][species_id] = load_edge_profiles(ion, grid_subset_index)
 
@@ -221,7 +221,7 @@ def load_edge_species(
             for state in neutral.state:
                 species_type, species_id = get_neutral_state(state, elements)
                 if species_id in composition[species_type]:
-                    print(f"Warning! Skipping duplicated neutral: {state.label.strip()}")
+                    print(f"Warning! Skipping duplicated neutral: {state.name.strip()}")
                     continue
                 profiles = load_edge_profiles(state, grid_subset_index, backup_ids)
                 if backup_ids is None and profiles["temperature"] is None:
@@ -245,7 +245,7 @@ def load_edge_species(
                     d = {first: second for first, second in species_id}
                     print(
                         "Warning! Using average ion temperature for the {} {}.".format(
-                            d["label"], species_type
+                            d["name"], species_type
                         )
                     )
                     profiles["temperature"] = tion

@@ -168,8 +168,8 @@ def load_core_plasma(
         sp_key = (species_type, charge)
         if sp_key in plasma.composition:
             print(
-                f"Warning! Skipping {d['label']} species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                f"Warning! Skipping {d['name']} species. "
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
 
@@ -178,9 +178,9 @@ def load_core_plasma(
             interp["density"] = interp["density_thermal"]
 
         if interp["density"] is None:
-            print(f"Warning! Skipping {d['label']} species: density is not available.")
+            print(f"Warning! Skipping {d['name']} species: density is not available.")
         if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
+            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],
@@ -222,7 +222,7 @@ def get_core_interpolators(
     if not isinstance(equilibrium, EFITEquilibrium):
         raise ValueError("Argiment equilibrium must be a EFITEquilibrium instance.")
 
-    psi_norm, indx = np.unique(psi_norm, return_index=True)
+    psi_norm, index = np.unique(psi_norm, return_index=True)
 
     interpolators = RecursiveDict()
 
@@ -230,7 +230,7 @@ def get_core_interpolators(
         if profile is not None:
             extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
             func = Interpolator1DArray(
-                psi_norm, profile[indx], "cubic", "nearest", extrapolation_range
+                psi_norm, profile[index], "cubic", "nearest", extrapolation_range
             )
             interpolators[prof_key] = (
                 equilibrium.map3d(func) if return3d else equilibrium.map2d(func)

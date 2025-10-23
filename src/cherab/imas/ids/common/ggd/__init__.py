@@ -19,5 +19,11 @@
 
 from .load_grid import load_grid
 from .load_unstruct_2d import load_unstruct_grid_2d
+from .load_unstruct_3d import load_unstruct_grid_2d_extended, load_unstruct_grid_3d
 
-__all__ = ["load_grid", "load_unstruct_grid_2d"]
+__all__ = [
+    "load_grid",
+    "load_unstruct_grid_2d",
+    "load_unstruct_grid_2d_extended",
+    "load_unstruct_grid_3d",
+]

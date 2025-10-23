@@ -178,7 +178,7 @@ def load_plasma(
     if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
         raise RuntimeError(
             "The 'grid_ggd' AOS of the edge_profiles IDS is empty "
-            "and an alternative grid_ggd structure is not provided."
+            + "and an alternative grid_ggd structure is not provided."
         )
 
     if not len(edge_profiles_ids.ggd):
@@ -284,8 +284,8 @@ def load_plasma(
         sp_key = (d["element"], int(round(d["z"])))
         if sp_key in core_species:
             print(
-                f"Warning! Skipping {d['label']} core species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                f"Warning! Skipping {d['name']} core species. "
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
         if profiles["density_thermal"] is not None:
@@ -299,8 +299,8 @@ def load_plasma(
         sp_key = (d["element"], int(round(d["z"])))
         if sp_key in edge_species:
             print(
-                f"Warning! Skipping {d['label']} edge species. "
-                f"Species with the same (element, charge): {sp_key} is already added."
+                f"Warning! Skipping {d['name']} edge species. "
+                + f"Species with the same (element, charge): {sp_key} is already added."
             )
             continue
         edge_species[sp_key] = profiles
@@ -329,9 +329,9 @@ def load_plasma(
             interp["velocity"] = ConstantVector3D(Vector3D(0, 0, 0))
 
         if interp["density"] is None:
-            print(f"Warning! Skipping {d['label']} species: density is not available.")
+            print(f"Warning! Skipping {d['name']} species: density is not available.")
         if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['label']} species: temperature is not available.")
+            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
 
         distribution = Maxwellian(
             interp["density"],
