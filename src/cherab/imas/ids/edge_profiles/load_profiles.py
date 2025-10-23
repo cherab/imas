@@ -58,7 +58,7 @@ def load_edge_profiles(
     -------
     dict[str, np.ndarray | None]
         Dictionary with the following keys: ``density``, ``density_fast``, ``temperature``,
-        ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_toroidal``,
+        ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_phi``,
         ``velocity_r``, ``velocity_z``, ``z_average``.
     """
 
@@ -69,7 +69,7 @@ def load_edge_profiles(
         "velocity_radial": None,
         "velocity_parallel": None,
         "velocity_poloidal": None,
-        "velocity_toroidal": None,
+        "velocity_phi": None,
         "velocity_r": None,
         "velocity_z": None,
         "z_average": None,
@@ -83,7 +83,7 @@ def load_edge_profiles(
             profiles[name] = _get_profile(backup_species_struct, name, grid_subset_index)
 
     # velocity
-    velocity_profiles = ("radial", "parallel", "poloidal", "toroidal", "r", "z")
+    velocity_profiles = ("radial", "parallel", "poloidal", "phi", "r", "z")
     for s in species_struct.velocity:
         if s.grid_subset_index == grid_subset_index:
             for name in velocity_profiles:

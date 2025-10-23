@@ -57,7 +57,7 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
     if not rectangular_grid:
         raise RuntimeError(
             "Unable to read magnetic field: "
-            "rectangular grid for 2D profiles is not found and other grid types are not supported."
+            + "rectangular grid for 2D profiles is not found and other grid types are not supported."
         )
 
     b_dict = {}
@@ -77,7 +77,7 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
     ):
         raise RuntimeError(
             "Unable to read magnetic field: "
-            "the shape of the magnetic field components does not match the grid shape."
+            + "the shape of the magnetic field components does not match the grid shape."
         )
 
     return b_dict

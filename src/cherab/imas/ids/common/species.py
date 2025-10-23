@@ -80,32 +80,32 @@ def get_ion_state(
         state_dict["elements"] = elements
         if z_min == z_max:
             species_type = "molecule"
-            state_dict["z"] = z_min
+            state_dict["z"] = z_min.value
             state_dict["electron_configuration"] = (
-                state.electron_configuration if len(state.electron_configuration) else None
+                str(state.electron_configuration) if len(state.electron_configuration) else None
             )
             state_dict["vibrational_mode"] = (
-                state.vibrational_mode if len(state.vibrational_mode) else None
+                str(state.vibrational_mode) if len(state.vibrational_mode) else None
             )
             state_dict["vibrational_level"] = (
-                state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
+                state.vibrational_level.value if state.vibrational_level != EMPTY_FLOAT else None
             )
         else:
             species_type = "molecular_bundle"
-            state_dict["z_min"] = z_min
-            state_dict["z_max"] = z_max
+            state_dict["z_min"] = z_min.value
+            state_dict["z_max"] = z_max.value
     else:  # ions and bundles
         state_dict["element"] = elements[0]
         if z_min == z_max:
             species_type = "ion"
-            state_dict["z"] = z_min
+            state_dict["z"] = z_min.value
             state_dict["electron_configuration"] = (
-                state.electron_configuration if len(state.electron_configuration) else None
+                str(state.electron_configuration) if len(state.electron_configuration) else None
             )
         else:
             species_type = "ion_bundle"
-            state_dict["z_min"] = z_min
-            state_dict["z_max"] = z_max
+            state_dict["z_min"] = z_min.value
+            state_dict["z_max"] = z_max.value
     species_id = frozenset(state_dict.items())
 
     return species_type, species_id
@@ -135,20 +135,20 @@ def get_neutral_state(state: IDSStructure, elements: list[Element]) -> tuple[str
         state_dict["elements"] = elements
         state_dict["z"] = 0
         state_dict["electron_configuration"] = (
-            state.electron_configuration if len(state.electron_configuration) else None
+            str(state.electron_configuration) if len(state.electron_configuration) else None
         )
         state_dict["vibrational_mode"] = (
-            state.vibrational_mode if len(state.vibrational_mode) else None
+            str(state.vibrational_mode) if len(state.vibrational_mode) else None
         )
         state_dict["vibrational_level"] = (
-            state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
+            state.vibrational_level.value if state.vibrational_level != EMPTY_FLOAT else None
         )
     else:  # atoms
         species_type = "ion"
         state_dict["element"] = elements[0]
         state_dict["z"] = 0
         state_dict["electron_configuration"] = (
-            state.electron_configuration if len(state.electron_configuration) else None
+            str(state.electron_configuration) if len(state.electron_configuration) else None
         )
 
     species_id = frozenset(state_dict.items())
@@ -173,7 +173,7 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
     species_id : frozenset
         A frozenset of key-value pairs that uniquely identify the species.
     """
-    z_ion = ion.z_ion if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
+    z_ion = int(ion.z_ion) if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
     if len(elements) > 1:
         species_id = frozenset(
             {
