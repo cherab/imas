@@ -57,9 +57,17 @@ def test_load_plasma_with_occurrence():
     """Test loading plasma with different occurrence values."""
     path = iter_jintrac()
 
-    # Test with default occurrence
-    plasma1 = load_plasma(path, "r", occurrence=0)
+    # Test with default occurrence core
+    plasma1 = load_plasma(path, "r", occurrence_core=0)
     assert isinstance(plasma1, Plasma)
+
+    # Test with default occurrence edge
+    plasma2 = load_plasma(path, "r", occurrence_edge=0)
+    assert isinstance(plasma2, Plasma)
+
+    # Test with default occurrence core and edge
+    plasma3 = load_plasma(path, "r", occurrence_core=0, occurrence_edge=0)
+    assert isinstance(plasma3, Plasma)
 
 
 def test_load_plasma_with_parent():
