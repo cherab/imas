@@ -1,0 +1,105 @@
+[workspace]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64"]
+preview = ["pixi-build"]
+
+# -------------------------------
+# === Packaging Configuration ===
+# -------------------------------
+[package]
+version = "dynamic" # Until pixi recommends something else
+
+[package.build]
+backend = { name = "pixi-build-python", version = "*" }
+
+[package.build.config]
+noarch = false
+
+[workspace.build-variants]
+python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
+
+[package.host-dependencies]
+uv = "*"
+python = "*"
+hatchling = "*"
+hatch-vcs = "*"
+hatch-cython = ">=0.6.0rc0"
+cython = ">=3.1,<4"
+llvm-openmp = "*"
+cherab = "1.5.*"
+
+[package.run-dependencies]
+imas-python = "*"
+
+# ---------------------------------
+# === Development Configuration ===
+# ---------------------------------
+[dependencies]
+cherab-imas = { path = "." }
+ipython = "*"
+pooch = "*"
+rich = "*"
+
+[tasks]
+ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
+
+# === Testing feature ===
+[feature.test.dependencies]
+pytest = "*"
+pytest-cov = "*"
+
+[feature.test.tasks]
+test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
+
+# === Linting feature ===
+[feature.lint.dependencies]
+dprint = "*"
+lefthook = "*"
+ruff = "*"
+typos = "*"
+mypy = "*"
+basedpyright = "*"
+numpydoc = "*"
+actionlint = "*"
+shellcheck = "*"
+validate-pyproject = "*"
+cython-lint = "*"
+docformatter = "*"
+blacken-docs = "*"
+taplo = "*"
+
+[feature.lint.tasks]
+lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
+hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks" }
+pre-commit = { cmd = "lefthook run pre-commit", description = "🔗 Run pre-commit checks" }
+mypy = { cmd = "mypy", description = "Type check with mypy" }
+pyright = { cmd = "basedpyright", description = "Type check with basedpyright" }
+ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
+ruff-format = { cmd = "ruff format", description = "Format with ruff" }
+dprint = { cmd = "dprint fmt", description = "Format with dprint" }
+typos = { cmd = "typos --write-changes --force-exclude", description = "Fix typos" }
+taplo = { cmd = "taplo fmt", description = "Format toml files with taplo" }
+actionlint = { cmd = "actionlint", description = "Lint actions with actionlint" }
+blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blocks with Black" }
+validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
+numpydoc = { cmd = "numpydoc lint", description = "Validate docstrings with numpydoc" }
+docformatter = { cmd = "docformatter --in-place", description = "Format docstrings with docformatter" }
+cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
+lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
+
+# === Python environment features ===
+[feature.py310.dependencies]
+python = "3.10.*"
+[feature.py313.dependencies]
+python = "3.13.*"
+
+[environments]
+default = { features = ["py313"], solve-group = "py313" }
+# docs = { features = ["py313", "docs"], solve-group = "py313" }
+test = { features = ["py313", "test"], solve-group = "py313" }
+test-py313 = { features = [
+  "py313",
+  "test",
+], solve-group = "py313" } # alias of test
+test-py310 = ["py310", "test"]
+lint = { features = ["lint"], no-default-feature = true }
