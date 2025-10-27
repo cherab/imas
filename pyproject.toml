@@ -64,9 +64,12 @@ dependencies = ["hatch-cython"]
 [tool.hatch.build.targets.wheel.hooks.cython.options]
 src = "cherab"
 include_numpy = true
-compile_args = ["-O3"]
 compile_py = false
 parallel = true
+compile_args = [
+  "-O3",
+  { platforms = "darwin", arch = "x86_64", arg = "-headerpad_max_install_names" },
+]
 
 [tool.hatch.build.targets.wheel.hooks.cython.options.files]
 targets = ["**/*.pyx"]
