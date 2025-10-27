@@ -66,10 +66,15 @@ src = "cherab"
 include_numpy = true
 compile_py = false
 parallel = true
-compile_args = [
-  "-O3",
-  { platforms = "darwin", arch = "x86_64", arg = "-headerpad_max_install_names" },
+compile_args = ["-O3"]
+env = [
+  { env = "LDFLAGS", arg = "-headerpad_max_install_names", platforms = [
+    "darwin",
+  ], arch = [
+    "x86_64",
+  ], merges = true },
 ]
+define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
 
 [tool.hatch.build.targets.wheel.hooks.cython.options.files]
 targets = ["**/*.pyx"]
