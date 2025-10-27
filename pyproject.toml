@@ -11,7 +11,7 @@ authors = [
   { name = "jacklovell" },
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "EUPL-1.1"
 license-files = ["LICEN[CS]E.*"]
 keywords = ["cherab", "IMAS", "imas", "tokamak", "fusion", "plasma"]
@@ -27,8 +27,11 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["cherab==1.5.*", "imas-python"]
+dependencies = ["cherab==1.5.*", "imas-python[netcdf]"]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "pooch", "rich"]
 
 [project.urls]
 Homepage = "https://github.com/cherab"
@@ -61,12 +64,26 @@ dependencies = ["hatch-cython"]
 [tool.hatch.build.targets.wheel.hooks.cython.options]
 src = "cherab"
 include_numpy = true
-compile_args = ["-O3"]
 compile_py = false
 parallel = true
+compile_args = ["-O3"]
+env = [
+  { env = "LDFLAGS", arg = "-headerpad_max_install_names", platforms = [
+    "darwin",
+  ], arch = [
+    "x86_64",
+  ], merges = true },
+]
+define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
 
 [tool.hatch.build.targets.wheel.hooks.cython.options.files]
 targets = ["**/*.pyx"]
+
+[tool.cibuildwheel]
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-* cp314t-*" # TODO: add cp313/314 when cherab supports it
+build-frontend = "build[uv]"
+test-extras = ["test"]
+test-command = "pytest {project}/tests"
 
 # -----------------------
 # === Cov/Test config ===
@@ -85,7 +102,7 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=cherab_imas --cov-report term-missing --no-cov-on-fail"
+addopts = "--cov='cherab.imas' --cov-report term-missing --no-cov-on-fail"
 
 
 # ------------------------------

@@ -62,13 +62,13 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
 
     b_dict = {}
 
-    b_dict["r"] = np.array(prof2d.grid.dim1)
-    b_dict["z"] = np.array(prof2d.grid.dim2)
+    b_dict["r"] = np.asarray_chkfinite(prof2d.grid.dim1)
+    b_dict["z"] = np.asarray_chkfinite(prof2d.grid.dim2)
     shape = (b_dict["r"].size, b_dict["z"].size)
 
-    b_dict["b_field_r"] = np.array(prof2d.b_field_r)
-    b_dict["b_field_phi"] = np.array(prof2d.b_field_phi)
-    b_dict["b_field_z"] = np.array(prof2d.b_field_z)
+    b_dict["b_field_r"] = np.asarray_chkfinite(prof2d.b_field_r)
+    b_dict["b_field_phi"] = np.asarray_chkfinite(prof2d.b_field_phi)
+    b_dict["b_field_z"] = np.asarray_chkfinite(prof2d.b_field_z)
 
     if (
         b_dict["b_field_r"].shape != shape

@@ -88,7 +88,7 @@ def load_edge_profiles(
         if s.grid_subset_index == grid_subset_index:
             for name in velocity_profiles:
                 prof = getattr(s, name)
-                profiles["velocity_" + name] = np.array(prof) if len(prof) else None
+                profiles["velocity_" + name] = np.asarray_chkfinite(prof) if len(prof) else None
             break
     if (
         all(profiles["velocity_" + name] is None for name in velocity_profiles)
@@ -98,7 +98,7 @@ def load_edge_profiles(
             if s.grid_subset_index == grid_subset_index:
                 for name in velocity_profiles:
                     prof = getattr(s, name)
-                    profiles["velocity_" + name] = np.array(prof) if len(prof) else None
+                    profiles["velocity_" + name] = np.asarray_chkfinite(prof) if len(prof) else None
                 break
 
     return profiles
@@ -257,4 +257,4 @@ def _get_profile(species_struct, name, grid_subset_index):
     if hasattr(species_struct, name):
         for s in getattr(species_struct, name):
             if s.grid_subset_index == grid_subset_index:
-                return np.array(s.values)
+                return np.asarray_chkfinite(s.values)

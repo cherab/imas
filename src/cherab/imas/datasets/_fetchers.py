@@ -9,7 +9,6 @@ try:
 except ImportError:
     pooch = None
     data_fetcher = None
-    progress = None
 else:
     data_fetcher = pooch.create(
         path=pooch.os_cache("cherab/imas"),
@@ -17,21 +16,16 @@ else:
         registry=registry,
     )
 
-try:
-    from ._progress import PoochRichProgress
-except ImportError:
-    progress_available = False
-else:
-    progress_available = True
 
-
-def fetch_data(dataset_name: str, data_fetcher=data_fetcher) -> str:
+def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress=True) -> str:
     if data_fetcher is None:
         raise ImportError(
             "Missing optional dependency 'pooch' required for cherab.imas.datasets module. "
             + "Please use pip or conda to install 'pooch'."
         )
-    if progress_available:
+    if show_progress:
+        from ._progress import PoochRichProgress
+
         progress = PoochRichProgress(filename=dataset_name)
     else:
         progress = None

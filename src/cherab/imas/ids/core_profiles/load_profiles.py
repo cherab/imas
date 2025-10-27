@@ -247,4 +247,4 @@ def _get_profile(ids_struct, name):
     if hasattr(ids_struct, name):
         arr = getattr(ids_struct, name)
         if len(arr):
-            return np.array(arr)
+            return np.asarray_chkfinite(arr)
