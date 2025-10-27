@@ -72,7 +72,7 @@ parallel = true
 targets = ["**/*.pyx"]
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-*" # TODO: add cp313/314 when cherab supports it
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-* cp314t-*" # TODO: add cp313/314 when cherab supports it
 build-frontend = "build[uv]"
 test-extras = ["test"]
 test-command = "pytest {project}/tests"
@@ -94,7 +94,7 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=cherab_imas --cov-report term-missing --no-cov-on-fail"
+addopts = "--cov='cherab.imas' --cov-report term-missing --no-cov-on-fail"
 
 
 # ------------------------------

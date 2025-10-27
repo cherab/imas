@@ -79,7 +79,7 @@ jobs:
         # These needs to rotate every new Python release.
         if: github.event_name == 'pull_request'
         run: |
-          CIBW_SKIP="pp* *-musllinux* cp39-* cp311-* cp313-* cp314-*"
+          CIBW_SKIP="pp* *-musllinux* cp39-* cp311-* cp313-* cp314-* cp314t-*"
           echo "CIBW_SKIP=${CIBW_SKIP}" >> "${GITHUB_ENV}"
           echo "Setting CIBW_SKIP=${CIBW_SKIP}"
 
