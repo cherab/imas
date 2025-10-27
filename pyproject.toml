@@ -27,7 +27,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["cherab==1.5.*", "imas-python"]
+dependencies = ["cherab==1.5.*", "imas-python[netcdf]"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
