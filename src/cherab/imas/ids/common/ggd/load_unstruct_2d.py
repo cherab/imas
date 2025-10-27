@@ -72,7 +72,7 @@ def load_unstruct_grid_2d(grid_ggd: IDSStructure, space_index=0, with_subsets=Fa
     winding_ok = True
     for object in space.objects_per_dimension[FACE_DIMENSION].object:
         # getting cell from nodes
-        cell = np.array(object.nodes, dtype=np.int32) - 1  # Fortran to C indexing
+        cell = np.asarray_chkfinite(object.nodes, dtype=np.int32) - 1  # Fortran to C indexing
         if cell.size > 3:
             # trying to get the nodes in winding order by parsing the edges
             edge_dict = {}
