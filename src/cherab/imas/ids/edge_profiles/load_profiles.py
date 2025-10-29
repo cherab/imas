@@ -110,7 +110,7 @@ def load_edge_species(
     """Load edge plasma species and their profiles from a given GGD structure for a given grid and
     subset indices.
 
-    The returned dictionary has the following structure:
+    The returned dictionary has the following structure.
 
     .. code-block:: python
 
@@ -148,21 +148,22 @@ def load_edge_species(
                     ...
                 },
             },
-        },
+        }
 
-    where species are identified by frozensets with (key, value) pairs with the following keys:
-    * ``molecule``
-        - ``name``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
-          ``vibrational_mode``;
+    where species are identified by frozensets with (key, value) pairs with the following keys.
 
-    * ``molecular_bundle``
-        - ``name``, ``elements``, ``z_min``, ``z_max``;
-
-    * ``ion``
-        - ``name``, ``element``, ``z``, ``electron_configuration``;
-
-    * ``ion_bundle``
-        - ``name``, ``element``, ``z_min``, ``z_max``.
+    +----------------------+------------------------------------------------------------+
+    | Species Type         | Identifier Keys                                            |
+    +======================+============================================================+
+    | ``molecule``         | ``name``, ``elements``, ``z``, ``electron_configuration``, |
+    |                      | ``vibrational_level``, ``vibrational_mode``;               |
+    +----------------------+------------------------------------------------------------+
+    | ``molecular_bundle`` | ``name``, ``elements``, ``z_min``, ``z_max``;              |
+    +----------------------+------------------------------------------------------------+
+    | ``ion``              | ``name``, ``element``, ``z``, ``electron_configuration``;  |
+    +----------------------+------------------------------------------------------------+
+    | ``ion_bundle``       | ``name``, ``element``, ``z_min``, ``z_max``.               |
+    +----------------------+------------------------------------------------------------+
 
     Parameters
     ----------

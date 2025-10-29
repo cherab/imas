@@ -75,16 +75,16 @@ def load_plasma(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     time : float, optional
         Time moment for the core plasma, by default 0.
     occurrence_core : int, optional
         Instance index of the 'core_profiles' IDS, by default 0.
     edge_args : tuple, optional
-        Arguments passed to the `imas.DBEntry` constructor for the edge plasma if different
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma if different
         from the core plasma, by default None: use the same as for the core plasma.
     edge_kwargs : dict, optional
-        Keyword arguments passed to the `imas.DBEntry` constructor for the edge plasma if different
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma if different
         from the core plasma, by default None: use the same as for the core plasma.
     time_edge : float, optional
         Time moment for the edge plasma if different from the 'time', by default None.
@@ -115,7 +115,7 @@ def load_plasma(
         Parent node in the Raysect scene-graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------

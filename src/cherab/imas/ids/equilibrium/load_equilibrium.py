@@ -35,7 +35,7 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
 
     Parameters
     ----------
-    equilibrium_ids : IDSToplevel
+    equilibrium_ids : `~imas.ids_toplevel.IDSToplevel`
         The time-slice of the equilibrium IDS.
 
     Returns

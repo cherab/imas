@@ -47,7 +47,7 @@ def load_wall_mesh(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     time : float, optional
         Time moment for the edge plasma, by default 0.
     occurrence : int, optional
@@ -70,7 +70,7 @@ def load_wall_mesh(
         Parent node in the Raysect scene-graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
@@ -116,13 +116,13 @@ def load_wall_outline(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     occurrence : int, optional
         Instance index of the 'wall' IDS, by default 0.
     desc_index : int, optional
         Index of 'description_2d', by default 0.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------

@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for mathematical utilities."""
 
 from .functions import *  # noqa: F403
 from .interpolators import *  # noqa: F403

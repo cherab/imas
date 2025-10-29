@@ -59,7 +59,7 @@ def load_core_plasma(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     time : float, optional
         Time moment, by default 0.
     occurrence : int, optional
@@ -82,7 +82,7 @@ def load_core_plasma(
         Parent node in the Raysect scene-graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
