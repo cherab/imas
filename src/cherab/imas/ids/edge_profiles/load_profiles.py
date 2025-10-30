@@ -112,6 +112,7 @@ def load_edge_species(
 
     The returned dictionary has the following structure.
 
+    .. autolink-skip::
     .. code-block:: python
 
         {

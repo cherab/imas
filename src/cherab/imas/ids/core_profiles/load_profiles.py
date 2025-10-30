@@ -106,6 +106,7 @@ def load_core_species(profiles_struct: IDSStructure) -> dict[str, dict[str, np.n
 
     The returned dictionary has the following structure.
 
+    .. autolink-skip::
     .. code-block:: python
 
         {
