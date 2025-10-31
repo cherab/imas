@@ -77,8 +77,8 @@ def load_wall_mesh(
     dict[str, Mesh]
         Dictionary with the Raysect Mesh instances.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from raysect.optical import World
     >>> world = World()
     >>> meshes = load_wall_mesh(
@@ -129,8 +129,8 @@ def load_wall_outline(
     dict[str, (N, 2) ndarray]
        Dictionary of wall unit outlines (N, 2) array given in RZ coordinates.
 
-    Example
-    -------
+    Examples
+    --------
     >>> load_wall_outline("imas:uda?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/", "r")
     {'First Wall': array([[ 4.11129713, -2.49559808],
                           [ 4.11129713, -1.48329401],
