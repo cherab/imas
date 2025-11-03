@@ -59,7 +59,7 @@ try:
     grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
 except KeyError:
     grid_subset_name = grid_subset_name.lower()
-    grid = grid.subset(subsets[grid_subset_name.lower()], name=grid_subset_name)
+    grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
 
 composition = load_edge_species(ids.ggd[0], grid_subset_index=subset_id[grid_subset_name])
 
