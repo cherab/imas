@@ -104,8 +104,9 @@ def load_core_grid(grid_struct: IDSStructure) -> dict[str, np.ndarray | None]:
 def load_core_species(profiles_struct: IDSStructure) -> dict[str, dict[str, np.ndarray | None]]:
     """Load core plasma species and their profiles from a given profiles IDS structure.
 
-    The returned dictionary has the following structure:
+    The returned dictionary has the following structure.
 
+    .. autolink-skip::
     .. code-block:: python
 
         {
@@ -142,21 +143,22 @@ def load_core_species(profiles_struct: IDSStructure) -> dict[str, dict[str, np.n
                     ...
                 },
             },
-        },
+        }
 
-    where species are identified by frozensets with (key, value) pairs with the following keys:
-    * ``molecule``
-        - ``name``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
-          ``vibrational_mode``;
+    where species are identified by frozensets with (key, value) pairs with the following keys.
 
-    * ``molecular_bundle``
-        - ``name``, ``elements``, ``z_min``, ``z_max``;
-
-    * ``ion``
-        - ``name``, ``element``, ``z``, ``electron_configuration``;
-
-    * ``ion_bundle``
-        - ``name``, ``element``, ``z_min``, ``z_max``.
+    +----------------------+------------------------------------------------------------+
+    | Species Type         | Identifier Keys                                            |
+    +======================+============================================================+
+    | ``molecule``         | ``name``, ``elements``, ``z``, ``electron_configuration``, |
+    |                      | ``vibrational_level``, ``vibrational_mode``;               |
+    +----------------------+------------------------------------------------------------+
+    | ``molecular_bundle`` | ``name``, ``elements``, ``z_min``, ``z_max``;              |
+    +----------------------+------------------------------------------------------------+
+    | ``ion``              | ``name``, ``element``, ``z``, ``electron_configuration``;  |
+    +----------------------+------------------------------------------------------------+
+    | ``ion_bundle``       | ``name``, ``element``, ``z_min``, ``z_max``.               |
+    +----------------------+------------------------------------------------------------+
 
     Parameters
     ----------

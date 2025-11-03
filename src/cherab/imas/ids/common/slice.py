@@ -21,7 +21,7 @@ import warnings
 
 from numpy import inf
 
-import imas
+from imas import DBEntry
 from imas.ids_defs import CLOSEST_INTERP
 from imas.ids_toplevel import IDSToplevel
 
@@ -29,7 +29,7 @@ __all__ = ["get_ids_time_slice"]
 
 
 def get_ids_time_slice(
-    entry: imas.DBEntry,
+    entry: DBEntry,
     ids_name: str,
     time: float = 0,
     occurrence: int = 0,
@@ -38,13 +38,13 @@ def get_ids_time_slice(
     """Get a time slice of the specified IDS from the given IMAS entry.
 
     .. note::
-        If the `~imas.DBEntry.get_slice` method is not implemented for the given IMAS entry URI,
-        this function will fall back to using the `~imas.DBEntry.get` method and return the entire
-        IDS.
+        If the `~imas.db_entry.DBEntry.get_slice` method is not implemented for the given IMAS entry
+        URI, this function will fall back to using the `~imas.db_entry.DBEntry.get` method and
+        return the entire IDS.
 
     Parameters
     ----------
-    entry : imas.DBEntry
+    entry : `~imas.db_entry.DBEntry`
         The IMAS entry. The entry must be opened in read mode.
     ids_name : str
         The name of the IDS.
@@ -58,7 +58,7 @@ def get_ids_time_slice(
 
     Returns
     -------
-    IDSToplevel
+    `~imas.ids_toplevel.IDSToplevel`
         The requested IDS time slice.
     """
     if time < 0:
