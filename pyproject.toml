@@ -110,7 +110,6 @@ addopts = "--cov='cherab.imas' --cov-report term-missing --no-cov-on-fail"
 # ------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py312"
 
 [tool.ruff.lint]
 select = [
