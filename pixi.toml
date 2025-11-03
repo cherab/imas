@@ -133,6 +133,9 @@ docformatter = { cmd = "docformatter --in-place", description = "Format docstrin
 cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
+# Clean build artifacts
+clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
+
 # === Python environment features ===
 [feature.py310.dependencies]
 python = "3.10.*"
