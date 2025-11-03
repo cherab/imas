@@ -33,8 +33,8 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
         cell indices 2D array, the shape of which is :math:`(N, 8)`, where :math:`N` is the number
         of cells.
 
-    Return
-    ------
+    Returns
+    -------
     (5N,4) ndarray
         tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
 
@@ -107,10 +107,10 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
         Cell indices 2D array, the shape of which is :math:`(N, 8)`, where :math:`N` is the number
         of cells.
 
-    Return
-    ------
-    (5N,4) ndarray
-        Tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
+    Returns
+    -------
+    (6N,4) ndarray
+        Tetrahedra indices array, the shape of which is :math:`(6N, 4)`.
 
     Examples
     --------
