@@ -15,8 +15,8 @@
 [codecov-badge]: https://img.shields.io/codecov/c/github/cherab/imas?token=05LZGWUUXA&style=flat-square&logo=codecov
 [conda]: https://prefix.dev/channels/conda-forge/packages/cherab-imas
 [conda-badge]: https://img.shields.io/conda/vn/conda-forge/cherab-imas?logo=conda-forge&style=flat-square
-[docs]: https://github.com/cherab/imas/actions/workflows/docs.yaml
-[docs-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/docs.yaml?style=flat-square&logo=GitHub&label=Docs
+[docs]: https://github.com/cherab/imas/actions/workflows/docs.yml
+[docs-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/docs.yml?style=flat-square&logo=GitHub&label=Docs
 [license]: https://opensource.org/licenses/EUPL-1.1
 [license-badge]: https://img.shields.io/badge/license-EUPL_1.1%20-blue?style=flat-square
 [pixi-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json&style=flat-square
