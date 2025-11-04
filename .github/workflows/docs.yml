@@ -1,4 +1,4 @@
-name: Docs
+name: 📚 Docs
 
 permissions:
   contents: read
@@ -11,9 +11,9 @@ on:
   push:
     branches:
       - master
-  release:
-    types:
-      - published
+  # release:
+  #   types:
+  #     - published
 
 jobs:
   build:
