@@ -88,7 +88,7 @@ def load_edge_profiles(
         if s.grid_subset_index == grid_subset_index:
             for name in velocity_profiles:
                 prof = getattr(s, name)
-                profiles["velocity_" + name] = np.array(prof) if len(prof) else None
+                profiles["velocity_" + name] = np.asarray_chkfinite(prof) if len(prof) else None
             break
     if (
         all(profiles["velocity_" + name] is None for name in velocity_profiles)
@@ -98,7 +98,7 @@ def load_edge_profiles(
             if s.grid_subset_index == grid_subset_index:
                 for name in velocity_profiles:
                     prof = getattr(s, name)
-                    profiles["velocity_" + name] = np.array(prof) if len(prof) else None
+                    profiles["velocity_" + name] = np.asarray_chkfinite(prof) if len(prof) else None
                 break
 
     return profiles
@@ -110,8 +110,9 @@ def load_edge_species(
     """Load edge plasma species and their profiles from a given GGD structure for a given grid and
     subset indices.
 
-    The returned dictionary has the following structure:
+    The returned dictionary has the following structure.
 
+    .. autolink-skip::
     .. code-block:: python
 
         {
@@ -148,21 +149,22 @@ def load_edge_species(
                     ...
                 },
             },
-        },
+        }
 
-    where species are identified by frozensets with (key, value) pairs with the following keys:
-    * ``molecule``
-        - ``name``, ``elements``, ``z``, ``electron_configuration``, ``vibrational_level``,
-          ``vibrational_mode``;
+    where species are identified by frozensets with (key, value) pairs with the following keys.
 
-    * ``molecular_bundle``
-        - ``name``, ``elements``, ``z_min``, ``z_max``;
-
-    * ``ion``
-        - ``name``, ``element``, ``z``, ``electron_configuration``;
-
-    * ``ion_bundle``
-        - ``name``, ``element``, ``z_min``, ``z_max``.
+    +----------------------+------------------------------------------------------------+
+    | Species Type         | Identifier Keys                                            |
+    +======================+============================================================+
+    | ``molecule``         | ``name``, ``elements``, ``z``, ``electron_configuration``, |
+    |                      | ``vibrational_level``, ``vibrational_mode``;               |
+    +----------------------+------------------------------------------------------------+
+    | ``molecular_bundle`` | ``name``, ``elements``, ``z_min``, ``z_max``;              |
+    +----------------------+------------------------------------------------------------+
+    | ``ion``              | ``name``, ``element``, ``z``, ``electron_configuration``;  |
+    +----------------------+------------------------------------------------------------+
+    | ``ion_bundle``       | ``name``, ``element``, ``z_min``, ``z_max``.               |
+    +----------------------+------------------------------------------------------------+
 
     Parameters
     ----------
@@ -257,4 +259,4 @@ def _get_profile(species_struct, name, grid_subset_index):
     if hasattr(species_struct, name):
         for s in getattr(species_struct, name):
             if s.grid_subset_index == grid_subset_index:
-                return np.array(s.values)
+                return np.asarray_chkfinite(s.values)

@@ -43,7 +43,7 @@ def load_equilibrium(
     Parameters
     ----------
     *args
-        Arguments passed to `imas.DBEntry`.
+        Arguments passed to `~imas.db_entry.DBEntry`.
     time : float, optional
         Time moment, by default 0.
     occurrence : int, optional
@@ -55,7 +55,7 @@ def load_equilibrium(
         If True, returns the ``psi_norm(rho_tor_norm)`` interpolator; otherwise, returns only the
         equilibrium object.
     **kwargs
-        Keyword arguments passed to `imas.DBEntry`.
+        Keyword arguments passed to `~imas.db_entry.DBEntry`.
 
     Returns
     -------
@@ -125,7 +125,7 @@ def load_magnetic_field(
     Parameters
     ----------
     *args
-        Arguments passed to `imas.DBEntry`.
+        Arguments passed to `~imas.db_entry.DBEntry`.
     time : float, optional
         Time moment, by default 0.
     occurrence : int, optional
@@ -134,7 +134,7 @@ def load_magnetic_field(
         Sets the maximum allowable difference between the specified time and the nearest available
         time, by default `numpy.inf`.
     **kwargs
-        Keyword arguments passed to `imas.DBEntry`.
+        Keyword arguments passed to `~imas.db_entry.DBEntry`.
 
     Returns
     -------

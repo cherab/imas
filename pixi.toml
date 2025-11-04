@@ -51,6 +51,52 @@ pytest-cov = "*"
 [feature.test.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
 
+# === Docs feature ===
+[feature.docs.dependencies]
+sphinx = ">=7,<8.2"
+sphinx-copybutton = "*"
+sphinx-codeautolink = "*"
+sphinx-design = "*"
+sphinx-immaterial = "*"
+linkify-it-py = "*"
+myst-parser = "*"
+numpydoc = "*"
+# For notebook support
+ipykernel = "*"
+ipywidgets = "*"
+nbsphinx = "*"
+pandoc = "*"
+
+[feature.docs.pypi-dependencies]
+sphinx-github-style = "*"
+
+[feature.docs.tasks]
+doc-build = { cmd = [
+  "sphinx-build",
+  "-b",
+  "{{ target }}",
+  "-j",
+  "auto",
+  "source",
+  "build/{{ target }}",
+], cwd = "docs", args = [
+  { arg = "target", default = "html" },
+], description = "📝 Build the docs" }
+doc-clean = { cmd = [
+  "rm",
+  "-rf",
+  "build",
+  "source/_api",
+], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
+doc-serve = { cmd = [
+  "python",
+  "-m",
+  "http.server",
+  "8000",
+  "--directory",
+  "build/html",
+], cwd = "docs", description = "🚀 Start a local server for the docs" }
+
 # === Linting feature ===
 [feature.lint.dependencies]
 dprint = "*"
@@ -87,6 +133,9 @@ docformatter = { cmd = "docformatter --in-place", description = "Format docstrin
 cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
+# Clean build artifacts
+clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
+
 # === Python environment features ===
 [feature.py310.dependencies]
 python = "3.10.*"
@@ -95,7 +144,7 @@ python = "3.13.*"
 
 [environments]
 default = { features = ["py313"], solve-group = "py313" }
-# docs = { features = ["py313", "docs"], solve-group = "py313" }
+docs = { features = ["py313", "docs"], solve-group = "py313" }
 test = { features = ["py313", "test"], solve-group = "py313" }
 test-py313 = { features = [
   "py313",

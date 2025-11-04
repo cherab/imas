@@ -1,0 +1,48 @@
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+rc[0-9]+
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Extract release notes
+        id: notes
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "Extracting changelog for tag: ${TAG}"
+
+          awk "/^## \\[${TAG}\\]/ {flag=1; next} /^## \\[/ {if(flag){exit}} flag" CHANGELOG.md > RELEASE_NOTES.txt || true
+
+          # If no specific section found, use the full changelog
+          if [ ! -s RELEASE_NOTES.txt ]; then
+            echo "No changelog section found for ${TAG}, using full changelog."
+            cat CHANGELOG.md > RELEASE_NOTES.txt
+          fi
+
+          {
+            echo "notes<<EOF"
+            cat RELEASE_NOTES.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: true
+          prerelease: ${{ contains(github.ref_name, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

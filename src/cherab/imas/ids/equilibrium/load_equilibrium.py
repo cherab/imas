@@ -35,7 +35,7 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
 
     Parameters
     ----------
-    equilibrium_ids : IDSToplevel
+    equilibrium_ids : `~imas.ids_toplevel.IDSToplevel`
         The time-slice of the equilibrium IDS.
 
     Returns
@@ -79,10 +79,10 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
             "Unable to read equilibrium: rectangular grid for psi profile is not found and other grid types are not supported."
         )
 
-    r = np.array(prof2d.grid.dim1)
-    z = np.array(prof2d.grid.dim2)
+    r = np.asarray_chkfinite(prof2d.grid.dim1)
+    z = np.asarray_chkfinite(prof2d.grid.dim2)
 
-    psi_grid = np.array(prof2d.psi)
+    psi_grid = np.asarray_chkfinite(prof2d.psi)
     if psi_grid.shape != (r.size, z.size):
         raise RuntimeError(
             "Unable to read equilibrium: the shape of 'profiles_2d[i].psi' does not match the grid shape."
@@ -90,7 +90,7 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
 
     profiles_1d = equilibrium_ids.time_slice[0].profiles_1d
 
-    psi1d = np.array(profiles_1d.psi)
+    psi1d = np.asarray_chkfinite(profiles_1d.psi)
     if not psi1d.size:
         raise RuntimeError("Unable to read equilibrium: 'profiles_1d.psi' is empty.")
 
@@ -126,7 +126,7 @@ def load_equilibrium_data(equilibrium_ids: IDSToplevel) -> dict[str, Any]:
     if r_axis == EMPTY_FLOAT or z_axis == EMPTY_FLOAT:
         raise RuntimeError("Unable to read equilibrium: magnetic axis is not set.")
 
-    magnetic_axis = Point2D(r_axis, z_axis)
+    magnetic_axis = Point2D(r_axis.item(), z_axis.item())
 
     boundary = equilibrium_ids.time_slice[0].boundary
 

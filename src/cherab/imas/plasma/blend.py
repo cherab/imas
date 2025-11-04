@@ -75,16 +75,16 @@ def load_plasma(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     time : float, optional
         Time moment for the core plasma, by default 0.
     occurrence_core : int, optional
         Instance index of the 'core_profiles' IDS, by default 0.
     edge_args : tuple, optional
-        Arguments passed to the `imas.DBEntry` constructor for the edge plasma if different
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma if different
         from the core plasma, by default None: use the same as for the core plasma.
     edge_kwargs : dict, optional
-        Keyword arguments passed to the `imas.DBEntry` constructor for the edge plasma if different
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma if different
         from the core plasma, by default None: use the same as for the core plasma.
     time_edge : float, optional
         Time moment for the edge plasma if different from the 'time', by default None.
@@ -115,7 +115,7 @@ def load_plasma(
         Parent node in the Raysect scene-graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
@@ -128,15 +128,15 @@ def load_plasma(
     if time_edge is None:
         time_edge = time
 
-    entry_core = DBEntry(*args, **kwargs)
     try:
-        core_profiles_ids = get_ids_time_slice(
-            entry_core,
-            "core_profiles",
-            time=time,
-            occurrence=occurrence_core,
-            time_threshold=time_threshold,
-        )
+        with DBEntry(*args, **kwargs) as entry_core:
+            core_profiles_ids = get_ids_time_slice(
+                entry_core,
+                "core_profiles",
+                time=time,
+                occurrence=occurrence_core,
+                time_threshold=time_threshold,
+            )
     except RuntimeError:
         return load_edge_plasma(
             *edge_args,
@@ -150,15 +150,15 @@ def load_plasma(
             **edge_kwargs,
         )
 
-    entry_edge = DBEntry(*edge_args, **edge_kwargs)
     try:
-        edge_profiles_ids = get_ids_time_slice(
-            entry_edge,
-            "edge_profiles",
-            time=time_edge,
-            occurrence=occurrence_edge,
-            time_threshold=time_threshold,
-        )
+        with DBEntry(*edge_args, **edge_kwargs) as entry_edge:
+            edge_profiles_ids = get_ids_time_slice(
+                entry_edge,
+                "edge_profiles",
+                time=time_edge,
+                occurrence=occurrence_edge,
+                time_threshold=time_threshold,
+            )
     except RuntimeError:
         return load_core_plasma(
             *args,

@@ -47,7 +47,7 @@ def load_wall_mesh(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     time : float, optional
         Time moment for the edge plasma, by default 0.
     occurrence : int, optional
@@ -70,15 +70,15 @@ def load_wall_mesh(
         Parent node in the Raysect scene-graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
     dict[str, Mesh]
         Dictionary with the Raysect Mesh instances.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from raysect.optical import World
     >>> world = World()
     >>> meshes = load_wall_mesh(
@@ -116,21 +116,21 @@ def load_wall_outline(
     Parameters
     ----------
     *args
-        Arguments passed to the `imas.DBEntry` constructor.
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
     occurrence : int, optional
         Instance index of the 'wall' IDS, by default 0.
     desc_index : int, optional
         Index of 'description_2d', by default 0.
     **kwargs
-        Keyword arguments passed to the `imas.DBEntry` constructor.
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
     dict[str, (N, 2) ndarray]
        Dictionary of wall unit outlines (N, 2) array given in RZ coordinates.
 
-    Example
-    -------
+    Examples
+    --------
     >>> load_wall_outline("imas:uda?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/", "r")
     {'First Wall': array([[ 4.11129713, -2.49559808],
                           [ 4.11129713, -1.48329401],

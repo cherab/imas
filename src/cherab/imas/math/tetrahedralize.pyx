@@ -12,6 +12,7 @@ __all__ = ["cell_to_5tetra", "cell_to_6tetra", "calculate_tetra_volume"]
 import_array()
 
 
+@cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.initializedcheck(False)
 cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
@@ -32,21 +33,21 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
         cell indices 2D array, the shape of which is :math:`(N, 8)`, where :math:`N` is the number
         of cells.
 
-    Return
-    ------
+    Returns
+    -------
     (5N,4) ndarray
         tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from cherab.imas.math.tetrahedralize import cell_to_5tetras
+    >>> from cherab.imas.math.tetrahedralize import cell_to_5tetra
     >>>
     >>> array = np.arrange(16, dtype=np.int32).reshape((2, -1))
     >>> array
     array([[ 0,  1,  2,  3,  4,  5,  6,  7],
            [ 8,  9, 10, 11, 12, 13, 14, 15]], dtype=int32)
-    >>> cell_to_5tetras(array)
+    >>> cell_to_5tetra(array)
         array([[ 0,  1,  3,  4],
                [ 1,  3,  4,  6],
                [ 3,  6,  7,  4],
@@ -106,10 +107,10 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
         Cell indices 2D array, the shape of which is :math:`(N, 8)`, where :math:`N` is the number
         of cells.
 
-    Return
-    ------
-    (5N,4) ndarray
-        Tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
+    Returns
+    -------
+    (6N,4) ndarray
+        Tetrahedra indices array, the shape of which is :math:`(6N, 4)`.
 
     Examples
     --------
