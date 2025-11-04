@@ -15,6 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for loading bolometer data from IMAS IDS structures."""
 
 from .load_camera import load_cameras
 from .utility import GeometryType
+
+__all__ = ["load_cameras", "GeometryType"]
