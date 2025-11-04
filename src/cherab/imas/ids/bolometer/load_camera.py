@@ -32,13 +32,14 @@ from .utility import GeometryType
 __all__ = ["load_cameras"]
 
 
-def load_cameras(ids: IDSToplevel) -> dict:
+def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
     """Load bolometer cameras from the bolometer IDS.
 
     This function retrieves the camera information from the bolometer IDS and organizes it into a
     structured format.
-    The specific structure of the output dictionary is as follows:
+    The specific structure of the output dictionary is as follows.
 
+    .. autolink-skip::
     .. code-block:: python
 
         {
@@ -91,9 +92,6 @@ def load_cameras(ids: IDSToplevel) -> dict:
         Dictionary with camera names as keys, and foil and slit data as values.
         Some keys in the foil and slit lists may not be present depending on the geometry type.
     """
-    if not isinstance(ids, IDSToplevel):
-        raise ValueError("Invalid IDS object.")
-
     if not ids.metadata.name == "bolometer":
         raise ValueError(f"Invalid bolometer IDS ({ids.metadata.name}).")
 
