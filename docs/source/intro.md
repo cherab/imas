@@ -2,7 +2,7 @@
 
 # 🚀 Get Started
 
-This page gives a quick overview of how to get started with `cherab-imas`, and how to use it within Docutils and Sphinx.
+This page gives a quick overview of how to get started with `cherab-imas`, including installation instructions and a simple example script.
 
 ## Installation
 
