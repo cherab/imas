@@ -19,7 +19,41 @@
 
 from enum import Enum
 
-__all__ = ["GeometryType"]
+__all__ = ["CameraType", "GeometryType"]
+
+
+class CameraType(Enum):
+    """Enum for camera type.
+
+    The type of the bolometer camera.
+
+    Attributes
+    ----------
+    PINHOLE : int
+        The camera is a pinhole camera.
+    COLLIMATOR : int
+        The camera is a collimator camera.
+    OTHER : int
+        The camera is of other type.
+    """
+
+    PINHOLE = 1
+    COLLIMATOR = 2
+    OTHER = 0
+
+    @classmethod
+    def from_value(cls, value: int):
+        """Get the camera type from a value.
+
+        Parameters
+        ----------
+        value : int
+            The integer value to convert to a camera type.
+            If the value is not a valid camera type, the default is `OTHER`.
+        """
+        if value in cls._value2member_map_:
+            return cls(value)
+        return cls.OTHER
 
 
 class GeometryType(Enum):

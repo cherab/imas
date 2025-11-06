@@ -27,7 +27,7 @@ from raysect.core.math import Point3D, Vector3D
 from imas.ids_structure import IDSStructure
 from imas.ids_toplevel import IDSToplevel
 
-from .utility import GeometryType
+from .utility import CameraType, GeometryType
 
 __all__ = ["load_cameras"]
 
@@ -45,6 +45,7 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
         {
         'camera_name': {
             "description": "Camera description",
+            "type": CameraType.PINHOLE,
             "channels": [
                 {
                     'foil': {
@@ -104,9 +105,11 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
     for camera in cameras:
         name = camera.name.value
         description = camera.description.value
+        camera_type = CameraType.from_value(camera.type.index.value)
 
         bolo_data[name] = {
             "description": description,
+            "type": camera_type,
             "channels": [],
         }
 

@@ -18,6 +18,5 @@
 """Subpackage for loading bolometer data from IMAS IDS structures."""
 
 from ._camera import load_cameras
-from .utility import GeometryType
 
-__all__ = ["load_cameras", "GeometryType"]
+__all__ = ["load_cameras"]
