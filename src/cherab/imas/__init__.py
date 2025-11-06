@@ -17,8 +17,6 @@
 # under the Licence.
 """The Cherab subpackage for the IMAS."""
 
-from __future__ import annotations
+from importlib.metadata import version as _version
 
-from importlib.metadata import version
-
-__version__ = version("cherab-imas")
+__version__ = _version("cherab-imas")
