@@ -15,6 +15,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Subpackage for creating observer objects from IMAS."""
 
 from .bolometer import load_bolometers
 
