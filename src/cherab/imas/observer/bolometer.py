@@ -58,9 +58,11 @@ def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[Bo
     >>> world = World()
 
     If you have a local IMAS database and store the "bolometer.h5" file there:
+
     >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", "r", parent=world)
 
     If you want to load netCDF files directly:
+
     >>> bolometers = load_bolometers("path/to/bolometer_file.nc", "r", parent=world)
     """
     # Load bolometer IDS

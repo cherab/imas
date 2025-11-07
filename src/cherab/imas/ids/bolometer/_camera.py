@@ -45,7 +45,7 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
         {
         'camera_name': {
             "description": "Camera description",
-            "type": CameraType.PINHOLE,
+            "type": CameraType(...),  # Type of the camera
             "channels": [
                 {
                     'foil': {
@@ -84,7 +84,7 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
 
     Parameters
     ----------
-    ids : IDSToplevel
+    ids : `~imas.ids_toplevel.IDSToplevel`
         The bolometer IDS.
 
     Returns
