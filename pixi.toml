@@ -60,7 +60,6 @@ sphinx-design = "*"
 sphinx-immaterial = "*"
 linkify-it-py = "*"
 myst-parser = "*"
-numpydoc = "*"
 # For notebook support
 ipykernel = "*"
 ipywidgets = "*"
