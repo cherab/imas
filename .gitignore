@@ -220,5 +220,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Type Stubs
+typings/
+
 # Plots
 demos/ITER/plots/
