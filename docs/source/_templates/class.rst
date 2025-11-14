@@ -6,30 +6,27 @@
    :show-inheritance:
    :members:
    :inherited-members:
-
-   {% block methods %}
-   {% if all_methods %}
+{% block methods %}
+{% if all_methods %}
    .. rubric:: {{ _('Methods') }}
 
    .. autosummary::
       :template: method.rst
-
-   {% for item in all_methods %}
-   {%- if not item.startswith('_') or item in ['__call__', '__getitem__'] %}
+{% for item in all_methods %}
+{%- if not item.startswith('_') or item in ['__call__', '__getitem__'] %}
       ~{{ name }}.{{ item }}
-   {% endif %}
-   {%- endfor %}
-   {% endif %}
-   {% endblock %}
-
-   {% block attributes %}
-   {% if attributes %}
+{%- endif -%}
+{%- endfor -%}
+{%- endif -%}
+{% endblock %}
+{% block attributes %}
+{% if attributes %}
    .. rubric:: {{ _('Attributes') }}
 
    .. autosummary::
       :template: attribute.rst
-   {% for item in attributes %}
+{% for item in attributes %}
       ~{{ name }}.{{ item }}
-   {%- endfor %}
-   {% endif %}
-   {% endblock %}
+{%- endfor %}
+{%- endif %}
+{% endblock %}
