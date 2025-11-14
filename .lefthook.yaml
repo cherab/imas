@@ -65,18 +65,6 @@ pre-commit:
       glob: "pyproject.toml"
       run: pixi {run} validate-pyproject {staged_files}
 
-    - name: docstring-lint
-      stage_fixed: true
-      group:
-        piped: true
-        jobs:
-          - name: docformatter
-            glob: "*.{py,pyx,pyi}"
-            run: pixi {run} docformatter --in-place {staged_files}
-          - name: numpydoc
-            glob: "*.{py,pyi}"
-            run: pixi {run} numpydoc {staged_files}
-
     - name: cython-lint
       glob: "*.{pyx,pxd}"
       run: pixi {run} cython-lint {staged_files}

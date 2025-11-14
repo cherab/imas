@@ -105,12 +105,10 @@ ruff = "*"
 typos = "*"
 mypy = "*"
 basedpyright = "*"
-numpydoc = "*"
 actionlint = "*"
 shellcheck = "*"
 validate-pyproject = "*"
 cython-lint = "*"
-docformatter = "*"
 blacken-docs = "*"
 taplo = "*"
 
@@ -128,8 +126,6 @@ taplo = { cmd = "taplo fmt", description = "Format toml files with taplo" }
 actionlint = { cmd = "actionlint", description = "Lint actions with actionlint" }
 blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blocks with Black" }
 validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
-numpydoc = { cmd = "numpydoc lint", description = "Validate docstrings with numpydoc" }
-docformatter = { cmd = "docformatter --in-place", description = "Format docstrings with docformatter" }
 cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
