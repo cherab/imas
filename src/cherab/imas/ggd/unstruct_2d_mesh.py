@@ -17,14 +17,19 @@
 # under the Licence.
 """Module defining unstructured 2D mesh class and related methods."""
 
+from __future__ import annotations
+
+from typing import Literal, override
+
+import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PolyCollection
-from raysect.core.math import Vector3D
+from numpy.typing import ArrayLike, NDArray
 from raysect.core.math.polygon import triangulate2d
+from raysect.core.math.vector import Vector3D
 
-from cherab.imas.math import UnstructGridFunction2D, UnstructGridVectorFunction2D
-
+from ..math import UnstructGridFunction2D, UnstructGridVectorFunction2D
 from .base_mesh import GGDGrid
 
 __all__ = ["UnstructGrid2D"]
@@ -41,20 +46,26 @@ class UnstructGrid2D(GGDGrid):
 
     Parameters
     ----------
-    vertices : (N, 2) array_like
-        Array-like of shape (N, 2) containing coordinates of the polygon vertices.
-    cells : list of (N,) array_like
-        List of (N,)-shaped arrays containing the vertex indices in clockwise or
+    vertices
+        Array-like of shape ``(N, 2)`` containing coordinates of the polygon vertices.
+    cells
+        List of ``(N,)``-shaped arrays containing the vertex indices in clockwise or
         counterclockwise order for each polygonal cell in the list (the starting vertex must not be
         included twice).
-    name : str, optional
-        Name of the grid, by default 'Cells'.
-    coordinate_system : {'cylindrical', 'cartesian'}, optional
-        Coordinate system of the grid, by default 'cylindrical'.
+    name
+        Name of the grid, by default ``'Cells'``.
+    coordinate_system
+        Coordinate system of the grid, by default ``'cylindrical'``.
     """
 
-    def __init__(self, vertices, cells, name: str = "Cells", coordinate_system="cylindrical"):
-        vertices = np.array(vertices, dtype=np.float64)
+    def __init__(
+        self,
+        vertices: ArrayLike,
+        cells: list[ArrayLike],
+        name: str = "Cells",
+        coordinate_system: Literal["cylindrical", "cartesian"] = "cylindrical",
+    ):
+        vertices = np.asarray_chkfinite(vertices, dtype=np.float64)
         vertices.setflags(write=False)
 
         if vertices.ndim != 2:
@@ -76,16 +87,16 @@ class UnstructGrid2D(GGDGrid):
             if len(cell) < 3:
                 raise ValueError(f"Cell {np.array2string(cell)} is not a polygon.")
 
-        self._vertices = vertices
-
-        self._cells = tuple(cells)
+        self._vertices: NDArray[np.float64] = vertices
+        self._cells: tuple[ArrayLike, ...] = tuple(cells)
 
         super().__init__(name, 2, coordinate_system)
 
+    @override
     def _initial_setup(self) -> None:
         self._interpolator = None
 
-        self._num_cell = len(self._cells)
+        self._num_cell: int = len(self._cells)
 
         x = self._vertices[:, 0]
         y = self._vertices[:, 1]
@@ -152,28 +163,28 @@ class UnstructGrid2D(GGDGrid):
             self._cell_volume.setflags(write=False)
 
     @property
-    def vertices(self):
-        """Mesh vertex coordinates as (N, 2) array."""
+    def vertices(self) -> NDArray[np.float64]:
+        """Mesh vertex coordinates as ``(N, 2)`` array."""
         return self._vertices
 
     @property
-    def cells(self):
-        """List of K polygonal cells."""
+    def cells(self) -> tuple[ArrayLike, ...]:
+        """List of ``K`` polygonal cells."""
         return self._cells
 
     @property
-    def triangles(self):
-        """Mesh triangles as (M, 3) array."""
+    def triangles(self) -> NDArray[np.int32]:
+        """Mesh triangles as ``(M, 3)`` array."""
         return self._triangles
 
     @property
-    def triangle_to_cell_map(self):
-        """Array of shape (M,) mapping every triangle index to a grid cell ID."""
+    def triangle_to_cell_map(self) -> NDArray[np.int32]:
+        """Array of shape ``(M,)`` mapping every triangle index to a grid cell ID."""
         return self._triangle_to_cell_map
 
     @property
-    def cell_to_triangle_map(self):
-        """Array of shape (K, 2) mapping every grid cell index to triangle IDs.
+    def cell_to_triangle_map(self) -> NDArray[np.int32]:
+        """Array of shape ``(K, 2)`` mapping every grid cell index to triangle IDs.
 
         The first column is the index of the first triangle forming the cell.
         The second column is the number of triangles forming the cell.
@@ -183,17 +194,22 @@ class UnstructGrid2D(GGDGrid):
         """
         return self._cell_to_triangle_map
 
-    def subset(self, indices, name=None):
+    @override
+    def subset(self, indices: ArrayLike, name: str | None = None) -> UnstructGrid2D:
         """Create a subset UnstructGrid2D from this instance.
 
         Parameters
         ----------
-        indices : array_like
+        indices
             Indices of the cells of the original grid in the subset.
-        name : str, optional
-            Name of the grid subset. Default is `instance.name` + `' subset'`.
-        """
+        name
+            Name of the grid subset. Default is ``instance.name + " subset"``.
 
+        Returns
+        -------
+        `.UnstructGrid2D`
+            Subset instance.
+        """
         grid = UnstructGrid2D.__new__(UnstructGrid2D)
 
         grid._name = name or self.name + " subset"
@@ -272,23 +288,23 @@ class UnstructGrid2D(GGDGrid):
 
         return grid
 
-    def interpolator(self, grid_data, fill_value=0):
-        """Return an `UnstructGridFunction2D` interpolator instance for the data defined on this
-        grid.
+    @override
+    def interpolator(self, grid_data: ArrayLike, fill_value: float = 0) -> UnstructGridFunction2D:
+        """Return an `UnstructGridFunction2D` interpolator instance for the data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance of the
         previously created interpolator sharing the same KDtree structure.
 
         Parameters
         ----------
-        grid_data : array_like
+        grid_data
             Array containing data in the grid cells.
-        fill_value : float, optional
+        fill_value
             Value returned outside the grid, by default is 0.
 
         Returns
         -------
-        UnstructGridFunction2D
+        `.UnstructGridFunction2D`
             Interpolator instance.
         """
         if self._interpolator is None:
@@ -299,23 +315,25 @@ class UnstructGrid2D(GGDGrid):
 
         return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
 
-    def vector_interpolator(self, grid_vectors, fill_vector=ZERO_VECTOR):
-        """Return an `UnstructGridVectorFunction2D` interpolator instance for the vector data
-        defined on this grid.
+    @override
+    def vector_interpolator(
+        self, grid_vectors: ArrayLike, fill_vector: Vector3D = ZERO_VECTOR
+    ) -> UnstructGridVectorFunction2D:
+        """Return an `UnstructGridVectorFunction2D` interpolator instance for the vector data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance of the
         previously created interpolator sharing the same KDtree structure.
 
         Parameters
         ----------
-        grid_vectors : (3, K) array_like
-            Array containing 3D vectors in the grid cells.
-        fill_vector : Vector3D, optional
-            3D vector returned outside the grid, by default Vector3D(0, 0, 0).
+        grid_vectors
+            ``(3, K)`` Array containing 3D vectors in the grid cells.
+        fill_vector
+            3D vector returned outside the grid.
 
         Returns
         -------
-        UnstructGridVectorFunction2D
+        `.UnstructGridVectorFunction2D`
             Interpolator instance.
         """
         if self._interpolator is None:
@@ -330,7 +348,14 @@ class UnstructGrid2D(GGDGrid):
 
         return UnstructGridVectorFunction2D.instance(self._interpolator, grid_vectors, fill_vector)
 
+    @override
     def __getstate__(self):
+        """Serialize the state of the UnstructGrid2D instance for pickling.
+
+        Returns
+        -------
+        Dictionary with the instance attributes.
+        """
         state = {
             "name": self._name,
             "dimension": self._dimension,
@@ -341,6 +366,7 @@ class UnstructGrid2D(GGDGrid):
         return state
 
     def __setstate__(self, state):
+        """Restore the state of the UnstructGrid2D instance from the serialized state."""
         self._name = state["name"]
         self._dimension = state["dimension"]
         self._coordinate_system = state["coordinate_system"]
@@ -350,24 +376,33 @@ class UnstructGrid2D(GGDGrid):
 
         self._initial_setup()
 
-    def plot_triangle_mesh(self, data=None, ax=None):
+    def plot_triangle_mesh(
+        self, data: ArrayLike | None = None, ax: matplotlib.axes.Axes | None = None
+    ) -> matplotlib.axes.Axes:
         """Plot the triangle mesh grid geometry to a matplotlib figure.
 
         Parameters
         ----------
-        data : array_like
+        data
             Data array defined on the polygonal mesh.
-        ax : matplotlib.axes.Axes, optional
+        ax
             Matplotlib axes to plot on. If None, a new figure and axes are created.
+
+        Returns
+        -------
+        `~matplotlib.axes.Axes`
+            The matplotlib axes with the plotted mesh.
         """
         if ax is None:
             _, ax = plt.subplots(constrained_layout=True)
 
         verts = self._vertices[self._triangles]
         if data is None:
-            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor="b", linewidth=0.25)
+            collection_mesh = PolyCollection(
+                [verts], facecolor="none", edgecolor="b", linewidth=0.25
+            )
         else:
-            collection_mesh = PolyCollection(verts)
+            collection_mesh = PolyCollection([verts])
             collection_mesh.set_array(data[self._triangle_to_cell_map])
         ax.add_collection(collection_mesh)
         ax.set_aspect(1)
@@ -383,23 +418,38 @@ class UnstructGrid2D(GGDGrid):
 
         return ax
 
-    def plot_mesh(self, data=None, ax=None):
+    @override
+    def plot_mesh(
+        self,
+        data: ArrayLike | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        **grid_styles: str | float,
+    ) -> matplotlib.axes.Axes:
         """Plot the polygonal mesh grid geometry to a matplotlib figure.
 
         Parameters
         ----------
-        data : array_like, optional
+        data
             Data array defined on the polygonal mesh.
-        ax : matplotlib.axes.Axes, optional
+        ax
             Matplotlib axes to plot on. If None, a new figure and axes are created.
-        """
 
+        Returns
+        -------
+        `~matplotlib.axes.Axes`
+            The matplotlib axes with the plotted mesh.
+        """
         if ax is None:
             _, ax = plt.subplots(constrained_layout=True)
 
+        # Set default grid line styles if not provided
+        grid_styles.setdefault("facecolor", "none")
+        grid_styles.setdefault("edgecolor", "b")
+        grid_styles.setdefault("linewidth", 0.25)
+
         verts = [self._vertices[cell] for cell in self._cells]
         if data is None:
-            collection_mesh = PolyCollection(verts, facecolor="none", edgecolor="b", linewidth=0.25)
+            collection_mesh = PolyCollection(verts, **grid_styles)
         else:
             collection_mesh = PolyCollection(verts)
             collection_mesh.set_array(data)
