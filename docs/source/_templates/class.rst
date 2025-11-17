@@ -5,6 +5,7 @@
 .. autoclass:: {{ objname }}
    :show-inheritance:
    :members:
+   :special-members: __call__, __getitem__
    :inherited-members:
 {% block methods %}
 {% if all_methods %}
