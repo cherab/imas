@@ -1,4 +1,4 @@
-"""Sample Dataset utilities for fetching and processing data.
+r"""Sample Dataset utilities for fetching and processing data.
 
 Usage of Datasets
 =================
@@ -37,7 +37,7 @@ For Linux and other Unix-like platforms::
 
 For Windows::
 
-    "C:\\Users\\<user>\\AppData\\Local\\<AppAuthor>\\cherab\\imas\\Cache"
+    "C:\Users\<user>\AppData\Local\<AppAuthor>\cherab\imas\Cache"
 
 In environments with constrained network connectivity for various security
 reasons or on systems without continuous internet connections, one may manually
