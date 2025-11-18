@@ -5,12 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.1] - 2025-11-18
+
+### Added
+
+- Add some missing type hints.
+
+### Changed
+
+- Migrate docstring linting/formatting from `numpydoc` and `docformatter` to `ruff`
+- Migrate `numpydoc` Python API reference to `napoleon` extension for Sphinx (to enjoy type hinting support)
+- Update docstrings to be compatible with the `napoleon` style
 
 ### Fixed
 
 - Fix values assignment in `load_equilibrium_data` function (convert to python types)
 - Bug fix in `load_unstruct_grid_2d` function (incorrect `cells.append(cell)` line)
+
+### Removed
+
+- Remove `numpydoc` dependency (migrated to `ruff` for docstring linting as well)
+- Remove `docformatter` dependency (migrated to `ruff` for docstring formatting as well)
 
 ## [0.2.0] - 2025-11-04
 
