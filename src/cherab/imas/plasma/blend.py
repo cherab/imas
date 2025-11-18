@@ -67,62 +67,69 @@ def load_plasma(
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
-    """Load core and edge profiles and Create a `~cherab.core.plasma.node.Plasma` object.
+    """Load core and edge profiles and create a `~cherab.core.plasma.node.Plasma` object.
 
-    If ``edge_profiles`` IDS is empty, this returns core plasma only.
-    If ``core_profiles`` IDS is empty, this returns edge plasma only.
+    If the ``edge_profiles`` IDS is empty, returns only the core plasma.
+    If the ``core_profiles`` IDS is empty, returns only the edge plasma.
+
+    To load the edge plasma from a different IMAS entry, use `edge_args` and `edge_kwargs`
+    to pass different arguments to the `~imas.db_entry.DBEntry` constructor.
 
     Parameters
     ----------
     *args
         Arguments passed to the `~imas.db_entry.DBEntry` constructor.
-    time : float, optional
-        Time moment for the core plasma, by default 0.
-    occurrence_core : int, optional
-        Instance index of the 'core_profiles' IDS, by default 0.
-    edge_args : tuple, optional
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma if different
-        from the core plasma, by default None: use the same as for the core plasma.
-    edge_kwargs : dict, optional
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma if different
-        from the core plasma, by default None: use the same as for the core plasma.
-    time_edge : float, optional
-        Time moment for the edge plasma if different from the 'time', by default None.
-    occurrence_edge : int, optional
-        Instance index of the 'edge_profiles' IDS, by default 0.
-    grid_ggd : IDSStructure, optional
-        Alternative grid_ggd structure with the grid description, by default None.
-    grid_subset_id : int | str, optional
-        Identifier of the grid subset. Either index or name, by default 5 ("Cells").
-    equilibrium : EFITEquilibrium, optional
-        Alternative `~cherab.tools.equilibrium.efit.EFITEquilibrium` object used to map core
-        profiles, by default None. equilibrium is read from the same IMAS query as the core profiles.
-        This parameter is ignored if core plasma is not available.
-    b_field : VectorFunction2D, optional
-        Alternative 2D interpolator of the magnetic field vector (Br, Btor, Bz).
-        Default is None. The magnetic field will be loaded from the 'equilibrium' IDS.
-    psi_interpolator : Callable[[float], float], optional
-        Alternative `psi_norm(rho_tor_norm)` interpolator.
-        Used only if 'psi' is missing in the core grid, by default None.
-        Obtained from the 'equilibrium' IDS.
-    mask : Function2D | Function3D, optional
+    time
+        Time for the core plasma, by default 0.
+    occurrence_core
+        Occurrence index of the ``core_profiles`` IDS, by default 0.
+    edge_args
+        Arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma
+        if different from the core plasma. By default None: uses the same as `*args`.
+    edge_kwargs
+        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma
+        if different from the core plasma. By default None: uses the same as `**kwargs`.
+    time_edge
+        Time for the edge plasma. If None, uses `time`. By default None.
+    occurrence_edge
+        Occurrence index of the ``edge_profiles`` IDS, by default 0.
+    grid_ggd
+        Alternative ``grid_ggd`` structure describing the grid. By default None.
+    grid_subset_id
+        Identifier of the grid subset (index or name). By default 5 (``"Cells"``).
+    equilibrium
+        Alternative `~cherab.tools.equilibrium.efit.EFITEquilibrium` used to map core
+        profiles. By default None: the equilibrium is read from the same IMAS query as the
+        core profiles. Ignored if the core plasma is not available.
+    b_field
+        Alternative 2D interpolator of the magnetic field vector (Br, Bphi, Bz).
+        By default None: the magnetic field is loaded from the ``equilibrium`` IDS.
+    psi_interpolator
+        Alternative ``psi_norm(rho_tor_norm)`` interpolator.
+        Used only if ``psi`` is missing in the core grid. By default None.
+        Obtained from the ``equilibrium`` IDS.
+    mask
         Mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
-        Default is None. Use `EFITEquilibrium.inside_lcfs` as a mask function.
-    time_threshold : float, optional
-        Sets the maximum allowable difference between the specified time and the nearest
+        By default, uses `~cherab.tools.equilibrium.efit.EFITEquilibrium`'s `inside_lcfs`.
+    time_threshold
+        Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
-    parent : _NodeBase, optional
-        Parent node in the Raysect scene-graph, by default None.
-        Normally, `~raysect.optical.scenegraph.world.World` instance.
+    parent
+        Parent node in the Raysect scene graph, by default None.
+        Typically a `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
         Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
     `~cherab.core.plasma.node.Plasma`
-        Plasma object with core and edge profiles.
-    """
+        Plasma object with core and/or edge profiles.
 
+    Raises
+    ------
+    RuntimeError
+        If neither core nor edge profiles are available.
+    """
     edge_args = edge_args or args
     edge_kwargs = edge_kwargs or kwargs
     if time_edge is None:
@@ -355,13 +362,13 @@ def blend_core_edge_interpolators(
 
     Parameters
     ----------
-    core_interpolators : dict
+    core_interpolators
         Dictionary with 2D or 3D core profiles interpolators.
-    edge_interpolators : dict
+    edge_interpolators
         Dictionary with 2D or 3D edge profiles interpolators.
-    mask : Function2D | Function3D
+    mask
         Mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
-    return3d : bool, optional
+    return3d
         If True, return the 3D functions for 2D interpolators assuming
         rotational symmetry, by default False.
 
@@ -370,7 +377,6 @@ def blend_core_edge_interpolators(
     dict
         Dictionary with blended interpolators.
     """
-
     interpolators = {}
 
     for core_key, core_func in core_interpolators.items():
@@ -394,13 +400,13 @@ def blend_core_edge_functions(
 
     Parameters
     ----------
-    core_func : Function2D | Function3D | VectorFunction2D | VectorFunction3D | None
+    core_func
         A 2D or 3D core interpolator.
-    edge_func : Function2D | Function3D | VectorFunction2D | VectorFunction3D | None
+    edge_func
         A 2D or 3D edge interpolator.
-    mask : Function2D | Function3D
-        The 2D or 3D mask function used for blending: (1 - mask) * f_edge + mask * f_core.
-    return3d : bool, optional
+    mask
+        The 2D or 3D mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
+    return3d
         If True, return the 3D functions for 2D interpolators assuming
         rotational symmetry, by default False.
 
@@ -408,8 +414,12 @@ def blend_core_edge_functions(
     -------
     Function3D | VectorFunction3D | None
         Blended interpolator.
-    """
 
+    Raises
+    ------
+    ValueError
+        If both core and edge functions are None.
+    """
     if core_func is None and edge_func is None:
         return None
 

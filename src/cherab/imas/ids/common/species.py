@@ -17,6 +17,7 @@
 # under the Licence.
 """Module for common functions used to get IDS species information."""
 
+
 from cherab.core.atomic.elements import Element, lookup_isotope
 from imas.ids_defs import EMPTY_FLOAT, EMPTY_INT
 from imas.ids_struct_array import IDSStructArray
@@ -41,20 +42,20 @@ def get_ion_state(
 
     Parameters
     ----------
-    state : IDSStructure
+    state
         The ion_state structure from IMAS.
-    state_index : int
+    state_index
         Index of the state in the list of states.
-    elements : list[`~cherab.core.atomic.elements.Element`]
+    elements
         List of elements that make up the ion state.
-    grid_subset_index : int, optional
+    grid_subset_index
         The grid subset index to use for 1D profiles, by default None.
 
     Returns
     -------
-    species_type : str
+    species_type : `str`
         The type of species: 'ion', 'ion_bundle', 'molecule', or 'molecular_bundle'.
-    species_id : frozenset
+    species_id : `frozenset`
         A frozenset of key-value pairs that uniquely identify the species.
     """
     if state.z_min == EMPTY_FLOAT or state.z_max == EMPTY_FLOAT:
@@ -116,16 +117,16 @@ def get_neutral_state(state: IDSStructure, elements: list[Element]) -> tuple[str
 
     Parameters
     ----------
-    state : IDSStructure
+    state
         The neutral_state structure from IMAS.
-    elements : list[`~cherab.core.atomic.elements.Element`]
+    elements
         List of elements that make up the neutral state.
 
     Returns
     -------
-    species_type : str
+    species_type : `str`
         The type of species: 'molecule' or 'ion'.
-    species_id : frozenset
+    species_id : `frozenset`
         A frozenset of key-value pairs that uniquely identify the species.
     """
     state_dict = {"name": state.name.strip()}
@@ -161,16 +162,16 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
 
     Parameters
     ----------
-    ion : IDSStructure
+    ion
         The ion structure from IMAS.
-    elements : list[`~cherab.core.atomic.elements.Element`]
+    elements
         List of elements that make up the ion.
 
     Returns
     -------
-    species_type : str
+    species_type : `str`
         The type of species: 'molecule' or 'ion'.
-    species_id : frozenset
+    species_id : `frozenset`
         A frozenset of key-value pairs that uniquely identify the species.
     """
     z_ion = int(ion.z_ion) if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
@@ -198,21 +199,21 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
     return "ion", species_id
 
 
-def get_neutral(neutral, elements):
+def get_neutral(neutral: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]:
     """Get a unique identifier for a neutral or molecule.
 
     Parameters
     ----------
-    neutral : IDSStructure
+    neutral
         The neutral structure from IMAS.
-    elements : list[`~cherab.core.atomic.elements.Element`]
+    elements
         List of elements that make up the neutral state.
 
     Returns
     -------
-    species_type : str
+    species_type : `str`
         The type of species: 'molecule' or 'ion'.
-    species_id : frozenset
+    species_id : `frozenset`
         A frozenset of key-value pairs that uniquely identify the species.
     """
     if len(elements) > 1:
@@ -244,7 +245,7 @@ def get_element_list(element_aos: IDSStructArray) -> list[Element]:
 
     Parameters
     ----------
-    element_aos : IDSStructArray
+    element_aos
         The element_aos structure from IMAS.
 
     Returns

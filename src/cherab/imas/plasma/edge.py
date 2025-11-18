@@ -62,23 +62,23 @@ def load_edge_plasma(
     ----------
     *args
         Arguments passed to the `~imas.db_entry.DBEntry` constructor.
-    time : float, optional
-        Time moment for the edge plasma, by default 0.
-    occurrence : int, optional
-        Instance index of the 'edge_profiles' IDS, by default 0.
-    grid_ggd : IDSStructure, optional
-        Alternative grid_ggd structure with the grid description, by default None.
-    grid_subset_id : int | str, optional
-        Identifier of the grid subset. Either index or name, by default 5 ("Cells").
-    b_field : VectorFunction2D, optional
-        Alternative 2D interpolator of the magnetic field vector (Br, Btor, Bz).
-        Default is None. The magnetic field will be loaded from the 'equilibrium' IDS.
-    time_threshold : float, optional
-        Sets the maximum allowable difference between the specified time and the nearest
+    time
+        Time for the edge plasma, by default 0.
+    occurrence
+        Occurrence index of the ``edge_profiles`` IDS, by default 0.
+    grid_ggd
+        Alternative ``grid_ggd`` structure with the grid description, by default None.
+    grid_subset_id
+        Identifier of the grid subset. Either index or name, by default 5 (``"Cells"``).
+    b_field
+        Alternative 2D interpolator of the magnetic field vector (Br, Bphi, Bz).
+        Default is None. The magnetic field will be loaded from the ``equilibrium`` IDS.
+    time_threshold
+        Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
-    parent : _NodeBase, optional
-        Parent node in the Raysect scene-graph, by default None.
-        Normally, `~raysect.optical.scenegraph.world.World` instance.
+    parent
+        Parent node in the Raysect scene graph, by default None.
+        Typically a `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
         Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
@@ -86,8 +86,12 @@ def load_edge_plasma(
     -------
     `~cherab.core.plasma.node.Plasma`
         Plasma object with edge profiles.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If the ``grid_ggd`` or ``ggd`` AOS of the edge_profiles IDS is empty.
+    """
     with DBEntry(*args, **kwargs) as entry:
         edge_profiles_ids = get_ids_time_slice(
             entry, "edge_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -197,13 +201,13 @@ def get_edge_interpolators(
 
     Parameters
     ----------
-    grid : GGDGrid
+    grid
         GGD-compatible grid object.
-    profiles : dict[str, np.ndarray | None]
+    profiles
         Dictionary with edge plasma profiles.
-    b_field : VectorFunction2D, optional
+    b_field
         2D interpolator of the magnetic field vector (Br, Btor, Bz), by default None.
-    return3d : bool, optional
+    return3d
         If True, return the 3D functions for 2D interpolators assuming
         rotational symmetry, by default False.
 
@@ -212,7 +216,6 @@ def get_edge_interpolators(
     dict[str, Function3D | Function2D | None]
         Dictionary with edge interpolators.
     """
-
     interpolators = RecursiveDict()
 
     for prof_key, profile in profiles.items():

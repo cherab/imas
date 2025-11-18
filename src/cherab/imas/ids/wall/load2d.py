@@ -29,7 +29,7 @@ def load_wall_2d(description_2d: IDSStructure) -> dict[str, np.ndarray]:
 
     Parameters
     ----------
-    description_2d : IDSStructure
+    description_2d
         IDS structure with 2D description of the wall.
 
     Returns
@@ -37,7 +37,6 @@ def load_wall_2d(description_2d: IDSStructure) -> dict[str, np.ndarray]:
     dict[str, np.ndarray]
         Dictionary of wall unit outlines given in RZ coordinates.
     """
-
     wall_outline = {}
 
     for unit in description_2d.limiter.unit:
