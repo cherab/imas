@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import SymLogNorm
+from matplotlib.figure import Figure
 
 from cherab.core.math import sample3d_grid, samplevector2d
 from cherab.imas.datasets import iter_jintrac
@@ -19,9 +20,26 @@ from cherab.tools.equilibrium import plot_equilibrium
 plt.ion()
 
 
-def plot_quantity(quantity, extent, title="", logscale=False, symmetric=False):
-    """Make a 2D plot of quantity, with a title, optionally on a log scale."""
+def plot_quantity(quantity, extent, title="", logscale=False, symmetric=False) -> Figure:
+    """Make a 2D plot of quantity, with a title, optionally on a log scale.
 
+    Parameters
+    ----------
+    quantity
+        2D array of the quantity to plot.
+    extent
+        The extent of the plot in the form [xmin, xmax, ymin, ymax].
+    title
+        The title of the plot.
+    logscale
+        Whether to use a logarithmic scale for the color map.
+    symmetric
+        Whether to use a symmetric color map around zero.
+
+    Returns
+    -------
+    The matplotlib Figure object containing the plot.
+    """
     fig = plt.figure(figsize=(4.0, 6.0), layout="constrained")
     ax = fig.add_subplot(111)
     if logscale:
