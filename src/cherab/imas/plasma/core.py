@@ -24,6 +24,7 @@ from raysect.core.math import Vector3D, translate
 from raysect.core.math.function.float import Function2D, Function3D, Interpolator1DArray
 from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
+from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
@@ -49,38 +50,41 @@ def load_core_plasma(
     b_field: VectorFunction2D | None = None,
     psi_interpolator: Callable[[float], float] | None = None,
     time_threshold: float = np.inf,
-    parent=None,
+    parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
     """Load core profiles and Create a `~cherab.core.plasma.node.Plasma` object.
 
-    Prefer 'density_thermal' over 'density' profile.
+    Prefer ``density_thermal`` over ``density`` profile.
 
     Parameters
     ----------
     *args
         Arguments passed to the `~imas.db_entry.DBEntry` constructor.
-    time : float, optional
-        Time moment, by default 0.
-    occurrence : int, optional
-        Instance index of the 'core_profiles' IDS, by default 0.
-    equilibrium : EFITEquilibrium, optional
-        Alternative `~cherab.tools.equilibrium.efit.EFITEquilibrium` object used to map core
-        profiles, by default None. equilibrium is read from the same IMAS query as the core profiles.
-        This parameter is ignored if core plasma is not available.
-    b_field : VectorFunction2D, optional
-        An alternative 2D interpolator of the magnetic field vector (Br, Btor, Bz).
-        Default is None. The magnetic field will be loaded from the 'equilibrium' IDS.
-    psi_interpolator : Callable[[float], float], optional
-        Alternative `psi_norm(rho_tor_norm)` interpolator.
-        Used only if 'psi' is missing in the core grid, by default None.
-        Obtained from the 'equilibrium' IDS.
-    time_threshold : float, optional
-        Sets the maximum allowable difference between the specified time and the nearest
+    time
+        Time for the core plasma, by default 0.
+    occurrence
+        Occurrence index of the ``core_profiles`` IDS, by default 0.
+    equilibrium
+        Alternative `~cherab.tools.equilibrium.efit.EFITEquilibrium` used to map core
+        profiles. By default None: the equilibrium is read from the same IMAS query as the
+        core profiles. Ignored if the core plasma is not available.
+    b_field
+        Alternative 2D interpolator of the magnetic field vector (Br, Bphi, Bz).
+        By default None: the magnetic field is loaded from the ``equilibrium`` IDS.
+    psi_interpolator
+        Alternative ``psi_norm(rho_tor_norm)`` interpolator.
+        Used only if ``psi`` is missing in the core grid. By default None.
+        Obtained from the ``equilibrium`` IDS.
+    mask
+        Mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
+        By default, uses `~cherab.tools.equilibrium.efit.EFITEquilibrium`'s `inside_lcfs`.
+    time_threshold
+        Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
-    parent : _NodeBase, optional
-        Parent node in the Raysect scene-graph, by default None.
-        Normally, `~raysect.optical.scenegraph.world.World` instance.
+    parent
+        Parent node in the Raysect scene graph, by default None.
+        Typically a `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
         Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
@@ -88,8 +92,15 @@ def load_core_plasma(
     -------
     `~cherab.core.plasma.node.Plasma`
         Plasma object with core profiles.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If the ``profiles_1d`` AOS in core_profiles IDS is empty.
+    ValueError
+        If the ``equilibrium`` argument is not an `~cherab.tools.equilibrium.efit.EFITEquilibrium`
+        instance when provided.
+    """
     with DBEntry(*args, **kwargs) as entry:
         core_profiles_ids = get_ids_time_slice(
             entry, "core_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -204,23 +215,28 @@ def get_core_interpolators(
 
     Parameters
     ----------
-    psi_norm : ndarray
+    psi_norm
         Normalized poloidal flux values.
-    profiles : dict
+    profiles
        Dictionary with core plasma profiles.
-    equilibrium : EFITEquilibrium
+    equilibrium
         `EFITEquilibrium` object used to map core profiles.
-    return3d : bool, optional
+    return3d
         If True, return the 3D interpolators assuming rotational symmetry, by default False.
 
     Returns
     -------
     dict[str, Function3D | Function2D | None]
        Dictionary with core interpolators.
-    """
 
+    Raises
+    ------
+    ValueError
+        If the ``equilibrium`` argument is not an `~cherab.tools.equilibrium.efit.EFITEquilibrium`
+        instance.
+    """
     if not isinstance(equilibrium, EFITEquilibrium):
-        raise ValueError("Argiment equilibrium must be a EFITEquilibrium instance.")
+        raise ValueError("Argument equilibrium must be a EFITEquilibrium instance.")
 
     psi_norm, index = np.unique(psi_norm, return_index=True)
 
@@ -252,22 +268,28 @@ def get_psi_norm(
 
     Parameters
     ----------
-    psi : ndarray | None
+    psi
         Poloidal flux values from the core grid.
-    psi_axis : float
+    psi_axis
         Poloidal flux at the magnetic axis.
-    psi_lcfs : float
+    psi_lcfs
         Poloidal flux at the last closed flux surface.
-    rho_tor_norm : ndarray | None
+    rho_tor_norm
         Normalized toroidal flux values.
-    psi_interpolator : Callable[[float], float] | None
-        Interpolator function to map rho_tor_norm to psi_norm.
-        Used only if 'psi' is None.
+    psi_interpolator
+        Interpolator function to map `rho_tor_norm` to `psi_norm`.
+        Used only if ``psi`` is None.
 
     Returns
     -------
     ndarray
         Normalized poloidal flux values.
+
+    Raises
+    ------
+    RuntimeError
+        If both ``psi`` and ``rho_tor_norm`` are None, or if ``psi_interpolator`` is None when
+        ``psi`` is None.
     """
     if psi is None:
         if psi_interpolator is None:

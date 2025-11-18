@@ -1,7 +1,7 @@
-lefthook: pixi run --environment=lint lefthook
+lefthook: pixi run --no-progress --environment=lint --frozen lefthook
 
 templates:
-  run: run --environment=lint
+  run: run --quiet --no-progress --environment=lint --frozen
 
 colors: true
 
@@ -64,18 +64,6 @@ pre-commit:
     - name: validate-pyproject
       glob: "pyproject.toml"
       run: pixi {run} validate-pyproject {staged_files}
-
-    - name: docstring-lint
-      stage_fixed: true
-      group:
-        piped: true
-        jobs:
-          - name: docformatter
-            glob: "*.{py,pyx,pyi}"
-            run: pixi {run} docformatter --in-place {staged_files}
-          - name: numpydoc
-            glob: "*.{py,pyi}"
-            run: pixi {run} numpydoc {staged_files}
 
     - name: cython-lint
       glob: "*.{pyx,pxd}"

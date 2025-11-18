@@ -17,37 +17,75 @@
 # under the Licence.
 """Module for loading GGD grids from IMAS grid_ggd IDS structures."""
 
+from numpy import int32
+from numpy.typing import NDArray
+
 from imas.ids_structure import IDSStructure
 
+from ....ggd.unstruct_2d_extend_mesh import UnstructGrid2DExtended
+from ....ggd.unstruct_2d_mesh import UnstructGrid2D
 from .load_unstruct_2d import load_unstruct_grid_2d
 from .load_unstruct_3d import load_unstruct_grid_2d_extended
 
-__all__ = ["load_grid", "load_unstruct_grid_2d"]
+__all__ = ["load_grid"]
 
 
-def load_grid(grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = None):
-    """Load grid from the grid_ggd structure.
+def load_grid(
+    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = None
+) -> (
+    UnstructGrid2D
+    | tuple[UnstructGrid2D, dict[str, NDArray[int32]], dict[str, int]]
+    | UnstructGrid2DExtended
+):
+    """Load grid from the ``grid_ggd`` structure.
+
+    The ``grid_ggd`` structure is expected to follow the IMAS GGD grid definition.
+    Please see: https://imas-data-dictionary.readthedocs.io/en/latest/ggd_guide/doc.html#the-grid-ggd-aos
+
+    .. warning::
+        This function currently supports only unstructured 2D grids and unstructured 2D grids
+        extended in 3D (mainly used in JOREK).
+        Loading of structured grids and unstructured 3D grids will be implemented in the future.
 
     Parameters
     ----------
-    grid_ggd : IDSStructure
-        The grid_ggd structure.
-    with_subsets : bool, optional
+    grid_ggd
+        The ``grid_ggd`` structure.
+    with_subsets
         Read grid subset data, by default is False.
-    num_toroidal : int, optional
+    num_toroidal
         Number of toroidal points, by default None.
 
     Returns
     -------
-    grid : UnstructGrid2D
-        Grid object that depends on the grid type (structured/unstructured, 2D/3D).
-    subsets : dict, optional
+    grid : `.UnstructGrid2D` | `.UnstructGrid2DExtended`
+        Grid object that depends on the grid type (2D/2D-extended/3D).
+    subsets : `dict[str, NDArray[int32]]`
         Dictionary with grid subsets for each subset name containing the indices of the cells from
         that subset. Note that 'Cells' subset is included only if cell indices are specified.
-    subset_id : dict, optional
+    subset_id : `dict[str, int]`
         Dictionary with grid subset indices.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If the grid type is unsupported or if no spaces are found in the ``grid_ggd`` structure.
+    NotImplementedError
+        If the grid type is not yet implemented.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        from imas import DBEntry
+        from cherab.imas.ids.common import get_ids_time_slice
+        from cherab.imas.ids.common.ggd import load_grid
+
+        with DBEntry("imas:hdf5?path=/work/imas/shared/imasdb/ITER/4/123356/1", "r") as entry:
+            ids = get_ids_time_slice(entry, "edge_profiles", 0)
+
+        grid, subsets, subset_id = load_grid(ids.grid_ggd[0], with_subsets=True)
+    """
     spaces = get_standard_spaces(grid_ggd)
 
     if not len(spaces):
@@ -95,15 +133,19 @@ def get_standard_spaces(grid_ggd: IDSStructure) -> list[IDSStructure]:
 
     Parameters
     ----------
-    grid_ggd : IDSStructure
+    grid_ggd
         The grid_ggd structure.
 
     Returns
     -------
     list[IDSStructure]
         List of standard spaces.
-    """
 
+    Raises
+    ------
+    ValueError
+        If no spaces are defined in the grid_ggd structure.
+    """
     if not len(grid_ggd.space):
         error_massage = "Unable to read the grid. Grid space is not defined."
         if len(grid_ggd.path):

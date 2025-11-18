@@ -46,11 +46,11 @@ def load_edge_profiles(
 
     Parameters
     ----------
-    species_struct : IDSStructure
+    species_struct
         The ids structure containing the profiles for a single species.
-    grid_subset_index : int, optional
-        Identifier index of the grid subset, by default 5 ("Cells").
-    backup_species_struct : IDSStructure, optional
+    grid_subset_index
+        Identifier index of the grid subset, by default 5 (``"Cells"``).
+    backup_species_struct
         The backup ids structure that is used if the profile is missing in
         species_struct, by default None.
 
@@ -61,7 +61,6 @@ def load_edge_profiles(
         ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_phi``,
         ``velocity_r``, ``velocity_z``, ``z_average``.
     """
-
     profiles = {
         "density": None,
         "density_fast": None,
@@ -107,8 +106,10 @@ def load_edge_profiles(
 def load_edge_species(
     ggd_struct: IDSStructure, grid_subset_index: int = 5
 ) -> dict[str, dict[str, np.ndarray | None]]:
-    """Load edge plasma species and their profiles from a given GGD structure for a given grid and
-    subset indices.
+    """Load edge plasma species and their profiles from a given GGD structure.
+
+    The profiles are taken from the arrays with the given grid and subset indices
+    (e.g. ``ggd[i1].electrons``, ``ggd[i1].ion[i2].states[i3]``).
 
     The returned dictionary has the following structure.
 
@@ -168,17 +169,21 @@ def load_edge_species(
 
     Parameters
     ----------
-    ggd_struct : IDSStructure
+    ggd_struct
         The ggd ids structure containing the profiles.
-    grid_subset_index : int, optional
-        Identifier index of the grid subset, by default 5 ("Cells").
+    grid_subset_index
+        Identifier index of the grid subset, by default 5 (``"Cells"``).
 
     Returns
     -------
     dict[str, dict[str, ndarray | None]]
         Dictionary with plasma profiles.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If unable to determine the species due to missing element information.
+    """
     species_types = ("molecule", "molecular_bundle", "ion", "ion_bundle")
     composition = {species_type: {} for species_type in species_types}
 

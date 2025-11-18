@@ -20,6 +20,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.todo",
+    "sphinx.ext.napoleon",
+    "sphinx_api_relink",
     "sphinx_copybutton",
     "sphinx_codeautolink",
     "sphinx_design",
@@ -27,7 +29,6 @@ extensions = [
     "sphinx_immaterial",
     "IPython.sphinxext.ipython_console_highlighting",
     "myst_parser",
-    "numpydoc",
     "nbsphinx",
 ]
 
@@ -35,6 +36,10 @@ default_role = "obj"
 
 # autodoc config
 autodoc_member_order = "bysource"
+autodoc_typehints = "signature"
+autodoc_type_aliases = {
+    "ArrayLike": "ArrayLike",
+}
 
 # autosummary config
 autosummary_generate = True
@@ -42,9 +47,10 @@ autosummary_generate_overwrite = True
 autosummary_imported_members = True
 autosummary_ignore_module_all = False
 
-# numpydoc config
-numpydoc_show_class_members = False
-numpydoc_xref_param_type = True
+# napoleon config
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_attr_annotations = True
 
 # todo config
 todo_include_todos = True
@@ -117,8 +123,8 @@ html_theme_options = {
         "toc.sticky",
         "content.tabs.link",
         # "content.code.copy",
-        "content.action.edit",
-        "content.action.view",
+        # "content.action.edit",
+        # "content.action.view",
         "content.tooltips",
         "announce.dismiss",
     ],
@@ -129,7 +135,6 @@ html_theme_options = {
             "media": "(prefers-color-scheme: light)",
             "scheme": "default",
             "primary": "indigo",
-            "accent": "green",
             "toggle": {
                 "icon": "material/lightbulb-outline",
                 "name": "Switch to dark mode",
@@ -138,8 +143,7 @@ html_theme_options = {
         {
             "media": "(prefers-color-scheme: dark)",
             "scheme": "slate",
-            "primary": "light-blue",
-            "accent": "lime",
+            "primary": "indigo",
             "toggle": {
                 "icon": "material/lightbulb",
                 "name": "Switch to light mode",
@@ -162,6 +166,8 @@ intersphinx_mapping = {
     "raysect": ("http://www.raysect.org", None),
     "cherab": ("https://www.cherab.info", None),
     "imas-python": ("https://imas-python.readthedocs.io/en/stable/", None),
+    "rich": ("https://rich.readthedocs.io/en/stable/", None),
+    "pooch": ("https://www.fatiando.org/pooch/latest/", None),
 }
 
 intersphinx_timeout = 10
@@ -172,6 +178,7 @@ linkcode_url = "https://github.com/cherab/imas"
 linkcode_link_text = "Source"
 
 # -- NBSphinx configuration ---------------------------------------------------
+# nbsphinx_execute = "never"
 nbsphinx_prolog = r"""
 {% set docname = 'docs/' + env.doc2path(env.docname, base=None)|string %}
 

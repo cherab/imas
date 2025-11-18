@@ -38,7 +38,6 @@ def test_load_plasma_electron_distribution(path_iter_jintrac: str):
 
 def test_load_plasma_with_time(path_iter_jintrac: str):
     """Test loading plasma with specific time parameter."""
-
     # Test with default time (should not raise error)
     plasma1 = load_plasma(path_iter_jintrac, "r", time=0.0)
     assert isinstance(plasma1, Plasma)
@@ -50,7 +49,6 @@ def test_load_plasma_with_time(path_iter_jintrac: str):
 
 def test_load_plasma_with_occurrence(path_iter_jintrac: str):
     """Test loading plasma with different occurrence values."""
-
     # Test with default occurrence core
     plasma1 = load_plasma(path_iter_jintrac, "r", occurrence_core=0)
     assert isinstance(plasma1, Plasma)
@@ -75,7 +73,6 @@ def test_load_plasma_with_parent(path_iter_jintrac: str):
 
 def test_load_plasma_with_magnetic_field(path_iter_jintrac: str):
     """Test loading plasma with external magnetic field."""
-
     # Load magnetic field separately
     try:
         b_field = load_magnetic_field(path_iter_jintrac, "r")
@@ -90,7 +87,6 @@ def test_load_plasma_with_magnetic_field(path_iter_jintrac: str):
 
 def test_load_plasma_time_threshold(path_iter_jintrac: str):
     """Test loading plasma with time threshold parameter."""
-
     # Test with large time threshold (should work)
     plasma = load_plasma(path_iter_jintrac, "r", time_threshold=500)
     assert isinstance(plasma, Plasma)

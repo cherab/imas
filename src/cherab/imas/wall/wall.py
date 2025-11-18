@@ -41,33 +41,32 @@ def load_wall_mesh(
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> dict[str, Mesh]:
-    """Load machine wall components from IMAS wall IDS and Create a dictionary of Raysect mesh
-    primitives.
+    """Load machine wall components from IMAS wall IDS and Create Raysect mesh primitives.
 
     Parameters
     ----------
     *args
         Arguments passed to the `~imas.db_entry.DBEntry` constructor.
-    time : float, optional
-        Time moment for the edge plasma, by default 0.
-    occurrence : int, optional
-        Instance index of the 'wall' IDS, by default 0.
-    desc_ggd_index : int
-        Index of 'description_ggd', by default 0.
-    subsets : list[str], optional
+    time
+        Time for the wall, by default 0.
+    occurrence
+        Occurrence index of the ``wall`` IDS, by default 0.
+    desc_ggd_index
+        Index of ``description_ggd``, by default 0.
+    subsets
         List of names of specific ggd subsets to load, by default None (loads all subsets).
-    materials : dict[str, Material], optional
+    materials
         Optional dictionary with Raysect materials for each wall component, by default None.
         Use component names as keys. The components are split by their grid subsets and for
         each grid subset by materials. All elements of the grid subset that share the same material
         are combined into a single component. The component names are assigns as follows:
         ``"{grid_name}.{subset_name}.{material_name}"``
         E.g.: ``"TokamakWall.full_main_chamber_wall.Be"``.
-    time_threshold : float, optional
-        Sets the maximum allowable difference between the specified time and the nearest
-        available time, by default `numpy.inf`.
-    parent : _NodeBase, optional
-        Parent node in the Raysect scene-graph, by default None.
+    time_threshold
+        Maximum allowed difference between the requested time and the nearest available
+        time, by default `numpy.inf`.
+    parent
+        Parent node in the Raysect scene graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
         Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
@@ -82,12 +81,11 @@ def load_wall_mesh(
     >>> from raysect.optical import World
     >>> world = World()
     >>> meshes = load_wall_mesh(
-    ...     "imas:uda?path=/work/imas/shared/imasdb/ITER_MD/3/116100/1001/", "r", parent=world
+    ...     "imas:hdf5?path=/work/imas/shared/imasdb/ITER_MD/3/116100/1001/", "r", parent=world
     ... )
     >>> meshes
     {'FullTokamak.none.none': <raysect.primitive.mesh.mesh.Mesh at 0x1766322a0>}
     """
-
     with DBEntry(*args, **kwargs) as entry:
         wall_ids = get_ids_time_slice(
             entry, "wall", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -117,21 +115,21 @@ def load_wall_outline(
     ----------
     *args
         Arguments passed to the `~imas.db_entry.DBEntry` constructor.
-    occurrence : int, optional
-        Instance index of the 'wall' IDS, by default 0.
-    desc_index : int, optional
-        Index of 'description_2d', by default 0.
+    occurrence
+        Occurrence index of the ``wall`` IDS, by default 0.
+    desc_index
+        Index of ``description_2d``, by default 0.
     **kwargs
         Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
 
     Returns
     -------
     dict[str, (N, 2) ndarray]
-       Dictionary of wall unit outlines (N, 2) array given in RZ coordinates.
+       Dictionary of wall unit outlines ``(N, 2)`` array given in RZ coordinates.
 
     Examples
     --------
-    >>> load_wall_outline("imas:uda?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/", "r")
+    >>> load_wall_outline("imas:hdf5?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/", "r")
     {'First Wall': array([[ 4.11129713, -2.49559808],
                           [ 4.11129713, -1.48329401],
                           ...
@@ -140,7 +138,6 @@ def load_wall_outline(
                         ...
                         [ 6.36320019, -3.24460006]])}
     """
-
     with DBEntry(*args, **kwargs) as entry:
         description2d = entry.get("wall", occurrence=occurrence, autoconvert=False).description_2d[
             desc_index

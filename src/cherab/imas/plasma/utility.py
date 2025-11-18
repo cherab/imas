@@ -20,14 +20,14 @@
 __all__ = ["warn_unsupported_species", "get_subset_name_index"]
 
 
-def warn_unsupported_species(composition: dict[str, dict], species_type: str):
+def warn_unsupported_species(composition: dict[str, dict], species_type: str) -> None:
     """Warn if species of a given type are present in the composition dictionary.
 
     Parameters
     ----------
-    composition : dict[str, dict]
+    composition
         Dictionary with species composition.
-    species_type : str
+    species_type
         Type of species to check for (e.g., 'ion_bundle', 'molecular_bundle').
     """
     if species_type in composition and len(composition[species_type]):
@@ -47,17 +47,22 @@ def get_subset_name_index(subset_id_dict: dict, grid_subset_id: int | str) -> tu
 
     Parameters
     ----------
-    subset_id_dict : dict
+    subset_id_dict
         Dictionary with grid subset indices.
-    grid_subset_id : int | str
+    grid_subset_id
         Identifier of the grid subset. Either index or name.
 
     Returns
     -------
-    grid_subset_name : str
+    grid_subset_name
         Name of the grid subset.
-    grid_subset_index : int
+    grid_subset_index
         Index of the grid subset.
+
+    Raises
+    ------
+    ValueError
+        If the grid subset with the given identifier is not found.
     """
     subset_id = subset_id_dict.copy()
     subset_id.update({value: key for key, value in subset_id.items()})

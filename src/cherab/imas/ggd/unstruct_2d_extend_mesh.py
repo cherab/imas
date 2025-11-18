@@ -17,13 +17,23 @@
 # under the Licence.
 """Module defining unstructured 2D-extended mesh class and related methods."""
 
+from __future__ import annotations
+
+import sys
 from typing import Literal
 
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override  # pyright: ignore[reportUnreachable]
+
+import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PolyCollection
 from matplotlib.tri import Triangulation
-from raysect.core.math import Vector3D
+from numpy.typing import ArrayLike, NDArray
+from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
@@ -43,27 +53,29 @@ class UnstructGrid2DExtended(GGDGrid):
 
     Parameters
     ----------
-    vertices : (N,3) array_like
-        Array containing coordinates of the cell vertices in the (X, Y, Z) space.
-    cells : (M,8) array_like
-        Array containing the vertex indices in clockwise or counterclockwise order for each cubic
-        cell in the list (the starting vertex must not be included twice).
-    num_faces : int
+    vertices
+        Array-like of shape ``(N, 3)`` containing coordinates of the cell vertices in the (X, Y, Z)
+        space.
+    cells
+        Array-like of shape ``(M, 8)`` containing the vertex indices in clockwise or
+        counterclockwise order for each cubic cell in the list
+        (the starting vertex must not be included twice).
+    num_faces
         Number of faces at the poloidal plane.
-    num_poloidal : int
+    num_poloidal
         Number of poloidal points.
-    num_toroidal : int
+    num_toroidal
         Number of toroidal points.
-    name : str
-        Name of the grid, by default 'Cells'.
-    coordinate_system : {'cylindrical', 'cartesian'}, optional
-        Coordinate system of the grid, by default 'cylindrical'.
+    name
+        Name of the grid, by default ``"Cells"``.
+    coordinate_system
+        Coordinate system of the grid, by default ``"cylindrical"``.
     """
 
     def __init__(
         self,
-        vertices,
-        cells,
+        vertices: ArrayLike,
+        cells: ArrayLike,
         num_faces: int,
         num_poloidal: int,
         num_toroidal: int,
@@ -99,18 +111,19 @@ class UnstructGrid2DExtended(GGDGrid):
                 + f"The shape of 'cells' is {cells.shape}."
             )
 
-        self._vertices = vertices
-        self._cells = cells
-        self._num_faces = num_faces
-        self._num_poloidal = num_poloidal
-        self._num_toroidal = num_toroidal
+        self._vertices: NDArray[np.float64] = vertices
+        self._cells: NDArray[np.int32] = cells
+        self._num_faces: int = num_faces
+        self._num_poloidal: int = num_poloidal
+        self._num_toroidal: int = num_toroidal
 
         super().__init__(name, 3, coordinate_system)
 
+    @override
     def _initial_setup(self):
         self._interpolator = None
 
-        self._num_cell = self._cells.shape[0]
+        self._num_cell: int = self._cells.shape[0]
 
         # Extract grid points at the first poloidal plane
         r = self._vertices[: self._num_poloidal, 0]
@@ -155,43 +168,43 @@ class UnstructGrid2DExtended(GGDGrid):
         self._cell_centre.setflags(write=False)
 
     @property
-    def num_poloidal(self):
+    def num_poloidal(self) -> int:
         """Number of poloidal grid points."""
         return self._num_poloidal
 
     @property
-    def num_toroidal(self):
+    def num_toroidal(self) -> int:
         """Number of toroidal grid points."""
         return self._num_toroidal
 
     @property
-    def num_faces(self):
+    def num_faces(self) -> int:
         """Number of faces at the poloidal plane."""
         return self._num_faces
 
     @property
-    def vertices(self):
-        """Mesh vertex coordinates as (N, 3) array in the (X, Y, Z) space."""
+    def vertices(self) -> NDArray[np.float64]:
+        """Mesh vertex coordinates as ``(N, 3)`` array in the (X, Y, Z) space."""
         return self._vertices
 
     @property
-    def cells(self):
-        """Mesh cells as (M, 8) array."""
+    def cells(self) -> NDArray[np.int32]:
+        """Mesh cells as ``(M, 8)`` array."""
         return self._cells
 
     @property
-    def tetrahedra(self):
-        """Mesh tetrahedra as (5M, 4) array."""
+    def tetrahedra(self) -> NDArray[np.int32]:
+        """Mesh tetrahedra as ``(5M, 4)`` array."""
         return self._tetrahedra
 
     @property
-    def tetra_to_cell_map(self):
-        """Array of shape (5M,) mapping every tetrahedral index to a grid cell ID."""
+    def tetra_to_cell_map(self) -> NDArray[np.int32]:
+        """Array of shape ``(5M,)`` mapping every tetrahedral index to a grid cell ID."""
         return self._tetra_to_cell_map
 
     @property
-    def cell_to_tetra_map(self):
-        """Array of shape (M, 2) mapping every grid cell index to tetrahedral IDs.
+    def cell_to_tetra_map(self) -> NDArray[np.int32]:
+        """Array of shape ``(M, 2)`` mapping every grid cell index to tetrahedral IDs.
 
         The first column is the index of the first tetrahedron forming the cell.
         The second column is the number of tetrahedra forming the cell.
@@ -201,7 +214,7 @@ class UnstructGrid2DExtended(GGDGrid):
         """
         return self._cell_to_tetra_map
 
-    def subset_faces(self, indices, name: str | None = None):
+    def subset_faces(self, indices: ArrayLike, name: str | None = None) -> UnstructGrid2DExtended:
         """Create a subset UnstructGrid2DExtended from this instance.
 
         The subset is defined by the indices of the faces at the poloidal plane.
@@ -213,10 +226,20 @@ class UnstructGrid2DExtended(GGDGrid):
 
         Parameters
         ----------
-        indices : array_like
+        indices
             Indices of the faces of the original grid in the subset.
-        name : str, optional
-            Name of the grid subset. Default is `instance.name` + `' subset'`.
+        name
+            Name of the grid subset. Default is ``instance.name + " subset"``.
+
+        Returns
+        -------
+        `.UnstructGrid2DExtended`
+            Subset instance.
+
+        Raises
+        ------
+        ValueError
+            If any of the indices of the faces is out of range.
         """
         grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
 
@@ -295,7 +318,8 @@ class UnstructGrid2DExtended(GGDGrid):
 
         return grid
 
-    def subset(self, indices, name: str | None = None):
+    @override
+    def subset(self, indices: ArrayLike, name: str | None = None) -> UnstructGrid2DExtended:
         """Create a subset UnstructGrid2DExtended from this instance.
 
         .. warning::
@@ -304,12 +328,16 @@ class UnstructGrid2DExtended(GGDGrid):
 
         Parameters
         ----------
-        indices : array_like
+        indices
             Indices of the cells of the original grid in the subset.
-        name : str, optional
-            Name of the grid subset. Default is `instance.name` + `' subset'`.
-        """
+        name
+            Name of the grid subset. Default is ``instance.name + " subset"``.
 
+        Returns
+        -------
+        `.UnstructGrid2DExtended`
+            Subset instance.
+        """
         grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
 
         grid._name = name or self._name + " subset"
@@ -366,7 +394,8 @@ class UnstructGrid2DExtended(GGDGrid):
 
         return grid
 
-    def interpolator(self, grid_data, fill_value: float = 0):
+    @override
+    def interpolator(self, grid_data: ArrayLike, fill_value: float = 0) -> UnstructGridFunction3D:
         """Return an UnstructGridFunction3D interpolator instance for the data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance
@@ -374,14 +403,14 @@ class UnstructGrid2DExtended(GGDGrid):
 
         Parameters
         ----------
-        grid_data : array_like
+        grid_data
             Array containing data in the grid cells.
-        fill_value : float, optional
+        fill_value
             Value returned outside the grid, by default 0.
 
         Returns
         -------
-        UnstructGridFunction3D
+        `.UnstructGridFunction3D`
             Interpolator instance.
         """
         if self._interpolator is None:
@@ -392,23 +421,25 @@ class UnstructGrid2DExtended(GGDGrid):
 
         return UnstructGridFunction3D.instance(self._interpolator, grid_data, fill_value)
 
-    def vector_interpolator(self, grid_vectors, fill_vector: Vector3D = ZERO_VECTOR):
-        """Return an `UnstructGridVectorFunction3D` interpolator instance for the vector data
-        defined on this grid.
+    @override
+    def vector_interpolator(
+        self, grid_vectors: ArrayLike, fill_vector: Vector3D = ZERO_VECTOR
+    ) -> UnstructGridVectorFunction3D:
+        """Return an `UnstructGridVectorFunction3D` interpolator instance for the vector data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance
         of the previously created interpolator sharing the same KDtree structure.
 
         Parameters
         ----------
-        grid_vectors : (3,K) array_like
-            Array containing 3D vectors in the grid cells.
-        fill_vector : Vector3D, optional
-            3D vector returned outside the grid, by default `Vector3D(0, 0, 0)`.
+        grid_vectors
+            ``(3, L)`` Array containing 3D vectors in the grid cells.
+        fill_vector
+            3D vector returned outside the grid.
 
         Returns
         -------
-        UnstructGridVectorFunction3D
+        `.UnstructGridVectorFunction3D`
             Interpolator instance.
         """
         if self._interpolator is None:
@@ -423,7 +454,14 @@ class UnstructGrid2DExtended(GGDGrid):
 
         return UnstructGridVectorFunction3D.instance(self._interpolator, grid_vectors, fill_vector)
 
+    @override
     def __getstate__(self):
+        """Get the state of the UnstructGrid2DExtended instance for serialization.
+
+        Returns
+        -------
+        Dictionary with the instance attributes.
+        """
         state = {
             "name": self._name,
             "dimension": self._dimension,
@@ -438,6 +476,7 @@ class UnstructGrid2DExtended(GGDGrid):
         return state
 
     def __setstate__(self, state):
+        """Restore the state of the UnstructGrid2DExtended instance."""
         self._name = state["name"]
         self._dimension = state["dimension"]
         self._coordinate_system = state["coordinate_system"]
@@ -454,39 +493,50 @@ class UnstructGrid2DExtended(GGDGrid):
 
         self._initial_setup()
 
-    def plot_tetra_mesh(self, data=None, ax=None):
+    def plot_tetra_mesh(
+        self, data: ArrayLike | None = None, ax: matplotlib.axes.Axes | None = None
+    ) -> None:
         """Plot the tetrahedral mesh grid geometry.
+
+        .. warning::
+            Plotting of tetrahedral mesh is not implemented yet.
 
         Parameters
         ----------
-        data : array_like
+        data
             Data array defined on the tetrahedral mesh.
-        ax : matplotlib.axes.Axes, optional
+        ax
             Matplotlib axes to plot the mesh. If None, a new figure is created.
 
-        Returns
-        -------
-        matplotlib.axes.Axes
-            Matplotlib axes with the plotted mesh.
+        Raises
+        ------
+        NotImplementedError
+            Plotting of tetrahedral mesh is not implemented yet.
         """
         raise NotImplementedError("Plotting of tetrahedral mesh is not implemented yet.")
 
-    def plot_mesh(self, data=None, ax=None, **grid_styles: str | float):
+    @override
+    def plot_mesh(
+        self,
+        data: ArrayLike | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        **grid_styles: str | float,
+    ) -> matplotlib.axes.Axes:
         """Plot the polygonal mesh grid geometry at the first poloidal plane to a matplotlib figure.
 
         Parameters
         ----------
-        data : array_like
+        data
             Data array defined on the polygonal mesh at the poloidal plane.
-        ax : matplotlib.axes.Axes, optional
+        ax
             Matplotlib axes to plot the mesh. If None, a new figure is created.
-        **grid_styles : str | float, optional
+        **grid_styles
             Styles for the grid lines and faces,
             by default ``{"facecolor": "none", "edgecolor": "b", "linewidth": 0.25}``.
 
         Returns
         -------
-        matplotlib.axes.Axes
+        `~matplotlib.axes.Axes`
             Matplotlib axes with the plotted mesh.
         """
         if ax is None:
@@ -519,25 +569,31 @@ class UnstructGrid2DExtended(GGDGrid):
 
         return ax
 
-    def plot_tri_mesh(self, data, ax=None, cmap="viridis"):
-        """Plot the data defined on the triangular mesh at the poloidal plane to a matplotlib
-        figure.
+    def plot_tri_mesh(
+        self, data: ArrayLike, ax: matplotlib.axes.Axes | None = None, cmap: str = "viridis"
+    ) -> matplotlib.axes.Axes:
+        """Plot the data defined on the triangular mesh at the poloidal plane to a matplotlib figure.
 
         Parameters
         ----------
-        data : array_like
+        data
             Data array defined on the triangular mesh at the poloidal plane.
-        ax : matplotlib.axes.Axes, optional
+        ax
             Matplotlib axes to plot the mesh. If None, a new figure is created.
-        cmap : str, optional
+        cmap
             Colormap to use for the data, by default 'viridis'.
 
         Returns
         -------
-        matplotlib.axes.Axes
+        `~matplotlib.axes.Axes`
             Matplotlib axes with the plotted mesh.
+
+        Raises
+        ------
+        ValueError
+            If the data array does not have the same number of faces as the grid.
         """
-        data = np.asarray(data)
+        data = np.asarray_chkfinite(data)
         if data.shape[0] != self._num_faces:
             raise ValueError("The data array must have the same number of faces as the grid.")
         data = np.repeat(data, 2)

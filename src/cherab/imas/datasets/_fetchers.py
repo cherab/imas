@@ -1,4 +1,4 @@
-"""This module provides functionality to fetch IMAS sample datasets."""
+"""Provide functionality to fetch IMAS sample datasets."""
 
 from ...imas import __version__
 from ._registry import registry
@@ -17,7 +17,7 @@ else:
     )
 
 
-def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress=True) -> str:
+def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress: bool = True) -> str:
     if data_fetcher is None:
         raise ImportError(
             "Missing optional dependency 'pooch' required for cherab.imas.datasets module. "
@@ -46,7 +46,7 @@ def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress=True)
 
 
 def iter_jintrac() -> str:
-    """Fetche and return the path to the ITER JINTRAC sample dataset.
+    """Fetch and return the path to the ITER JINTRAC sample dataset.
 
     Returns
     -------
@@ -64,7 +64,7 @@ def iter_jintrac() -> str:
 
 
 def iter_solps() -> str:
-    """Fetche and return the path to the ITER SOLPS sample dataset.
+    """Fetch and return the path to the ITER SOLPS sample dataset.
 
     Returns
     -------
@@ -82,7 +82,7 @@ def iter_solps() -> str:
 
 
 def iter_jorek() -> str:
-    """Fetche and return the path to the ITER JOREK sample dataset.
+    """Fetch and return the path to the ITER JOREK sample dataset.
 
     Returns
     -------

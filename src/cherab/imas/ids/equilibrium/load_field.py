@@ -28,26 +28,32 @@ __all__ = ["load_magnetic_field_data"]
 
 
 def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
-    """Load 2D profiles of the magnetic field components from the profiles_2d structure of the
-    equilibrium IDS.
+    """Load 2D profiles of the magnetic field components from equilibrium IDS.
+
+    The magnetic field components are extracted from the ``profiles_2d`` IDS structure,
+    assuming that the profiles are defined on a rectangular grid.
 
     Parameters
     ----------
-    profiles_2d : IDSStructArray
-        The profiles_2d structure of the equilibrium IDS.
+    profiles_2d
+        The ``profiles_2d`` structure of the equilibrium IDS.
 
     Returns
     -------
-    dict[str, ndarray]
-        Dictionary with the following keys:
+    Dictionary with the following keys:
 
-        :r: (N,) ndarray with R coordinates of rectangular grid.
-        :z: (M,) ndarray with Z coordinates of rectangular grid.
-        :b_field_r: (N, M) ndarray with R component of the magnetic field.
-        :b_field_z: (N, M) ndarray with Z component of the magnetic field.
-        :b_field_phi: (N, M) ndarray with toroidal component of the magnetic field.
+        :r: ``(N,)`` ndarray with R coordinates of rectangular grid.
+        :z: ``(M,)`` ndarray with Z coordinates of rectangular grid.
+        :b_field_r: ``(N, M)`` ndarray with R component of the magnetic field.
+        :b_field_z: ``(N, M)`` ndarray with Z component of the magnetic field.
+        :b_field_phi: ``(N, M)`` ndarray with toroidal component of the magnetic field.
+
+    Raises
+    ------
+    RuntimeError
+        If unable to read the magnetic field due to unsupported grid type or
+        mismatched array shapes.
     """
-
     rectangular_grid = False
     for prof2d in profiles_2d:
         if prof2d.grid_type.index == RECTANGULAR_GRID or prof2d.grid_type.index == EMPTY_INT:

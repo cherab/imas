@@ -82,7 +82,7 @@ def clear_cache(
 
     Parameters
     ----------
-    datasets : Callable[..., str] | Collection[Callable[..., str]], optional
+    datasets
         `cherab.imas.datasets` method or a list/tuple of the same whose cached data files are to be
         removed. If `None`, all the cached data files are removed.
 

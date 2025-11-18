@@ -18,10 +18,12 @@
 """Module for loading unstructured 2D grids from IMAS grid_ggd IDS structure."""
 
 import numpy as np
+from numpy.typing import NDArray
 
-from cherab.imas.ggd import UnstructGrid2D
 from imas.ids_defs import EMPTY_INT
 from imas.ids_structure import IDSStructure
+
+from ....ggd.unstruct_2d_mesh import UnstructGrid2D
 
 __all__ = ["load_unstruct_grid_2d"]
 
@@ -30,29 +32,35 @@ EDGE_DIMENSION = 1
 FACE_DIMENSION = 2
 
 
-def load_unstruct_grid_2d(grid_ggd: IDSStructure, space_index=0, with_subsets=False):
+def load_unstruct_grid_2d(
+    grid_ggd: IDSStructure, space_index: int = 0, with_subsets: bool = False
+) -> UnstructGrid2D | tuple[UnstructGrid2D, dict[str, NDArray[np.int32]], dict[str, int]]:
     """Load unstructured 2D grid from the grid_ggd structure.
 
     Parameters
     ----------
-    grid_ggd : IDSStructure
+    grid_ggd
         The grid_ggd structure.
-    space_index : int, optional
+    space_index
         The index of the grid space, by default 0.
-    with_subsets : bool, optional
+    with_subsets
         Read grid subset data, by default False.
 
     Returns
     -------
-    grid : UnstructGrid2D
+    grid : `.UnstructGrid2D`
         Unstructured 2D grid object.
-    subsets : dict, optional
+    subsets : `dict[str, NDArray[numpy.int32]]`
         Dictionary with grid subsets for each subset name containing the indices of the cells from
         that subset. Note that 'Cells' subset is included only if cell indices are specified.
-    subset_id : dict, optional
+    subset_id : `dict[str, int]`
         Dictionary with grid subset indices.
-    """
 
+    Raises
+    ------
+    ValueError
+        If the specified space does not contain a 2D grid.
+    """
     space = grid_ggd.space[space_index]
 
     # Check if the grid is 2D
@@ -109,7 +117,7 @@ def load_unstruct_grid_2d(grid_ggd: IDSStructure, space_index=0, with_subsets=Fa
             else:
                 winding_ok = False
 
-        cells.append(cell)
+            cells.append(cell)
 
     if not winding_ok:
         print("Warning! Unable to verify that the cell nodes are in the winging order.")

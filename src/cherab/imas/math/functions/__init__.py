@@ -15,6 +15,11 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Mathematical function utilities.
+
+This module provides vector function implementations including unit vector classes for 1D, 2D, and
+3D spaces.
+"""
 
 from .vector_functions import UnitVector1D, UnitVector2D, UnitVector3D
 

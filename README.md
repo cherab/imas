@@ -24,14 +24,14 @@
 [pypi]: https://pypi.org/project/cherab-imas/
 [pypi-badge]: https://img.shields.io/pypi/v/cherab-imas?label=PyPI&logo=pypi&logoColor=gold&style=flat-square
 [pypi-publish]: https://github.com/cherab/imas/actions/workflows/deploy-pypi.yml
-[pypi-publish-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/deploy-pypi.yml?style=flat-square&label=PyPI%20Publish&logo=github
+[pypi-publish-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/deploy-pypi.yml?event=release&style=flat-square&logo=github&label=PyPI%20Publish
 [python-badge]: https://img.shields.io/pypi/pyversions/cherab-imas?logo=Python&logoColor=gold&style=flat-square
 
 ---
 
-`cherab` add-on module for IMAS (Integrated Modelling & Analysis Suite).
+[`cherab`](https://github.com/cherab/core) add-on module for **IMAS** (Integrated Modelling & Analysis Suite).
 
-This module enables the creation of `cherab`'s functional objects (e.g. plasma, observers, meshes, etc.) from IMAS IDS (Interface Data Structures).
+This module enables the creation of `cherab`'s functional objects (e.g. plasma, observers, meshes, etc.) from IMAS IDSs (Interface Data Structures).
 
 <!-- END-HEADER -->
 

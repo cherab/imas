@@ -44,14 +44,14 @@ def load_equilibrium(
     ----------
     *args
         Arguments passed to `~imas.db_entry.DBEntry`.
-    time : float, optional
-        Time moment, by default 0.
-    occurrence : int, optional
-        Instance index of the 'equilibrium' IDS, by default 0.
-    time_threshold : float, optional
-        Maximum allowable difference between the specified time and the nearest available
+    time
+        Time for the equilibrium, by default 0.
+    occurrence
+        Occurrence index of the ``equilibrium`` IDS, by default 0.
+    time_threshold
+        Maximum allowed difference between the requested time and the nearest available
         time, by default `numpy.inf`.
-    with_psi_interpolator : bool, optional
+    with_psi_interpolator
         If True, returns the ``psi_norm(rho_tor_norm)`` interpolator; otherwise, returns only the
         equilibrium object.
     **kwargs
@@ -59,9 +59,9 @@ def load_equilibrium(
 
     Returns
     -------
-    equilibrium : EFITEquilibrium
-        The `EFITEquilibrium` object.
-    psi_interpolator : Function1D, optional
+    equilibrium : `~cherab.tools.equilibrium.efit.EFITEquilibrium`
+        The plasma equilibrium object.
+    psi_interpolator : `~raysect.core.math.function.float.function1d.interpolate.Interpolator1DArray` | None
         If ``with_psi_interpolator`` is True and ``rho_tor_norm`` is available, returns the
         ``psi_norm(rho_tor_norm)`` interpolator.
         If rho_tor_norm is not available, returns None.
@@ -126,22 +126,26 @@ def load_magnetic_field(
     ----------
     *args
         Arguments passed to `~imas.db_entry.DBEntry`.
-    time : float, optional
-        Time moment, by default 0.
-    occurrence : int, optional
-        Instance index of the 'equilibrium' IDS, by default 0.
-    time_threshold : float, optional
-        Sets the maximum allowable difference between the specified time and the nearest available
+    time
+        Time for the equilibrium, by default 0.
+    occurrence
+        Occurrence index of the ``equilibrium`` IDS, by default 0.
+    time_threshold
+        Maximum allowed difference between the requested time and the nearest available
         time, by default `numpy.inf`.
     **kwargs
         Keyword arguments passed to `~imas.db_entry.DBEntry`.
 
     Returns
     -------
-    VectorFunction2D
+    `~raysect.core.math.function.vector3d.function2d.base.Function2D`
         The magnetic field interpolator.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If the equilibrium IDS does not have a time slice.
+    """
     with DBEntry(*args, **kwargs) as entry:
         equilibrium_ids = get_ids_time_slice(
             entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -169,10 +173,9 @@ def cocos_11to3(equilibrium_dict: dict) -> None:
 
     Parameters
     ----------
-    equilibrium_dict : dict
+    equilibrium_dict
         The equilibrium data dictionary to modify in place.
     """
-
     equilibrium_dict["psi_grid"] = -equilibrium_dict["psi_grid"] / (2.0 * np.pi)
     equilibrium_dict["psi_axis"] = -equilibrium_dict["psi_axis"] / (2.0 * np.pi)
     equilibrium_dict["psi_lcfs"] = -equilibrium_dict["psi_lcfs"] / (2.0 * np.pi)
