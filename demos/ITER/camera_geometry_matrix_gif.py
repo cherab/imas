@@ -62,7 +62,7 @@ geom_matrix_run = 1020
 unsaturated_fraction = 0.95
 
 
-def read_geometry_matrix_without_reflections(
+def read_geometry_matrix_without_reflections(  # noqa: D103
     shot, run, user, database="ITER_MD", backend=HDF5_BACKEND
 ):
     geometry_matrix = {}
@@ -96,7 +96,7 @@ def read_geometry_matrix_without_reflections(
     return geometry_matrix
 
 
-def read_geometry_matrix_interpolated(shot, run, user, database="ITER_MD", backend=HDF5_BACKEND):
+def read_geometry_matrix_interpolated(shot, run, user, database="ITER_MD", backend=HDF5_BACKEND):  # noqa: D103
     geometry_matrix = {}
 
     with DBEntry(backend, database, shot, run, user) as entry:
@@ -235,7 +235,7 @@ for il_index, il in enumerate(np.argsort(line_wavelength)):
         power = volume[index] * line_emission[il, it][index]
         points = np.array([r2d[index], z2d[index]]).T
 
-        def f(task, node_points, interp_data, points, power):
+        def _f(task, node_points, interp_data, points, power):
             ibegin = task[0]
             iend = task[1]
             interp_matrix = griddata(
@@ -252,7 +252,7 @@ for il_index, il in enumerate(np.argsort(line_wavelength)):
 
         with ctx.Pool(processes=NPROC) as pool:
             results = pool.map(
-                f,
+                _f,
                 tasks,
                 node_points=node_points,
                 interp_data=interp_data,
