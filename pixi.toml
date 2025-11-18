@@ -68,6 +68,7 @@ pandoc = "*"
 
 [feature.docs.pypi-dependencies]
 sphinx-github-style = "*"
+sphinx-api-relink = "*"
 
 [feature.docs.tasks]
 doc-build = { cmd = [
