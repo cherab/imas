@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix values assignment in `load_equilibrium_data` function (convert to python types)
+- Bug fix in `load_unstruct_grid_2d` function (incorrect `cells.append(cell)` line)
 
 ## [0.2.0] - 2025-11-04
 
