@@ -19,6 +19,7 @@
 
 import numpy as np
 
+from imas.ids_struct_array import IDSStructArray
 from imas.ids_structure import IDSStructure
 
 from ....ggd import UnstructGrid2DExtended
@@ -36,34 +37,38 @@ NUM_TOROIDAL = 64
 
 
 def load_unstruct_grid_2d_extended(
-    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = None
-):
-    """Load unstructured 2D grid extended in 3D from the grid_ggd structure.
+    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int = NUM_TOROIDAL
+) -> UnstructGrid2DExtended:
+    """Load unstructured 2D grid extended in 3D from the ``grid_ggd`` structure.
 
     Parameters
     ----------
-    grid_ggd : IDSStructure
-        The grid_ggd structure.
-    with_subsets : bool, optional
-        Read grid subset data if True, by default False.
-    num_toroidal : int, optional
-        Number of toroidal points, by default None.
+    grid_ggd
+        The ``grid_ggd`` structure.
+    with_subsets
+        Read grid subset data if True.
+    num_toroidal
+        Number of toroidal points.
+        If specifying more than 1, the grid will be extended in 3D by repeating the 2D
+        cross-section around the torus with evenly spaced toroidal angles.
 
     Returns
     -------
-    UnstructGrid2DExtended
+    `.UnstructGrid2DExtended`
         The unstructured 2D grid extended in 3D.
+
+    Raises
+    ------
+    ValueError
+        If the number of toroidal points is less than 1.
+        If the grid is not an unstructured extended 2D grid.
     """
-    # Check if the number of toroidal points is specified
-    if isinstance(num_toroidal, int):
-        if num_toroidal < 1:
-            raise ValueError("The number of toroidal points must be greater than 0.")
-        num_toroidal = num_toroidal
-    else:
-        num_toroidal = NUM_TOROIDAL
+    # Validate num_toroidal
+    if num_toroidal < 1:
+        raise ValueError("The number of toroidal points must be greater than 0.")
 
     # Get the R-Z space
-    space = grid_ggd.space[SPACE_RZ]
+    space: IDSStructArray = grid_ggd.space[SPACE_RZ]
 
     # Check if the grid is 2D
     if len(space.objects_per_dimension) != 3:
@@ -71,7 +76,7 @@ def load_unstruct_grid_2d_extended(
             "The load_unstruct_grid_2d_extended() supports only unstructured extended 2D grids."
         )
 
-    grid_name = grid_ggd.identifier.name
+    grid_name = str(grid_ggd.identifier.name)
 
     # =========================================
     # Reading vertices (poloidal and toroidal)
@@ -97,7 +102,7 @@ def load_unstruct_grid_2d_extended(
     # =========================================
     # Reading cells indices
     # =========================================
-    faces = space.objects_per_dimension[FACE_DIMENSION].object
+    faces: IDSStructArray = space.objects_per_dimension[FACE_DIMENSION].object
     num_faces = len(faces)
     cells = np.zeros((num_faces * num_toroidal, 8), dtype=np.int32)
     i_cell = 0
@@ -122,23 +127,23 @@ def load_unstruct_grid_2d_extended(
 
 
 def load_unstruct_grid_3d(grid_ggd: IDSStructure, space_index: int = 0, with_subsets: bool = False):
-    """Load unstructured 3D grid from the grid_ggd structure.
+    """Load unstructured 3D grid from the ``grid_ggd`` structure.
 
     .. warning::
         This function is a placeholder for future implementation.
 
     Parameters
     ----------
-    grid_ggd : IDSStructure
-        The grid_ggd structure.
-    space_index : int, optional
+    grid_ggd
+        The ``grid_ggd`` structure.
+    space_index
         The index of the space to read, by default 0.
-    with_subsets : bool, optional
+    with_subsets
         Read grid subset data if True, by default False.
 
     Returns
     -------
-    UnstructGrid3D
+    `.UnstructGrid3D`
         The unstructured 3D grid.
     """
     raise NotImplementedError("Loading unstructured 3D grids will be implemented in the future.")

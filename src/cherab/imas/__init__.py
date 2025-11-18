@@ -19,6 +19,6 @@
 
 from __future__ import annotations
 
-from importlib.metadata import version
+from importlib.metadata import version as _version
 
-__version__ = version("cherab-imas")
+__version__ = _version("cherab-imas")

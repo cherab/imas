@@ -15,6 +15,13 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+"""Interpolators for structured and unstructured grid functions.
+
+This module provides interpolation classes for 2D and 3D grid-based functions, supporting both
+structured and unstructured grids. These interpolators are designed to work with IMAS data
+structures and provide efficient evaluation of scalar and vector functions defined on various grid
+types.
+"""
 
 from .struct_grid_2d_functions import StructGridFunction2D, StructGridVectorFunction2D
 from .struct_grid_3d_functions import StructGridFunction3D, StructGridVectorFunction3D

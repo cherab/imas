@@ -10,6 +10,7 @@ import imas
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import SymLogNorm
+from matplotlib.figure import Figure
 
 from cherab.imas.datasets import iter_jintrac
 from cherab.imas.ids.common import get_ids_time_slice
@@ -21,7 +22,26 @@ plt.ion()
 grid_subset_name = "Cells"
 
 
-def plot_grid_quantity(grid, quantity, title="", logscale=False, symmetric=False):
+def plot_grid_quantity(grid, quantity, title="", logscale=False, symmetric=False) -> Figure:
+    """Make a 2D plot of a grid quantity, with a title, optionally on a log scale.
+
+    Parameters
+    ----------
+    grid
+        The grid object.
+    quantity
+        1D array of the quantity to plot on the grid.
+    title
+        The title of the plot.
+    logscale
+        Whether to use a logarithmic scale for the color map.
+    symmetric
+        Whether to use a symmetric color map around zero.
+
+    Returns
+    -------
+    The matplotlib Figure object containing the plot.
+    """
     ax = grid.plot_mesh(data=quantity)
 
     if logscale:

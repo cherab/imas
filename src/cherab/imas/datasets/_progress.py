@@ -1,4 +1,4 @@
-"""This module provides a rich progress bar for dataset downloads."""
+"""Progress bar implementation for pooch using rich."""
 
 try:
     from rich.progress import (

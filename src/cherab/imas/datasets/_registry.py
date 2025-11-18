@@ -1,4 +1,4 @@
-"""This file serves as the IMAS sample dataset registry."""
+"""Serve as the IMAS sample dataset registry."""
 
 registry = {
     "iter_disruption_113112_1.nc": "md5:f8747539b8d5a4b6974cc1bb33f2924a",  # JOREK 3D simulation

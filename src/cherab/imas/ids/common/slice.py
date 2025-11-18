@@ -44,15 +44,15 @@ def get_ids_time_slice(
 
     Parameters
     ----------
-    entry : `~imas.db_entry.DBEntry`
+    entry
         The IMAS entry. The entry must be opened in read mode.
-    ids_name : str
+    ids_name
         The name of the IDS.
-    time : float, optional
+    time
         The time in seconds of the requested time slice, by default is 0.
-    occurrence : int, optional
+    occurrence
         The occurrence of the IDS, by default is 0.
-    time_threshold : float, optional
+    time_threshold
         The maximum allowed time difference in seconds between the actual time of the nearest time
         slice and the given time, by default is infinity.
 
@@ -60,6 +60,29 @@ def get_ids_time_slice(
     -------
     `~imas.ids_toplevel.IDSToplevel`
         The requested IDS time slice.
+
+    Raises
+    ------
+    ValueError
+        If `.time` or `.time_threshold` is negative.
+    RuntimeError
+        If the requested IDS is empty.
+    RuntimeError
+        If the time difference between the actual time of the nearest time slice and the given time
+        exceeds the specified threshold.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        from imas import DBEntry
+        from cherab.imas.ids.common import get_ids_time_slice
+
+        with DBEntry(
+            "imas://uda.iter.org/uda?path=/work/imas/shared/imasdb/ITER/3/123072/3&backend=hdf5",
+            "r",
+        ) as entry:
+            ids = get_ids_time_slice(entry, "equilibrium", time=0.0)
     """
     if time < 0:
         raise ValueError(f"Argument 'time' must be >=0 ({time} s).")
@@ -72,6 +95,7 @@ def get_ids_time_slice(
             time,
             CLOSEST_INTERP,
             occurrence=occurrence,
+            autoconvert=False,
         )
     except NotImplementedError:
         # Fallback to `get` method to retrieve the entire IDS
@@ -81,7 +105,7 @@ def get_ids_time_slice(
             RuntimeWarning,
             stacklevel=2,
         )
-        ids = entry.get(ids_name, occurrence=occurrence)
+        ids = entry.get(ids_name, occurrence=occurrence, autoconvert=False)
 
     if not len(ids.time):
         raise RuntimeError(f"The '{ids_name}' IDS is empty.")

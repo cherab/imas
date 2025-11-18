@@ -41,9 +41,9 @@ def load_core_profiles(
 
     Parameters
     ----------
-    species_struct : IDSStructure
+    species_struct
         IDS structure containing the profiles for a single species.
-    backup_species_struct : IDSStructure | None, optional
+    backup_species_struct
         The backup ids structure that is used if the profile is missing in species_struct,
         by default None.
 
@@ -53,7 +53,6 @@ def load_core_profiles(
         Dictionary with the profiles: ``density``, ``density_thermal``, ``density_fast``,
         ``temperature`` and ``z_average_1d``.
     """
-
     profiles = {
         "density": None,
         "density_thermal": None,
@@ -77,16 +76,15 @@ def load_core_grid(grid_struct: IDSStructure) -> dict[str, np.ndarray | None]:
 
     Parameters
     ----------
-    grid_struct : IDSStructure
+    grid_struct
         The IDS structure containing the grid data for 1D profiles.
 
     Returns
     -------
     dict[str, np.ndarray | None]
-        A dictionary with the following keys: ``rho_tor_norm``, ``psi``, ``volume``,
+        Dictionary with the following keys: ``rho_tor_norm``, ``psi``, ``volume``,
         ``area``, ``surface``.
     """
-
     grid = {
         "rho_tor_norm": None,
         "volume": None,
@@ -162,15 +160,19 @@ def load_core_species(profiles_struct: IDSStructure) -> dict[str, dict[str, np.n
 
     Parameters
     ----------
-    profiles_struct : IDSStructure
+    profiles_struct
         The IDS structure containing the core profiles data.
 
     Returns
     -------
     dict[str, dict[str, ndarray | None]]
         Dictionary with the species and their profiles.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If unable to determine the species type or identifier.
+    """
     species_types = ("molecule", "molecular_bundle", "ion", "ion_bundle")
     composition = {species_type: {} for species_type in species_types}
 

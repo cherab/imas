@@ -36,9 +36,9 @@ def load_wall_3d(
 
     Parameters
     ----------
-    description_ggd : IDSStructure
+    description_ggd
         A description_ggd structure from the 'wall' IDS.
-    subsets : list[str], optional
+    subsets
         List of names of specific ggd subsets to load, by default None (loads all subsets).
 
     Returns
@@ -48,8 +48,12 @@ def load_wall_3d(
         The dictionary keys for components are assigns as follows:
         ``"{grid_name}.{subset_name}.{material_name}"``
         E.g.: ``"FullTokamak.full_main_chamber_wall.Be"``.
-    """
 
+    Raises
+    ------
+    RuntimeError
+        If the grid_ggd AOS is empty in the given description_ggd.
+    """
     if not len(description_ggd.grid_ggd):
         raise RuntimeError("The grid_ggd AOS is empty in the given description_ggd.")
 
