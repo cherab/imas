@@ -19,8 +19,13 @@
 
 from __future__ import annotations
 
-from typing import Literal, override
+import sys
+from typing import Literal
 
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override  # pyright: ignore[reportUnreachable]
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np

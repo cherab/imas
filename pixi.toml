@@ -30,6 +30,7 @@ cherab = "1.5.*"
 
 [package.run-dependencies]
 imas-python = "*"
+typing-extensions = ">=4.5"
 
 # ---------------------------------
 # === Development Configuration ===
