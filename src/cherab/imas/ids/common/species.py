@@ -17,7 +17,6 @@
 # under the Licence.
 """Module for common functions used to get IDS species information."""
 
-
 from cherab.core.atomic.elements import Element, lookup_isotope
 from imas.ids_defs import EMPTY_FLOAT, EMPTY_INT
 from imas.ids_struct_array import IDSStructArray
