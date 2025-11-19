@@ -18,6 +18,7 @@
 """Module for bolometer utility functions."""
 
 from enum import Enum
+from typing import Self
 
 __all__ = ["CameraType", "GeometryType"]
 
@@ -29,11 +30,11 @@ class CameraType(Enum):
 
     Attributes
     ----------
-    PINHOLE : int
+    PINHOLE
         The camera is a pinhole camera.
-    COLLIMATOR : int
+    COLLIMATOR
         The camera is a collimator camera.
-    OTHER : int
+    OTHER
         The camera is of other type.
     """
 
@@ -42,18 +43,23 @@ class CameraType(Enum):
     OTHER = 0
 
     @classmethod
-    def from_value(cls, value: int):
+    def from_value(cls, value: int) -> Self:
         """Get the camera type from a value.
 
         Parameters
         ----------
-        value : int
+        value
             The integer value to convert to a camera type.
             If the value is not a valid camera type, the default is `OTHER`.
+
+        Returns
+        -------
+        `.CameraType`
+            The corresponding `.CameraType` enum member.
         """
         if value in cls._value2member_map_:
             return cls(value)
-        return cls.OTHER
+        return cls.OTHER  # pyright: ignore[reportReturnType]
 
 
 class GeometryType(Enum):
@@ -63,11 +69,11 @@ class GeometryType(Enum):
 
     Attributes
     ----------
-    OUTLINE : int
+    OUTLINE
         The geometry is defined by an outline.
-    CIRCULAR : int
+    CIRCULAR
         The geometry is circular.
-    RECTANGLE : int
+    RECTANGLE
         The geometry is rectangular.
     """
 
@@ -76,15 +82,20 @@ class GeometryType(Enum):
     RECTANGLE = 3
 
     @classmethod
-    def from_value(cls, value: int):
+    def from_value(cls, value: int) -> Self:
         """Get the geometry type from a value.
 
         Parameters
         ----------
-        value : int
+        value
             The integer value to convert to a geometry type.
             If the value is not a valid geometry type, the default is `RECTANGLE`.
+
+        Returns
+        -------
+        `.GeometryType`
+            The corresponding `.GeometryType` enum member.
         """
         if value in cls._value2member_map_:
             return cls(value)
-        return cls.RECTANGLE
+        return cls.RECTANGLE  # pyright: ignore[reportReturnType]

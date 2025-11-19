@@ -17,6 +17,7 @@
 # under the Licence.
 """Subpackage for loading bolometer data from IMAS IDS structures."""
 
+from . import utility
 from ._camera import load_cameras
 
-__all__ = ["load_cameras"]
+__all__ = ["load_cameras", "utility"]

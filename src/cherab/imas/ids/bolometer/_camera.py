@@ -84,7 +84,7 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
 
     Parameters
     ----------
-    ids : `~imas.ids_toplevel.IDSToplevel`
+    ids
         The bolometer IDS.
 
     Returns
@@ -92,6 +92,13 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
     dict[str, dict[str, Any]]
         Dictionary with camera names as keys, and foil and slit data as values.
         Some keys in the foil and slit lists may not be present depending on the geometry type.
+
+    Raises
+    ------
+    ValueError
+        If the provided IDS is not a bolometer IDS.
+    RuntimeError
+        If no cameras are found in the IDS.
     """
     if not ids.metadata.name == "bolometer":
         raise ValueError(f"Invalid bolometer IDS ({ids.metadata.name}).")
@@ -150,6 +157,11 @@ def load_geometry(sensor: IDSStructure) -> dict[str, Any]:
         - ``'coords'``: Outline coordinates for basis_x and basis_y if the geometry type is outline.
 
         Some keys may not be present depending on the geometry type.
+
+    Raises
+    ------
+    ValueError
+        If the geometry type is invalid.
     """
     geometry = {}
 
@@ -218,11 +230,11 @@ def _cylin_to_cart(r: float, phi: float, z: float) -> tuple[float, float, float]
 
     Parameters
     ----------
-    r : float
+    r
         Radial coordinate.
-    phi : float
+    phi
         Azimuthal coordinate.
-    z : float
+    z
         Vertical coordinate.
 
     Returns
