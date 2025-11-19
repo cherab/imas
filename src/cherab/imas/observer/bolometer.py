@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for loading bolometer cameras from IMAS bolometer IDS."""
 
+from __future__ import annotations
+
 from typing import Any
 
 from raysect.core.scenegraph._nodebase import _NodeBase
@@ -41,7 +43,7 @@ def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[Bo
     ----------
     *args
         Arguments passed to `~imas.db_entry.DBEntry`.
-    parent : _NodeBase | None
+    parent
         The parent node of `~cherab.tools.observers.bolometry.BolometerCamera` in the Raysect
         scene-graph, by default None.
     **kwargs
@@ -49,7 +51,7 @@ def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[Bo
 
     Returns
     -------
-    list[BolometerCamera]
+    `list[BolometerCamera]`
         List of `~cherab.tools.observers.bolometry.BolometerCamera` objects.
 
     Examples
