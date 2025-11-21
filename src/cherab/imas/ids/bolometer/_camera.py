@@ -19,9 +19,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TypeAlias
 
 import numpy as np
+from numpy.typing import NDArray
 from raysect.core.math import Point3D, Vector3D
 
 from imas.ids_structure import IDSStructure
@@ -32,7 +33,16 @@ from .utility import CameraType, GeometryType
 __all__ = ["load_cameras"]
 
 
-def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
+# Type aliases for better readability and reusability
+GeometryDict: TypeAlias = dict[
+    str, GeometryType | Point3D | Vector3D | float | NDArray[np.float64] | None
+]
+ChannelDict: TypeAlias = dict[str, GeometryDict | list[GeometryDict]]
+CameraDict: TypeAlias = dict[str, str | CameraType | list[ChannelDict]]
+CamerasDict: TypeAlias = dict[str, CameraDict]
+
+
+def load_cameras(ids: IDSToplevel) -> CamerasDict:
     """Load bolometer cameras from the bolometer IDS.
 
     This function retrieves the camera information from the bolometer IDS and organizes it into a
@@ -89,7 +99,7 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
 
     Returns
     -------
-    dict[str, dict[str, Any]]
+    `CamerasDict`
         Dictionary with camera names as keys, and foil and slit data as values.
         Some keys in the foil and slit lists may not be present depending on the geometry type.
 
@@ -100,49 +110,49 @@ def load_cameras(ids: IDSToplevel) -> dict[str, dict[str, Any]]:
     RuntimeError
         If no cameras are found in the IDS.
     """
-    if not ids.metadata.name == "bolometer":
+    if not str(ids.metadata.name) == "bolometer":
         raise ValueError(f"Invalid bolometer IDS ({ids.metadata.name}).")
 
     cameras = getattr(ids, "camera", [])
     if not len(cameras):
         raise RuntimeError("No camera found in IDS.")
 
-    bolo_data = {}
+    bolo_data: CamerasDict = {}
 
     for camera in cameras:
-        name = camera.name.value
-        description = camera.description.value
+        name = str(camera.name)
+        description = str(camera.description)
         camera_type = CameraType.from_value(camera.type.index.value)
 
-        bolo_data[name] = {
-            "description": description,
-            "type": camera_type,
-            "channels": [],
-        }
-
-        # TODO: different structure for pinhole to reduce overhead?
+        channels: list[ChannelDict] = []
         for channel in camera.channel:
-            bolo_data[name]["channels"].append(
+            channels.append(
                 {
                     "foil": load_geometry(channel.detector),
                     "slit": [load_geometry(aperture) for aperture in channel.aperture],
                 }
             )
 
+        bolo_data[name] = {
+            "description": description,
+            "type": camera_type,
+            "channels": channels,
+        }
+
     return bolo_data
 
 
-def load_geometry(sensor: IDSStructure) -> dict[str, Any]:
+def load_geometry(sensor: IDSStructure) -> GeometryDict:
     """Load the geometry of a sensor or aperture from the bolometer IDS.
 
     Parameters
     ----------
-    sensor : imas.ids_structure.IDSStructure
+    sensor
         Detector or aperture structure object.
 
     Returns
     -------
-    dict[str, Any]
+    `GeometryDict`
         Dictionary with the following keys:
 
         - ``'centre'``: Point3D with the coordinates of the sensor centre,
@@ -163,7 +173,7 @@ def load_geometry(sensor: IDSStructure) -> dict[str, Any]:
     ValueError
         If the geometry type is invalid.
     """
-    geometry = {}
+    geometry: GeometryDict = {}
 
     centre = sensor.centre
     geometry["centre"] = Point3D(*_cylin_to_cart(centre.r, centre.phi, centre.z))
@@ -214,9 +224,6 @@ def load_geometry(sensor: IDSStructure) -> dict[str, Any]:
             geometry["basis_z"] = Vector3D(
                 sensor.x3_unit_vector.x, sensor.x3_unit_vector.y, sensor.x3_unit_vector.z
             )
-
-        case _:
-            raise ValueError(f"Invalid geometry type ({geometry_type}).")
 
     # Surface area
     surface = getattr(sensor, "surface", None)
