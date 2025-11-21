@@ -31,14 +31,15 @@ pre-commit:
 
     - name: ruff
       glob: "*.{py,pyi}"
-      stage_fixed: true
       group:
         piped: true
         jobs:
           - name: ruff check
             run: pixi {run} ruff check --fix {staged_files}
+            stage_fixed: true
           - name: ruff format
             run: pixi {run} ruff format {staged_files}
+            stage_fixed: true
 
     # - name: pyright
     #   glob: "*.{py,pyi}"
