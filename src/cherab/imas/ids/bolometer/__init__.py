@@ -18,6 +18,6 @@
 """Subpackage for loading bolometer data from IMAS IDS structures."""
 
 from . import utility
-from ._camera import load_cameras
+from ._camera import BoloCamera, BoloChannel, Geometry, load_cameras
 
-__all__ = ["load_cameras", "utility"]
+__all__ = ["load_cameras", "utility", "BoloCamera", "BoloChannel", "Geometry"]

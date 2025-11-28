@@ -19,78 +19,111 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from raysect.core.math import Point3D, Vector3D
+from raysect.core.math import Point3D, Vector3D, from_cylindrical
 
 from imas.ids_structure import IDSStructure
 from imas.ids_toplevel import IDSToplevel
 
 from .utility import CameraType, GeometryType
 
-__all__ = ["load_cameras"]
+
+@dataclass
+class Geometry:
+    """Represent the geometric specification of a bolometer sensor head or slit aperture.
+
+    The Geometry describes both simple rectangular / circular sensor faces and
+    arbitrary polygonal / polyline definitions via explicit coordinates.
+    It encapsulates a local orthonormal (or user supplied) basis, extents, and derived surface
+    properties.
+    """
+
+    centre: Point3D = field(default_factory=Point3D)
+    """Geometric centre (reference point) of the sensor/slit in global 3D coordinates."""
+    type: GeometryType = GeometryType.RECTANGLE
+    """Enumerated shape type.
+
+    Common values include `RECTANGLE`, `CIRCLE`, `OUTLINE`, etc.
+    Defaults to `.GeometryType.RECTANGLE`.
+    """
+    basis_x: Vector3D | None = None
+    """Local x-axis direction vector lying in the sensor/slit plane."""
+    basis_y: Vector3D | None = None
+    """Local y-axis direction vector lying in the sensor/slit plane."""
+    basis_z: Vector3D | None = None
+    """Local outward-facing normal vector perpendicular to the sensor/slit plane.
+
+    This vector must be directed toward the radiation sources.
+    When None, it can be derived as the cross product of `basis_x` and `basis_y`.
+    """
+    dx: float | None = None
+    """Width along `basis_x` for rectangular geometry.
+
+    None when not applicable (e.g., circular or polygonal types).
+    """
+    dy: float | None = None
+    """Width along `basis_y` for rectangular geometry.
+
+    None when not applicable (e.g., circular or polygonal types).
+    """
+    surface: float | None = None
+    """Precomputed surface area of the aperture face.
+
+    If None, may be derived from `dx`/`dy` (rectangles), `radius` (circles), or `coords` (polygons)
+    during validation or runtime.
+    """
+    radius: float | None = None
+    """Radius for circular geometry types.
+
+    None if the geometry is not circular.
+    """
+    coords: NDArray[np.float64] | None = None
+    """Coordinate array defining the outline in the `basis_x` and `basis_y` plane.
+
+    This array is used to represent a complex geometric outline.
+    The array shape is ``(2, N)`` where ``N`` is the number of points.
+    """
 
 
-# Type aliases for better readability and reusability
-GeometryDict: TypeAlias = dict[
-    str, GeometryType | Point3D | Vector3D | float | NDArray[np.float64] | None
-]
-ChannelDict: TypeAlias = dict[str, GeometryDict | list[GeometryDict]]
-CameraDict: TypeAlias = dict[str, str | CameraType | list[ChannelDict]]
-CamerasDict: TypeAlias = dict[str, CameraDict]
+@dataclass
+class BoloChannel:
+    """Represent a bolometer camera channel.
+
+    Each channel contains one foil and associated several slits.
+    """
+
+    foil: Geometry
+    """Geometry of the foil used in the bolometer channel."""
+    slits: list[Geometry]
+    """List of geometries representing the slits associated with the bolometer channel."""
 
 
-def load_cameras(ids: IDSToplevel) -> CamerasDict:
+@dataclass
+class BoloCamera:
+    """Represent a bolometer camera and its associated data.
+
+    This class encapsulates all the properties and data channels associated with
+    a bolometer camera used for plasma diagnostics.
+    """
+
+    name: str
+    """Unique identifier or label for the bolometer camera."""
+    description: str
+    """Detailed description of the bolometer camera, including its purpose, location, or other relevant information."""
+    type: CameraType
+    """Type of Bolometer camera: Pinhole/Collimator"""
+    channels: list[BoloChannel]
+    """List of individual bolometer channels belonging to this camera."""
+
+
+def load_cameras(ids: IDSToplevel) -> list[BoloCamera]:
     """Load bolometer cameras from the bolometer IDS.
 
     This function retrieves the camera information from the bolometer IDS and organizes it into a
     structured format.
-    The specific structure of the output dictionary is as follows.
-
-    .. autolink-skip::
-    .. code-block:: python
-
-        {
-        'camera_name': {
-            "description": "Camera description",
-            "type": CameraType(...),  # Type of the camera
-            "channels": [
-                {
-                    'foil': {
-                        'centre': Point3D(...),  # Centre coordinates of the foil
-                        'type': GeometryType(...),  # Geometry type of the foil
-                        'basis_x': Vector3D(...),  # x-basis vector of the foil
-                        'basis_y': Vector3D(...),  # y-basis vector of the foil
-                        'basis_z': Vector3D(...),  # z-basis vector of the foil
-                        'dx': ...,  # Width of the foil in the x-direction [m]
-                        'dy': ...,  # Width of the foil in the y-direction [m]
-                        'surface': ...,  # Surface area of the foil [m²]
-                        'radius': ...,  # Radius of the foil [m] if GeometryType.CIRCULAR
-                        'coords': np.array([...]),  # Outline coordinates if GeometryType.OUTLINE
-                    },
-                    'slit': [  # List of slits
-                        {
-                            'centre': Point3D(...),  # Centre coordinates of the slit
-                            'type': GeometryType(...),  # Geometry type of the slit
-                            'basis_x': Vector3D(...),  # x-basis vector of the slit
-                            'basis_y': Vector3D(...),  # y-basis vector of the slit
-                            'basis_z': Vector3D(...),  # z-basis vector of the slit
-                            'dx': ...,  # Width of the slit in the x-direction [m]
-                            'dy': ...,  # Width of the slit in the y-direction [m]
-                            'surface': ...,  # Surface area of the slit [m²]
-                            'radius': ...,  # Radius of the slit [m] if GeometryType.CIRCULAR
-                            'coords': np.array([...]),  # Outline coordinates if GeometryType.OUTLINE
-                        },
-                        ...
-                    ]
-                },
-                ...
-            ],
-        ],
-        ...
-        }
 
     Parameters
     ----------
@@ -99,9 +132,8 @@ def load_cameras(ids: IDSToplevel) -> CamerasDict:
 
     Returns
     -------
-    `CamerasDict`
-        Dictionary with camera names as keys, and foil and slit data as values.
-        Some keys in the foil and slit lists may not be present depending on the geometry type.
+    `.BoloCamera`
+        A list of bolometer camera data structures.
 
     Raises
     ------
@@ -117,32 +149,35 @@ def load_cameras(ids: IDSToplevel) -> CamerasDict:
     if not len(cameras):
         raise RuntimeError("No camera found in IDS.")
 
-    bolo_data: CamerasDict = {}
+    bolo_data: list[BoloCamera] = []
 
     for camera in cameras:
         name = str(camera.name)
         description = str(camera.description)
         camera_type = CameraType.from_value(camera.type.index.value)
 
-        channels: list[ChannelDict] = []
+        channels: list[BoloChannel] = []
         for channel in camera.channel:
             channels.append(
-                {
-                    "foil": load_geometry(channel.detector),
-                    "slit": [load_geometry(aperture) for aperture in channel.aperture],
-                }
+                BoloChannel(
+                    foil=load_geometry(channel.detector),
+                    slits=[load_geometry(aperture) for aperture in channel.aperture],
+                )
             )
 
-        bolo_data[name] = {
-            "description": description,
-            "type": camera_type,
-            "channels": channels,
-        }
+        bolo_data.append(
+            BoloCamera(
+                name=name,
+                description=description,
+                type=camera_type,
+                channels=channels,
+            )
+        )
 
     return bolo_data
 
 
-def load_geometry(sensor: IDSStructure) -> GeometryDict:
+def load_geometry(sensor: IDSStructure) -> Geometry:
     """Load the geometry of a sensor or aperture from the bolometer IDS.
 
     Parameters
@@ -152,8 +187,8 @@ def load_geometry(sensor: IDSStructure) -> GeometryDict:
 
     Returns
     -------
-    `GeometryDict`
-        Dictionary with the following keys:
+    `.Geometry`
+        Object with the following attributes:
 
         - ``'centre'``: Point3D with the coordinates of the sensor centre,
         - ``'type'``: Geometry type of the sensor,
@@ -173,30 +208,31 @@ def load_geometry(sensor: IDSStructure) -> GeometryDict:
     ValueError
         If the geometry type is invalid.
     """
-    geometry: GeometryDict = {}
+    geometry = Geometry()
 
-    centre = sensor.centre
-    geometry["centre"] = Point3D(*_cylin_to_cart(centre.r, centre.phi, centre.z))
+    geometry.centre = from_cylindrical(
+        sensor.centre.r, sensor.centre.z, np.rad2deg(sensor.centre.phi)
+    )
 
     geometry_type = GeometryType.from_value(sensor.geometry_type.item())
-    geometry["type"] = geometry_type
+    geometry.type = geometry_type
 
     match geometry_type:
         case GeometryType.RECTANGLE:
             # Unit vectors
-            geometry["basis_x"] = Vector3D(
+            geometry.basis_x = Vector3D(
                 sensor.x2_unit_vector.x, sensor.x2_unit_vector.y, sensor.x2_unit_vector.z
             )
-            geometry["basis_y"] = Vector3D(
+            geometry.basis_y = Vector3D(
                 sensor.x1_unit_vector.x, sensor.x1_unit_vector.y, sensor.x1_unit_vector.z
             )
-            geometry["basis_z"] = Vector3D(
+            geometry.basis_z = Vector3D(
                 sensor.x3_unit_vector.x, sensor.x3_unit_vector.y, sensor.x3_unit_vector.z
             )
 
             # Dimensions
-            geometry["dx"] = sensor.x2_width.item()
-            geometry["dy"] = sensor.x1_width.item()
+            geometry.dx = sensor.x2_width.item()
+            geometry.dy = sensor.x1_width.item()
 
         case GeometryType.CIRCULAR:
             # Radius
@@ -204,51 +240,32 @@ def load_geometry(sensor: IDSStructure) -> GeometryDict:
             if radius is None or radius <= 0:
                 raise ValueError(f"Invalid radius ({radius}).")
 
-            geometry["radius"] = radius.item()
+            geometry.radius = radius.item()
 
-            geometry["basis_z"] = Vector3D(
+            # Unit vectors
+            geometry.basis_z = Vector3D(
                 sensor.x3_unit_vector.x, sensor.x3_unit_vector.y, sensor.x3_unit_vector.z
             )
+            geometry.basis_x = geometry.basis_z.orthogonal().normalise()
+            geometry.basis_y = geometry.basis_z.cross(geometry.basis_x).normalise()
 
         case GeometryType.OUTLINE:
             # Outline coordinates for basis_x and basis_y
-            geometry["coords"] = np.vstack((sensor.outline.x2, sensor.outline.x1))
+            geometry.coords = np.vstack((sensor.outline.x2, sensor.outline.x1))
 
             # Unit vectors
-            geometry["basis_x"] = Vector3D(
+            geometry.basis_x = Vector3D(
                 sensor.x2_unit_vector.x, sensor.x2_unit_vector.y, sensor.x2_unit_vector.z
             )
-            geometry["basis_y"] = Vector3D(
+            geometry.basis_y = Vector3D(
                 sensor.x1_unit_vector.x, sensor.x1_unit_vector.y, sensor.x1_unit_vector.z
             )
-            geometry["basis_z"] = Vector3D(
+            geometry.basis_z = Vector3D(
                 sensor.x3_unit_vector.x, sensor.x3_unit_vector.y, sensor.x3_unit_vector.z
             )
 
     # Surface area
     surface = getattr(sensor, "surface", None)
-    geometry["surface"] = surface.item() if surface is not None else None
+    geometry.surface = surface.item() if surface is not None else None
 
     return geometry
-
-
-def _cylin_to_cart(r: float, phi: float, z: float) -> tuple[float, float, float]:
-    """Convert cylindrical coordinates to cartesian coordinates.
-
-    Parameters
-    ----------
-    r
-        Radial coordinate.
-    phi
-        Azimuthal coordinate.
-    z
-        Vertical coordinate.
-
-    Returns
-    -------
-    tuple[float, float, float]
-        A tuple with the x, y, and z coordinates.
-    """
-    x = r * np.cos(phi)
-    y = r * np.sin(phi)
-    return x, y, z
