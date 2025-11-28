@@ -21,7 +21,7 @@ import warnings
 
 from numpy import inf
 
-from imas import DBEntry
+from imas.db_entry import DBEntry
 from imas.ids_defs import CLOSEST_INTERP
 from imas.ids_toplevel import IDSToplevel
 
