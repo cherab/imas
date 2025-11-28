@@ -19,12 +19,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-from raysect.core.scenegraph._nodebase import _NodeBase
+from raysect.core.scenegraph._nodebase import _NodeBase  # pyright: ignore[reportPrivateUsage]
 
 from cherab.tools.observers.bolometry import BolometerCamera, BolometerFoil, BolometerSlit
-from imas import DBEntry
+from imas.db_entry import DBEntry
 
 from ..ids.bolometer import load_cameras
 from ..ids.bolometer.utility import CameraType, GeometryType
@@ -75,86 +73,90 @@ def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[Bo
     # Extract bolometer data
     bolo_data = load_cameras(ids)
 
-    bolometers = []
+    bolometers: list[BolometerCamera] = []
 
-    for camera_name, values in bolo_data.items():
+    for data in bolo_data:
         # Skip empty cameras
-        if len(values["channels"]) == 0:
+        if len(data.channels) == 0:
             continue
 
-        # Instantiate BolometerCamera object
-        camera = BolometerCamera(name=camera_name, parent=parent)
-
         # Check if the camera is pinhole type
-        match values["type"]:
+        match data.type:
             case CameraType.PINHOLE:
+                # ------------------
+                # === Camera Box ===
+                # ------------------
+                camera_box = None
+                camera = BolometerCamera(camera_geometry=camera_box, name=data.name, parent=parent)
+
+                # ----------------------
+                # === Slit (Pinhole) ===
+                # ----------------------
                 # Pick up only first aperture nad use it for all channels
-                slit_data = values["channels"][0]["slit"][0]
+                slit_data = data.channels[0].slits[0]
                 slit = BolometerSlit(
-                    f"slit-{camera_name}",
-                    slit_data["centre"],
-                    slit_data["basis_x"],
-                    slit_data["dx"],
-                    slit_data["basis_y"],
-                    slit_data["dy"],
-                    curvature_radius=slit_data["radius"]
-                    if slit_data["type"] == GeometryType.CIRCULAR
+                    f"slit-{data.name}",
+                    slit_data.centre,
+                    slit_data.basis_x,
+                    slit_data.dx,
+                    slit_data.basis_y,
+                    slit_data.dy,
+                    curvature_radius=(slit_data.radius or 0.0)
+                    if slit_data.type == GeometryType.CIRCULAR
                     else 0.0,
-                    parent=None,
+                    parent=camera,
                 )
             case CameraType.COLLIMATOR:
+                # ------------------
+                # === Camera Box ===
+                # ------------------
+                camera_box = None
                 slit = None
+                camera = BolometerCamera(camera_geometry=camera_box, name=data.name, parent=parent)
             case _:
-                raise NotImplementedError(f"Camera type {values['type']} not supported yet.")
+                raise NotImplementedError(f"Camera type {data.type} not supported yet.")
 
-        for i_channel, channel in enumerate(values["channels"]):
-            foil_data: dict[str, Any] = channel["foil"]
-            slits_data: list[dict[str, Any]] = channel["slit"]
-
+        for i_channel, channel in enumerate(data.channels):
             # Use only the first slit which is closest to plasma
-            slit_data = slits_data[0]
+            slit_data = channel.slits[0]
 
-            if values["type"] == CameraType.COLLIMATOR:
+            if data.type == CameraType.COLLIMATOR:
                 # Create slit object
-                match slit_data["type"]:
+                match slit_data.type:
                     case GeometryType.CIRCULAR | GeometryType.RECTANGLE:
                         slit = BolometerSlit(
-                            f"slit-{camera_name}-ch{i_channel}",
-                            slit_data["centre"],
-                            slit_data["basis_x"],
-                            slit_data["dx"],
-                            slit_data["basis_y"],
-                            slit_data["dy"],
-                            curvature_radius=slit_data["radius"]
-                            if slit_data["type"] == GeometryType.CIRCULAR
+                            f"slit-{data.name}-ch{i_channel}",
+                            slit_data.centre,
+                            slit_data.basis_x,
+                            slit_data.dx,
+                            slit_data.basis_y,
+                            slit_data.dy,
+                            curvature_radius=(slit_data.radius or 0.0)
+                            if slit_data.type == GeometryType.CIRCULAR
                             else 0.0,
-                            parent=None,
+                            parent=camera,
                         )
                     case _:
                         raise NotImplementedError("Outline geometry not supported yet.")
 
             # Create foil object
-            match foil_data["type"]:
+            match channel.foil.type:
                 case GeometryType.CIRCULAR | GeometryType.RECTANGLE:
                     foil = BolometerFoil(
-                        f"foil-{camera_name}-ch{i_channel}",
-                        foil_data["centre"],
-                        foil_data["basis_x"],
-                        foil_data["dx"],
-                        foil_data["basis_y"],
-                        foil_data["dy"],
+                        f"foil-{data.name}-ch{i_channel}",
+                        channel.foil.centre,
+                        channel.foil.basis_x,
+                        channel.foil.dx,
+                        channel.foil.basis_y,
+                        channel.foil.dy,
                         slit,
-                        curvature_radius=foil_data["radius"]
-                        if foil_data["type"] == GeometryType.CIRCULAR
+                        curvature_radius=(channel.foil.radius or 0.0)
+                        if channel.foil.type == GeometryType.CIRCULAR
                         else 0.0,
-                        parent=None,
+                        parent=camera,
                     )
                 case _:
                     raise NotImplementedError("Outline geometry not supported yet.")
-
-            # Link parent
-            slit.parent = camera
-            foil.parent = camera
 
             # Add foil to the camera
             camera.add_foil_detector(foil)
