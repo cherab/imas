@@ -41,9 +41,9 @@ pre-commit:
             run: pixi {run} ruff format {staged_files}
             stage_fixed: true
 
-    # - name: pyright
+    # - name: pyrefly
     #   glob: "*.{py,pyi}"
-    #   run: pixi {run} pyright {staged_files}
+    #   run: pixi {run} pyrefly-check {staged_files}
 
     # - name: mypy
     #   glob: "*.{py,pyi}"
