@@ -214,7 +214,7 @@ def load_geometry(sensor: IDSStructure) -> Geometry:
         sensor.centre.r, sensor.centre.z, np.rad2deg(sensor.centre.phi)
     )
 
-    geometry_type = GeometryType.from_value(sensor.geometry_type.item())
+    geometry_type = GeometryType.from_value(int(sensor.geometry_type))
     geometry.type = geometry_type
 
     match geometry_type:
@@ -231,8 +231,8 @@ def load_geometry(sensor: IDSStructure) -> Geometry:
             )
 
             # Dimensions
-            geometry.dx = sensor.x2_width.item()
-            geometry.dy = sensor.x1_width.item()
+            geometry.dx = float(sensor.x2_width)
+            geometry.dy = float(sensor.x1_width)
 
         case GeometryType.CIRCULAR:
             # Radius
@@ -240,7 +240,7 @@ def load_geometry(sensor: IDSStructure) -> Geometry:
             if radius is None or radius <= 0:
                 raise ValueError(f"Invalid radius ({radius}).")
 
-            geometry.radius = radius.item()
+            geometry.radius = float(radius)
 
             # Unit vectors
             geometry.basis_z = Vector3D(
@@ -266,6 +266,6 @@ def load_geometry(sensor: IDSStructure) -> Geometry:
 
     # Surface area
     surface = getattr(sensor, "surface", None)
-    geometry.surface = surface.item() if surface is not None else None
+    geometry.surface = float(surface) if surface is not None else None
 
     return geometry
