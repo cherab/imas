@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -49,33 +50,33 @@ class Geometry:
     Common values include `RECTANGLE`, `CIRCLE`, `OUTLINE`, etc.
     Defaults to `.GeometryType.RECTANGLE`.
     """
-    basis_x: Vector3D | None = None
+    basis_x: Vector3D = field(default_factory=lambda: Vector3D(1, 0, 0))
     """Local x-axis direction vector lying in the sensor/slit plane."""
-    basis_y: Vector3D | None = None
+    basis_y: Vector3D = field(default_factory=lambda: Vector3D(0, 1, 0))
     """Local y-axis direction vector lying in the sensor/slit plane."""
-    basis_z: Vector3D | None = None
+    basis_z: Vector3D = field(default_factory=lambda: Vector3D(0, 0, 1))
     """Local outward-facing normal vector perpendicular to the sensor/slit plane.
 
     This vector must be directed toward the radiation sources.
     When None, it can be derived as the cross product of `basis_x` and `basis_y`.
     """
-    dx: float | None = None
+    dx: float = 0.0
     """Width along `basis_x` for rectangular geometry.
 
     None when not applicable (e.g., circular or polygonal types).
     """
-    dy: float | None = None
+    dy: float = 0.0
     """Width along `basis_y` for rectangular geometry.
 
     None when not applicable (e.g., circular or polygonal types).
     """
-    surface: float | None = None
+    surface: float = 0.0
     """Precomputed surface area of the aperture face.
 
     If None, may be derived from `dx`/`dy` (rectangles), `radius` (circles), or `coords` (polygons)
     during validation or runtime.
     """
-    radius: float | None = None
+    radius: float = 0.0
     """Radius for circular geometry types.
 
     None if the geometry is not circular.
@@ -99,6 +100,10 @@ class BoloChannel:
     """Geometry of the foil used in the bolometer channel."""
     slits: list[Geometry]
     """List of geometries representing the slits associated with the bolometer channel."""
+    num_subcollimator: int
+    """Number of sub-collimators in the bolometer channel."""
+    thickness_subcollimator: float
+    """Thickness of each sub-collimator in the bolometer channel [m]."""
 
 
 @dataclass
@@ -117,6 +122,44 @@ class BoloCamera:
     """Type of Bolometer camera: Pinhole/Collimator"""
     channels: list[BoloChannel]
     """List of individual bolometer channels belonging to this camera."""
+
+    def __repre__(self) -> str:
+        return f"<BoloCamera name={self.name} type={self.type.name} channels={len(self.channels)}>"
+
+    def __len__(self) -> int:
+        """Return the number of channels in the bolometer camera.
+
+        Returns
+        -------
+        int
+            Number of channels.
+        """
+        return len(self.channels)
+
+    def __iter__(self) -> Iterator[BoloChannel]:
+        """Return an iterator over the bolometer camera channels.
+
+        Returns
+        -------
+        `Iterator[BoloChannel]`
+            An iterator over the bolometer camera channels.
+        """
+        return iter(self.channels)
+
+    def __getitem__(self, index: int) -> BoloChannel:
+        """Return the bolometer channel at the specified index.
+
+        Parameters
+        ----------
+        index
+            Index of the channel to retrieve.
+
+        Returns
+        -------
+        `.BoloChannel`
+            The bolometer channel at the specified index.
+        """
+        return self.channels[index]
 
 
 def load_cameras(ids: IDSToplevel) -> list[BoloCamera]:
@@ -158,10 +201,18 @@ def load_cameras(ids: IDSToplevel) -> list[BoloCamera]:
 
         channels: list[BoloChannel] = []
         for channel in camera.channel:
+            # Sub-collimator
+            n_subcollimators = int(channel.subcollimators_n.value)
+            thickness_subcollimator = float(channel.subcollimators_separation.value)
+
             channels.append(
                 BoloChannel(
                     foil=load_geometry(channel.detector),
                     slits=[load_geometry(aperture) for aperture in channel.aperture],
+                    num_subcollimator=n_subcollimators if n_subcollimators > 1 else 1,
+                    thickness_subcollimator=thickness_subcollimator
+                    if thickness_subcollimator > 0
+                    else 0.0,
                 )
             )
 
@@ -266,6 +317,6 @@ def load_geometry(sensor: IDSStructure) -> Geometry:
 
     # Surface area
     surface = getattr(sensor, "surface", None)
-    geometry.surface = float(surface.value) if surface is not None else None
+    geometry.surface = float(surface.value) if surface is not None else 0.0
 
     return geometry
