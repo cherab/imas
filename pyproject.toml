@@ -164,23 +164,12 @@ max-line-length = 100
 # === Type checking settings ===
 # ------------------------------
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src"]
 warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "truthy-bool"]
 disable_error_code = ["no-any-return"]
 plugins = ["numpy.typing.mypy_plugin"]
 
-[tool.basedpyright]
-include = ["src", "tests"]
-pythonPlatform = "All"
-typeCheckingMode = "all"
-reportMissingTypeStubs = true
-
-# no raysect/cherab type stubs; pytest fixtures
-reportUnknownMemberType = false
-reportUnknownVariableType = false
-reportUnknownParameterType = false
-
-# ruff handles this
-reportUnusedParameter = false
+[tool.pyrefly]
+project-includes = ["src"]

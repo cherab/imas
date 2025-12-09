@@ -15,8 +15,8 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
-"""The Cherab subpackage for the IMAS."""
+"""Subpackage for creating observer objects from IMAS."""
 
-from importlib.metadata import version as _version
+from .bolometer import load_bolometers
 
-__version__ = _version("cherab-imas")
+__all__ = ["load_bolometers"]
