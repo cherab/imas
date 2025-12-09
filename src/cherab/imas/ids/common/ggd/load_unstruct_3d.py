@@ -37,7 +37,7 @@ NUM_TOROIDAL = 64
 
 
 def load_unstruct_grid_2d_extended(
-    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int = NUM_TOROIDAL
+    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = NUM_TOROIDAL
 ) -> UnstructGrid2DExtended:
     """Load unstructured 2D grid extended in 3D from the ``grid_ggd`` structure.
 
@@ -64,6 +64,7 @@ def load_unstruct_grid_2d_extended(
         If the grid is not an unstructured extended 2D grid.
     """
     # Validate num_toroidal
+    num_toroidal = num_toroidal or NUM_TOROIDAL
     if num_toroidal < 1:
         raise ValueError("The number of toroidal points must be greater than 0.")
 
