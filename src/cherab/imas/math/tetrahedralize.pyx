@@ -35,7 +35,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
 
     Returns
     -------
-    (5N,4) ndarray
+    `(5N,4) ndarray`
         tetrahedra indices array, the shape of which is :math:`(5N, 4)`.
 
     Examples
@@ -43,7 +43,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_5tetra(const int32_t[:, ::1] cells):
     >>> import numpy as np
     >>> from cherab.imas.math.tetrahedralize import cell_to_5tetra
     >>>
-    >>> array = np.arrange(16, dtype=np.int32).reshape((2, -1))
+    >>> array = np.arange(16, dtype=np.int32).reshape((2, -1))
     >>> array
     array([[ 0,  1,  2,  3,  4,  5,  6,  7],
            [ 8,  9, 10, 11, 12, 13, 14, 15]], dtype=int32)
@@ -109,7 +109,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
 
     Returns
     -------
-    (6N,4) ndarray
+    `(6N,4) ndarray`
         Tetrahedra indices array, the shape of which is :math:`(6N, 4)`.
 
     Examples
@@ -117,7 +117,7 @@ cpdef ndarray[int32_t, ndim=2] cell_to_6tetra(const int32_t[:, ::1] cells):
     >>> import numpy as np
     >>> from cherab.imas.math.tetrahedralize import cell_to_6tetra
     >>>
-    >>> array = np.arrange(16, dtype=np.int32).reshape((2, -1))
+    >>> array = np.arange(16, dtype=np.int32).reshape((2, -1))
     >>> array
     array([[ 0,  1,  2,  3,  4,  5,  6,  7],
            [ 8,  9, 10, 11, 12, 13, 14, 15]], dtype=int32)
