@@ -395,7 +395,9 @@ class UnstructGrid2DExtended(GGDGrid):
         return grid
 
     @override
-    def interpolator(self, grid_data: ArrayLike, fill_value: float = 0) -> UnstructGridFunction3D:
+    def interpolator(
+        self, grid_data: NDArray[np.float64], fill_value: float = 0
+    ) -> UnstructGridFunction3D:
         """Return an UnstructGridFunction3D interpolator instance for the data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance

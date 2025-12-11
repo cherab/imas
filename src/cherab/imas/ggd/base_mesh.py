@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Literal
 
 import matplotlib.axes
@@ -71,6 +72,7 @@ class GGDGrid:
 
         self._initial_setup()
 
+    @abstractmethod
     def _initial_setup(self) -> None:
         raise NotImplementedError("To be defined in subclass.")
 
@@ -121,6 +123,7 @@ class GGDGrid:
         """
         return self._mesh_extent
 
+    @abstractmethod
     def subset(self, indices: ArrayLike, name: str | None = None) -> GGDGrid:
         """Create a subset grid from this instance.
 
@@ -138,8 +141,9 @@ class GGDGrid:
         """
         raise NotImplementedError("To be defined in subclass.")
 
+    @abstractmethod
     def interpolator(
-        self, grid_data: ArrayLike, fill_value: float = 0.0
+        self, grid_data: NDArray[np.float64], fill_value: float = 0.0
     ) -> Function2D | Function3D:
         """Return an Function interpolator instance for the data defined on this grid.
 
@@ -160,8 +164,9 @@ class GGDGrid:
         """
         raise NotImplementedError("To be defined in subclass.")
 
+    @abstractmethod
     def vector_interpolator(
-        self, grid_vectors: ArrayLike, fill_vector: Vector3D = ZEROVECTOR
+        self, grid_vectors: NDArray[np.float64], fill_vector: Vector3D = ZEROVECTOR
     ) -> VectorFunction2D | VectorFunction3D:
         """Return a VectorFunction interpolator instance for the vector data defined on this grid.
 
@@ -182,7 +187,9 @@ class GGDGrid:
         """
         raise NotImplementedError("To be defined in subclass.")
 
-    def plot_mesh(self, data: ArrayLike | None = None, ax: matplotlib.axes.Axes | None = None):
+    def plot_mesh(
+        self, data: NDArray[np.float64] | None = None, ax: matplotlib.axes.Axes | None = None
+    ):
         """Plot the grid geometry to a matplotlib figure.
 
         Parameters
