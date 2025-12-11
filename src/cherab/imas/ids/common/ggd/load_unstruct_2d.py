@@ -17,6 +17,9 @@
 # under the Licence.
 """Module for loading unstructured 2D grids from IMAS grid_ggd IDS structure."""
 
+from enum import IntEnum
+from typing import Literal, overload
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -27,9 +30,28 @@ from ....ggd.unstruct_2d_mesh import UnstructGrid2D
 
 __all__ = ["load_unstruct_grid_2d"]
 
-VERTEX_DIMENSION = 0
-EDGE_DIMENSION = 1
-FACE_DIMENSION = 2
+
+class DIMENSION(IntEnum):
+    """Enumeration for grid dimensions."""
+
+    VERTEX = 0
+    EDGE = 1
+    FACE = 2
+
+
+@overload
+def load_unstruct_grid_2d(
+    grid_ggd: IDSStructure, space_index: int = 0, with_subsets: Literal[False] = False
+) -> UnstructGrid2D: ...
+
+
+@overload
+def load_unstruct_grid_2d(
+    grid_ggd: IDSStructure,
+    space_index: int = 0,
+    *,
+    with_subsets: Literal[True],
+) -> tuple[UnstructGrid2D, dict[str, NDArray[np.int32]], dict[str, int]]: ...
 
 
 def load_unstruct_grid_2d(
@@ -70,15 +92,15 @@ def load_unstruct_grid_2d(
     grid_name = str(grid_ggd.identifier.name)
 
     # Reading vertices
-    num_vert = len(space.objects_per_dimension[VERTEX_DIMENSION].object)
+    num_vert = len(space.objects_per_dimension[DIMENSION.VERTEX].object)
     vertices = np.empty((num_vert, 2), dtype=np.float64)
     for i in range(num_vert):
-        vertices[i] = space.objects_per_dimension[VERTEX_DIMENSION].object[i].geometry[:2]
+        vertices[i] = space.objects_per_dimension[DIMENSION.VERTEX].object[i].geometry[:2]
 
     # Reading polygonal cells
     cells = []
     winding_ok = True
-    for object in space.objects_per_dimension[FACE_DIMENSION].object:
+    for object in space.objects_per_dimension[DIMENSION.FACE].object:
         # getting cell from nodes
         cell = np.asarray_chkfinite(object.nodes, dtype=np.int32) - 1  # Fortran to C indexing
         if cell.size > 3:
@@ -86,7 +108,7 @@ def load_unstruct_grid_2d(
             edge_dict = {}
             for boundary in object.boundary:
                 n1, n2 = (
-                    space.objects_per_dimension[EDGE_DIMENSION].object[boundary.index - 1].nodes - 1
+                    space.objects_per_dimension[DIMENSION.EDGE].object[boundary.index - 1].nodes - 1
                 )  # Fortran to C indexing
                 if n1 not in cell or n2 not in cell:  # fail, error in the data
                     edge_dict = {}
@@ -132,7 +154,7 @@ def load_unstruct_grid_2d(
     subsets = {}
     subset_id = {}
     for subset in grid_ggd.grid_subset:
-        dimension_is_2d = subset.dimension == FACE_DIMENSION + 1  # C to Fortran indexing
+        dimension_is_2d = subset.dimension == DIMENSION.FACE + 1  # C to Fortran indexing
         known_subset_id = (
             subset.dimension != EMPTY_INT and subset.identifier.index in cell_subset_ids
         )
