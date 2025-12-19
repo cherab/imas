@@ -329,7 +329,7 @@ def _create_camera_box(bolo_data: BoloCamera) -> CSGPrimitive:
     # ----------------------------------
     # === Add Inner Apertures Plates ===
     # ----------------------------------
-    # NOTO: Assume all inner apertures use the same local coordinate system as the top plate.
+    # NOTE: Assume all inner apertures use the same local coordinate system as the top plate.
     for slits in slits_inner:
         # Create Inner Aperture Plate layer
         layer_depth_z = basis_z.dot(origin.vector_to(slits[0].centre))
