@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs", "hatch-cython>=0.6.0rc0", "cherab==1.5.*"]
+requires = ["hatch-vcs", "hatch-cython>=0.6.0", "cherab==1.5.*"]
 build-backend = "hatchling.build"
 
 [project]

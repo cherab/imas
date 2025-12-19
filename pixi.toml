@@ -21,9 +21,8 @@ python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
 [package.host-dependencies]
 uv = "*"
 python = "*"
-hatchling = "*"
+hatch-cython = ">=0.6.0"
 hatch-vcs = "*"
-hatch-cython = ">=0.6.0rc0"
 cython = ">=3.1,<4"
 llvm-openmp = "*"
 cherab = "1.5.*"
