@@ -63,12 +63,12 @@ class GGDGrid:
         self._name: str = str(name)
         self._coordinate_system: str = str(coordinate_system)
 
-        self._interpolator: object | None = None
-        self._cell_centre: NDArray[np.float64] | None = None
-        self._cell_area: NDArray[np.float64] | None = None
-        self._cell_volume: NDArray[np.float64] | None = None
-        self._mesh_extent: dict[str, float] | None = None
-        self._num_cell: int = 0
+        self._interpolator: object
+        self._cell_centre: NDArray[np.float64]
+        self._cell_area: NDArray[np.float64]
+        self._cell_volume: NDArray[np.float64]
+        self._mesh_extent: dict[str, float]
+        self._num_cell: int
 
         self._initial_setup()
 
@@ -101,22 +101,22 @@ class GGDGrid:
         return self._coordinate_system
 
     @property
-    def cell_centre(self) -> NDArray[np.float64] | None:
+    def cell_centre(self) -> NDArray[np.float64]:
         """Coordinate of cell centres as ``(num_cell, dimension)`` array."""
         return self._cell_centre
 
     @property
-    def cell_area(self) -> NDArray[np.float64] | None:
+    def cell_area(self) -> NDArray[np.float64]:
         """Cell areas as ``(num_cell,)`` array."""
         return self._cell_area
 
     @property
-    def cell_volume(self) -> NDArray[np.float64] | None:
+    def cell_volume(self) -> NDArray[np.float64]:
         """Cell volume as ``(num_cell,)`` array."""
         return self._cell_volume
 
     @property
-    def mesh_extent(self) -> dict[str, float] | None:
+    def mesh_extent(self) -> dict[str, float]:
         """Extent of the mesh.
 
         A dictionary with xmin, xmax, ymin and ymax, ... keys.
