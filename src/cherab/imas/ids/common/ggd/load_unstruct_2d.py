@@ -142,7 +142,7 @@ def load_unstruct_grid_2d(
             cells.append(cell)
 
     if not winding_ok:
-        print("Warning! Unable to verify that the cell nodes are in the winging order.")
+        print("Warning! Unable to verify that the cell nodes are in the winding order.")
 
     grid = UnstructGrid2D(vertices, cells, name=grid_name)
 
