@@ -17,10 +17,13 @@
 # under the Licence.
 """Module for loading plasma equilibrium and magnetic field from the equilibrium IDS."""
 
+from typing import Literal, overload
+
 import numpy as np
 from raysect.core.math.function.float import Interpolator1DArray, Interpolator2DArray
 from raysect.core.math.function.vector3d import FloatToVector3DFunction2D
 
+from cherab.imas.ids.equilibrium.load_equilibrium import Equilibrium2DData
 from cherab.tools.equilibrium import EFITEquilibrium
 from imas import DBEntry
 
@@ -28,6 +31,28 @@ from ..ids.common import get_ids_time_slice
 from ..ids.equilibrium import load_equilibrium_data, load_magnetic_field_data
 
 __all__ = ["load_equilibrium", "load_magnetic_field"]
+
+
+@overload
+def load_equilibrium(
+    *args,
+    time: float = 0,
+    occurrence: int = 0,
+    time_threshold: float = np.inf,
+    with_psi_interpolator: Literal[False] = False,
+    **kwargs,
+) -> EFITEquilibrium: ...
+
+
+@overload
+def load_equilibrium(
+    *args,
+    time: float = 0,
+    occurrence: int = 0,
+    time_threshold: float = np.inf,
+    with_psi_interpolator: Literal[True],
+    **kwargs,
+) -> tuple[EFITEquilibrium, Interpolator1DArray | None]: ...
 
 
 def load_equilibrium(
@@ -72,42 +97,45 @@ def load_equilibrium(
             entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
 
-    equilibrium_dict = load_equilibrium_data(equilibrium_ids)
+    eq_data = load_equilibrium_data(equilibrium_ids)
 
-    cocos_11to3(equilibrium_dict)
+    cocos_11to3(eq_data)
 
-    equilibrium_dict["psi_norm"][0] = min(0, equilibrium_dict["psi_norm"][0])
-    equilibrium_dict["psi_norm"][-1] = max(1.0, equilibrium_dict["psi_norm"][-1])
+    eq_data.psi_norm[0] = min(0, eq_data.psi_norm[0])
+    eq_data.psi_norm[-1] = max(1.0, eq_data.psi_norm[-1])
 
-    f_profile = np.array([equilibrium_dict["psi_norm"], equilibrium_dict["f"]])
-    q_profile = np.array([equilibrium_dict["psi_norm"], equilibrium_dict["q"]])
-
+    f_profile = np.array([eq_data.psi_norm, eq_data.f])
+    q_profile = np.array([eq_data.psi_norm, eq_data.q])
     equilibrium = EFITEquilibrium(
-        equilibrium_dict["r"],
-        equilibrium_dict["z"],
-        equilibrium_dict["psi_grid"],
-        equilibrium_dict["psi_axis"],
-        equilibrium_dict["psi_lcfs"],
-        equilibrium_dict["magnetic_axis"],
-        equilibrium_dict["x_points"],
-        equilibrium_dict["strike_points"],
+        eq_data.r,
+        eq_data.z,
+        eq_data.psi_grid,
+        eq_data.psi_axis,
+        eq_data.psi_lcfs,
+        eq_data.magnetic_axis,
+        eq_data.x_points,
+        eq_data.strike_points,
         f_profile,
         q_profile,
-        equilibrium_dict["b_vacuum_radius"],
-        equilibrium_dict["b_vacuum_magnitude"],
-        equilibrium_dict["lcfs_polygon"],
-        None,
-        equilibrium_dict["time"],
+        eq_data.b_vacuum_radius,
+        eq_data.b_vacuum_magnitude,
+        eq_data.lcfs_polygon,
+        None,  # Limiter Polygon
+        eq_data.time,
     )
 
     if not with_psi_interpolator:
         return equilibrium
 
-    if equilibrium_dict["rho_tor_norm"] is None:
+    if eq_data.rho_tor_norm is None:
         return equilibrium, None
 
     psi_interpolator = Interpolator1DArray(
-        equilibrium_dict["rho_tor_norm"], equilibrium_dict["psi_norm"], "cubic", "none", 0
+        eq_data.rho_tor_norm,
+        eq_data.psi_norm,
+        "cubic",
+        "none",
+        0,
     )
 
     return equilibrium, psi_interpolator
@@ -154,31 +182,55 @@ def load_magnetic_field(
     if not len(equilibrium_ids.time_slice):
         raise RuntimeError("Equilibrium IDS does not have a time slice.")
 
-    b_dict = load_magnetic_field_data(equilibrium_ids.time_slice[0].profiles_2d)
+    b_data = load_magnetic_field_data(equilibrium_ids.time_slice[0].profiles_2d)
 
-    br = Interpolator2DArray(b_dict["r"], b_dict["z"], b_dict["b_field_r"], "cubic", "none", 0, 0)
-    btor = Interpolator2DArray(
-        b_dict["r"], b_dict["z"], b_dict["b_field_phi"], "cubic", "none", 0, 0
+    extra_range_r = b_data.r[-1] - b_data.r[0]
+    extra_range_z = b_data.z[-1] - b_data.z[0]
+
+    br = Interpolator2DArray(
+        b_data.r,
+        b_data.z,
+        b_data.b_field_r,
+        "cubic",
+        "linear",
+        extra_range_r,
+        extra_range_z,
     )
-    bz = Interpolator2DArray(b_dict["r"], b_dict["z"], b_dict["b_field_z"], "cubic", "none", 0, 0)
-
+    btor = Interpolator2DArray(
+        b_data.r,
+        b_data.z,
+        b_data.b_field_phi,
+        "cubic",
+        "linear",
+        extra_range_r,
+        extra_range_z,
+    )
+    bz = Interpolator2DArray(
+        b_data.r,
+        b_data.z,
+        b_data.b_field_z,
+        "cubic",
+        "linear",
+        extra_range_r,
+        extra_range_z,
+    )
     return FloatToVector3DFunction2D(br, btor, bz)
 
 
-def cocos_11to3(equilibrium_dict: dict) -> None:
+def cocos_11to3(eq_data: Equilibrium2DData) -> None:
     """Convert from COCOS 11 convention used in IMAS to COCOS 3 convention used in EFIT.
 
-    This function modifies the equilibrium_dict in place to convert the coordinates
+    This function modifies the eq_data in place to convert the coordinates
     and other relevant data from the COCOS 11 convention to the COCOS 3 convention.
 
     Parameters
     ----------
-    equilibrium_dict
-        The equilibrium data dictionary to modify in place.
+    eq_data
+        `Equilibrium2DData` dataclass instance containing equilibrium data to be converted.
     """
-    equilibrium_dict["psi_grid"] = -equilibrium_dict["psi_grid"] / (2.0 * np.pi)
-    equilibrium_dict["psi_axis"] = -equilibrium_dict["psi_axis"] / (2.0 * np.pi)
-    equilibrium_dict["psi_lcfs"] = -equilibrium_dict["psi_lcfs"] / (2.0 * np.pi)
-    equilibrium_dict["q"] = -equilibrium_dict["q"]
-    if equilibrium_dict["phi"] is not None:
-        equilibrium_dict["phi"] = -equilibrium_dict["phi"]
+    eq_data.psi_grid = -eq_data.psi_grid / (2.0 * np.pi)
+    eq_data.psi_axis = -eq_data.psi_axis / (2.0 * np.pi)
+    eq_data.psi_lcfs = -eq_data.psi_lcfs / (2.0 * np.pi)
+    eq_data.q = -eq_data.q
+    if eq_data.phi is not None:
+        eq_data.phi = -eq_data.phi

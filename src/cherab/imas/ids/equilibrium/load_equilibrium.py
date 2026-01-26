@@ -19,6 +19,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 from numpy.typing import NDArray
 from raysect.core.math import Point2D
@@ -31,9 +33,32 @@ RECTANGULAR_GRID = 1
 __all__ = ["load_equilibrium_data"]
 
 
+@dataclass
+class Equilibrium2DData:
+    """Dataclass to hold 2D plasma equilibrium data."""
+
+    r: NDArray[np.float64]
+    z: NDArray[np.float64]
+    psi_grid: NDArray[np.float64]
+    psi_axis: float
+    psi_lcfs: float
+    magnetic_axis: Point2D
+    x_points: list[Point2D]
+    strike_points: list[Point2D]
+    psi_norm: NDArray[np.float64]
+    f: NDArray[np.float64]
+    q: NDArray[np.float64]
+    phi: NDArray[np.float64] | None
+    rho_tor_norm: NDArray[np.float64] | None
+    b_vacuum_radius: float
+    b_vacuum_magnitude: float
+    lcfs_polygon: NDArray[np.float64]
+    time: float
+
+
 def load_equilibrium_data(
     equilibrium_ids: IDSToplevel,
-) -> dict[str, NDArray[np.float64] | float | Point2D | list[Point2D] | None]:
+) -> Equilibrium2DData:
     """Load 2D plasma equilibrium data from the equilibrium IDS.
 
     Parameters
@@ -43,8 +68,8 @@ def load_equilibrium_data(
 
     Returns
     -------
-    dict[str, Any]
-        Dictionary with the following keys and values:
+    Equilibrium2DData
+        Dataclass instance containing the following attributes:
 
         :r: ``(N, )`` ndarray with R coordinates of rectangular grid,
         :z: ``(M, )`` ndarray with Z coordinates of rectangular grid,
@@ -183,22 +208,22 @@ def load_equilibrium_data(
 
     time = float(equilibrium_ids.time[0])
 
-    return {
-        "r": r,
-        "z": z,
-        "psi_grid": psi_grid,
-        "psi_axis": psi_axis,
-        "psi_lcfs": psi_lcfs,
-        "magnetic_axis": magnetic_axis,
-        "x_points": x_points,
-        "strike_points": strike_points,
-        "psi_norm": psi_norm,
-        "f": f,
-        "q": q,
-        "phi": phi,
-        "rho_tor_norm": rho_tor_norm,
-        "b_vacuum_radius": b_vacuum_radius,
-        "b_vacuum_magnitude": b_vacuum_magnitude,
-        "lcfs_polygon": lcfs_polygon,
-        "time": time,
-    }
+    return Equilibrium2DData(
+        r=r,
+        z=z,
+        psi_grid=psi_grid,
+        psi_axis=psi_axis,
+        psi_lcfs=psi_lcfs,
+        magnetic_axis=magnetic_axis,
+        x_points=x_points,
+        strike_points=strike_points,
+        psi_norm=psi_norm,
+        f=f,
+        q=q,
+        phi=phi,
+        rho_tor_norm=rho_tor_norm,
+        b_vacuum_radius=b_vacuum_radius,
+        b_vacuum_magnitude=b_vacuum_magnitude,
+        lcfs_polygon=lcfs_polygon,
+        time=time,
+    )

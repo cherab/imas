@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for loading magnetic field data from the equilibrium IDS."""
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from imas.ids_defs import EMPTY_INT
@@ -27,7 +29,18 @@ RECTANGULAR_GRID = 1
 __all__ = ["load_magnetic_field_data"]
 
 
-def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
+@dataclass
+class MagneticField2DData:
+    """Dataclass to hold 2D magnetic field data."""
+
+    r: np.ndarray
+    z: np.ndarray
+    b_field_r: np.ndarray
+    b_field_z: np.ndarray
+    b_field_phi: np.ndarray
+
+
+def load_magnetic_field_data(profiles_2d: IDSStructArray) -> MagneticField2DData:
     """Load 2D profiles of the magnetic field components from equilibrium IDS.
 
     The magnetic field components are extracted from the ``profiles_2d`` IDS structure,
@@ -40,7 +53,8 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
 
     Returns
     -------
-    Dictionary with the following keys:
+    MagneticField2DData
+        Dataclass containing the magnetic field data:
 
         :r: ``(N,)`` ndarray with R coordinates of rectangular grid.
         :z: ``(M,)`` ndarray with Z coordinates of rectangular grid.
@@ -66,24 +80,24 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> dict:
             + "rectangular grid for 2D profiles is not found and other grid types are not supported."
         )
 
-    b_dict = {}
+    r = np.asarray_chkfinite(prof2d.grid.dim1)
+    z = np.asarray_chkfinite(prof2d.grid.dim2)
+    shape = (r.size, z.size)
 
-    b_dict["r"] = np.asarray_chkfinite(prof2d.grid.dim1)
-    b_dict["z"] = np.asarray_chkfinite(prof2d.grid.dim2)
-    shape = (b_dict["r"].size, b_dict["z"].size)
+    b_field_r = np.asarray_chkfinite(prof2d.b_field_r)
+    b_field_phi = np.asarray_chkfinite(prof2d.b_field_phi)
+    b_field_z = np.asarray_chkfinite(prof2d.b_field_z)
 
-    b_dict["b_field_r"] = np.asarray_chkfinite(prof2d.b_field_r)
-    b_dict["b_field_phi"] = np.asarray_chkfinite(prof2d.b_field_phi)
-    b_dict["b_field_z"] = np.asarray_chkfinite(prof2d.b_field_z)
-
-    if (
-        b_dict["b_field_r"].shape != shape
-        or b_dict["b_field_phi"].shape != shape
-        or b_dict["b_field_z"].shape != shape
-    ):
+    if b_field_r.shape != shape or b_field_phi.shape != shape or b_field_z.shape != shape:
         raise RuntimeError(
             "Unable to read magnetic field: "
             + "the shape of the magnetic field components does not match the grid shape."
         )
 
-    return b_dict
+    return MagneticField2DData(
+        r=r,
+        z=z,
+        b_field_r=b_field_r,
+        b_field_z=b_field_z,
+        b_field_phi=b_field_phi,
+    )
