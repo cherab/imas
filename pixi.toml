@@ -40,6 +40,9 @@ ipython = "*"
 pooch = "*"
 rich = "*"
 
+# Publication-quality plot
+ultraplot = ">=1.72.0"
+
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
 
