@@ -1,0 +1,6 @@
+/* Optional: Ensure image respects container boundaries */
+.output_area.docutils.container img {
+    height: auto !important;
+    display: block !important;
+    object-fit: contain;
+}
