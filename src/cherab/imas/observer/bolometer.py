@@ -19,6 +19,8 @@
 
 from __future__ import annotations
 
+from typing import overload
+
 from raysect.core.constants import ORIGIN
 from raysect.core.math import Point3D, Vector3D, rotate_basis, translate
 from raysect.core.scenegraph._nodebase import _NodeBase
@@ -44,7 +46,38 @@ THICKNESS_INNER_LAYER = 0.5e-3  # Thickness of inner aperture layers
 EPS = 1e-4  # Small epsilon value to avoid numerical issues
 
 
-def load_bolometers(*args, parent: _NodeBase | None = None, **kwargs) -> list[BolometerCamera]:
+@overload
+def load_bolometers(
+    backend_id: int,
+    db_name: str,
+    pulse: int,
+    run: int,
+    user_name: str | None = None,
+    data_version: str | None = None,
+    *,
+    parent: _NodeBase | None = None,
+    shot: int | None = None,
+    dd_version: str | None = None,
+    xml_path: str | None = None,
+) -> list[BolometerCamera]: ...
+
+
+@overload
+def load_bolometers(
+    uri: str,
+    mode: str,
+    *,
+    parent: _NodeBase | None = None,
+    dd_version: str | None = None,
+    xml_path: str | None = None,
+) -> list[BolometerCamera]: ...
+
+
+def load_bolometers(
+    *args,
+    parent: _NodeBase | None = None,
+    **kwargs,
+) -> list[BolometerCamera]:
     """Load bolometer cameras from IMAS bolometer IDS.
 
     .. note::
