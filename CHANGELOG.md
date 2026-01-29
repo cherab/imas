@@ -5,15 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-01-29
 
 ### Added
 
-- Implemented Bolometry Observer functionality
+- Implement Bolometry Observer functionality
+- Add new notebook for creating emission profiles
+- Add `*.pyi` files for cython sources
+- Add `overload` decorator for better type hinting
+- Add `ultraplot` package into `pixi` default environment
 
 ### Changed
 
 - Add `pyrefly` package for type checking (still experimental)
+- Refactor `load_equilibrium` and `load_magnetic_field_data` to use dataclasses
+- Use `ultraplot` for plotting in examples and notebooks
+
+### Fixed
+
+- Fix `num_toroidal` parameter handling in `load_unstruct_grid_2d` function
+- Fix typo in warning message in `load_profiles.py`
 
 ## [0.2.1] - 2025-11-18
 
