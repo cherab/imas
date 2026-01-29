@@ -237,7 +237,7 @@ def get_edge_interpolators(
     return interpolators.freeze()
 
 
-def _get_velocity_interpolators(grid, profiles, b_field=None):
+def _get_velocity_interpolators(grid: GGDGrid, profiles, b_field=None):
     # Note: np.all(None == 0) returns False
     vrad = None if np.all(profiles["velocity_radial"] == 0) else profiles["velocity_radial"]
     vpol = None if np.all(profiles["velocity_poloidal"] == 0) else profiles["velocity_poloidal"]
@@ -260,7 +260,7 @@ def _get_velocity_interpolators(grid, profiles, b_field=None):
     return _get_parallel_velocity_interpolators(grid, vpar, vrad, b_field)
 
 
-def _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
+def _get_cylindrical_velocity_interpolators(grid: GGDGrid, vr, vz, vtor):
     if vr is None and vz is None and vtor is None:
         if grid.dimension == 2:
             return ConstantVector2D(
@@ -279,7 +279,7 @@ def _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor):
     return grid.vector_interpolator(np.array([vr, vtor, vz]))
 
 
-def _get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
+def _get_parallel_velocity_interpolators(grid: GGDGrid, vpar, vrad, b_field):
     if vpar is None and vrad is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(
@@ -303,7 +303,7 @@ def _get_parallel_velocity_interpolators(grid, vpar, vrad, b_field):
     return vpar_i * parallel_vector + vrad_i * surface_normal
 
 
-def _get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field):
+def _get_poloidal_velocity_interpolators(grid: GGDGrid, vpol, vrad, vtor, b_field):
     if vpol is None and vrad is None and vtor is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(
@@ -330,7 +330,7 @@ def _get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field):
     return vpol_i * poloidal_vector + vrad_i * surface_normal + vtor_i * toroidal_vector
 
 
-def _get_components_from_vpar(grid, vpar, b_field):
+def _get_components_from_vpar(grid: GGDGrid, vpar, b_field):
     vpol = np.zeros(grid.num_cell, dtype=np.float64)
     vtor = np.zeros(grid.num_cell, dtype=np.float64)
 
