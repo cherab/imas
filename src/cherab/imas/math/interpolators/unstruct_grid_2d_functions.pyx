@@ -92,7 +92,7 @@ cdef class UnstructGridFunction2D(Function2D):
 
     @classmethod
     def instance(cls, object instance not None, np.ndarray grid_data=None, object fill_value=None):
-        """Creates a new interpolator instance from an existing `UnstructGridFunction2D` or
+        """Create a new interpolator instance from an existing `UnstructGridFunction2D` or
         `UnstructGridVectorFunction2D` instance.
 
         The new interpolator instance will share the same internal acceleration data as the original
@@ -116,7 +116,7 @@ cdef class UnstructGridFunction2D(Function2D):
 
         Returns
         -------
-        UnstructGridFunction2D | UnstructGridVectorFunction2D
+        UnstructGridFunction2D
             New interpolator instance.
         """
 
@@ -248,7 +248,7 @@ cdef class UnstructGridVectorFunction2D(VectorFunction2D):
         np.ndarray grid_vectors=None,
         Vector3D fill_vector=None
     ):
-        """Creates a new interpolator instance from an existing `UnstructGridVectorFunction2D` or
+        """Create a new interpolator instance from an existing `UnstructGridVectorFunction2D` or
         `UnstructGridFunction2D` instance.
 
         The new interpolator instance will share the same internal acceleration data as the original
@@ -271,7 +271,7 @@ cdef class UnstructGridVectorFunction2D(VectorFunction2D):
 
         Returns
         -------
-        UnstructGridFunction2D | UnstructGridVectorFunction2D
+        UnstructGridVectorFunction2D
             The new interpolator instance.
         """
 

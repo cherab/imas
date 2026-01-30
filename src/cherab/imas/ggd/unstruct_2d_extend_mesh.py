@@ -255,7 +255,7 @@ class UnstructGrid2DExtended(GGDGrid):
         grid._num_faces = len(indices)
         grid._num_toroidal = self._num_toroidal
 
-        index_flags = np.zeros(self._num_faces, dtype=bool)
+        index_flags: NDArray[np.bool_] = np.zeros(self._num_faces, dtype=bool)
         index_flags[indices] = True
         index_flags = np.tile(index_flags, self._num_toroidal)
         index_flags.setflags(write=False)
@@ -278,7 +278,7 @@ class UnstructGrid2DExtended(GGDGrid):
         for cell in cells_original:
             cells.append(inv_index[ist : ist + len(cell)])
             ist += len(cell)
-        grid._cells = np.array(cells, dtype=np.int32)
+        grid._cells = np.vstack(cells, dtype=np.int32)
         grid._cells.setflags(write=False)
         grid._num_cell = len(grid._cells)
         grid._num_poloidal = grid._vertices.shape[0] // self._num_toroidal
@@ -363,7 +363,7 @@ class UnstructGrid2DExtended(GGDGrid):
         for cell in cells_original:
             cells.append(inv_index[ist : ist + len(cell)])
             ist += len(cell)
-        grid._cells = np.array(cells, dtype=np.int32)
+        grid._cells = np.vstack(cells, dtype=np.int32)
         grid._cells.setflags(write=False)
         grid._num_cell = len(grid._cells)
 
@@ -395,7 +395,9 @@ class UnstructGrid2DExtended(GGDGrid):
         return grid
 
     @override
-    def interpolator(self, grid_data: ArrayLike, fill_value: float = 0) -> UnstructGridFunction3D:
+    def interpolator(
+        self, grid_data: NDArray[np.float64], fill_value: float = 0
+    ) -> UnstructGridFunction3D:
         """Return an UnstructGridFunction3D interpolator instance for the data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance

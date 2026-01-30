@@ -151,6 +151,8 @@ html_theme_options = {
         },
     ],
 }
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # Shorten Table Of Contents in API documentation
 object_description_options = [
@@ -168,6 +170,7 @@ intersphinx_mapping = {
     "imas-python": ("https://imas-python.readthedocs.io/en/stable/", None),
     "rich": ("https://rich.readthedocs.io/en/stable/", None),
     "pooch": ("https://www.fatiando.org/pooch/latest/", None),
+    "ultraplot": ("https://ultraplot.readthedocs.io/en/stable/", None),
 }
 
 intersphinx_timeout = 10

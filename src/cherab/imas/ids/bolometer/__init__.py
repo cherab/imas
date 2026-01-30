@@ -15,8 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
-"""The Cherab subpackage for the IMAS."""
+"""Subpackage for loading bolometer data from IMAS IDS structures."""
 
-from importlib.metadata import version as _version
+from . import utility
+from ._camera import BoloCamera, BoloChannel, Geometry, load_cameras
 
-__version__ = _version("cherab-imas")
+__all__ = ["load_cameras", "utility", "BoloCamera", "BoloChannel", "Geometry"]

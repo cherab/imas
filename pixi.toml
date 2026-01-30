@@ -21,9 +21,8 @@ python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
 [package.host-dependencies]
 uv = "*"
 python = "*"
-hatchling = "*"
+hatch-cython = ">=0.6.0"
 hatch-vcs = "*"
-hatch-cython = ">=0.6.0rc0"
 cython = ">=3.1,<4"
 llvm-openmp = "*"
 cherab = "1.5.*"
@@ -40,6 +39,9 @@ cherab-imas = { path = "." }
 ipython = "*"
 pooch = "*"
 rich = "*"
+
+# Publication-quality plot
+ultraplot = ">=1.72.0"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
@@ -105,7 +107,7 @@ lefthook = "*"
 ruff = "*"
 typos = "*"
 mypy = "*"
-basedpyright = "*"
+pyrefly = "*"
 actionlint = "*"
 shellcheck = "*"
 validate-pyproject = "*"
@@ -118,7 +120,7 @@ lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
 hooks = { cmd = "lefthook install", description = "🔗 Install pre-commit hooks" }
 pre-commit = { cmd = "lefthook run pre-commit", description = "🔗 Run pre-commit checks" }
 mypy = { cmd = "mypy", description = "Type check with mypy" }
-pyright = { cmd = "basedpyright", description = "Type check with basedpyright" }
+pyrefly-check = { cmd = "pyrefly check", description = "Type check with pyrefly" }
 ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
 ruff-format = { cmd = "ruff format", description = "Format with ruff" }
 dprint = { cmd = "dprint fmt", description = "Format with dprint" }

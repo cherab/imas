@@ -237,7 +237,7 @@ def load_edge_species(
         else:
             species_type, species_id = get_neutral(neutral, elements)
             if species_id in composition[species_type]:
-                print("Warning! Skipping duplicated neutral: ")
+                print(f"Warning! Skipping duplicated neutral: {neutral.name.strip()}")
             else:
                 composition[species_type][species_id] = load_edge_profiles(
                     neutral, grid_subset_index

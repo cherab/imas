@@ -116,7 +116,7 @@ cdef class UnstructGridFunction3D(Function3D):
 
         Returns
         -------
-        UnstructGridFunction3D | UnstructGridVectorFunction3D
+        UnstructGridFunction3D
             New interpolator instance.
         """
 
@@ -274,7 +274,7 @@ cdef class UnstructGridVectorFunction3D(VectorFunction3D):
 
         Returns
         -------
-        UnstructGridVectorFunction3D | UnstructGridFunction3D
+        UnstructGridVectorFunction3D
             New interpolator instance.
         """
 

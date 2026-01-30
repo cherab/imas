@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for loading GGD grids from IMAS grid_ggd IDS structures."""
 
+from typing import Literal, overload
+
 from numpy import int32
 from numpy.typing import NDArray
 
@@ -28,6 +30,18 @@ from .load_unstruct_2d import load_unstruct_grid_2d
 from .load_unstruct_3d import load_unstruct_grid_2d_extended
 
 __all__ = ["load_grid"]
+
+
+@overload
+def load_grid(
+    grid_ggd: IDSStructure, with_subsets: Literal[False] = False, num_toroidal: int | None = None
+) -> UnstructGrid2D | UnstructGrid2DExtended: ...
+
+
+@overload
+def load_grid(
+    grid_ggd: IDSStructure, with_subsets: Literal[True], num_toroidal: int | None = None
+) -> tuple[UnstructGrid2D, dict[str, NDArray[int32]], dict[str, int]]: ...
 
 
 def load_grid(

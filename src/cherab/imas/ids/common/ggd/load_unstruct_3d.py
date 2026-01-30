@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for loading unstructured 3D grids from IMAS grid_ggd IDS structure."""
 
+from enum import IntEnum
+
 import numpy as np
 
 from imas.ids_struct_array import IDSStructArray
@@ -26,27 +28,44 @@ from ....ggd import UnstructGrid2DExtended
 
 __all__ = ["load_unstruct_grid_2d_extended", "load_unstruct_grid_3d"]
 
-# Constants for space indices and dimensions
-SPACE_RZ = 0
-SPACE_FOURIER = 1
-VERTEX_DIMENSION = 0
-EDGE_DIMENSION = 1
-FACE_DIMENSION = 2
+
+class SPACE(IntEnum):
+    """Enumeration for grid spaces."""
+
+    RZ = 0
+    FOURIER = 1
+
+
+class DIMENSION(IntEnum):
+    """Enumeration for grid dimensions."""
+
+    VERTEX = 0
+    EDGE = 1
+    FACE = 2
+
+
+# Constants for tetrahedral cells and default number of toroidal points
 TETRA_IN_CELL = 5
 NUM_TOROIDAL = 64
 
 
 def load_unstruct_grid_2d_extended(
-    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int = NUM_TOROIDAL
+    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = NUM_TOROIDAL
 ) -> UnstructGrid2DExtended:
     """Load unstructured 2D grid extended in 3D from the ``grid_ggd`` structure.
+
+    The grid is created by revolving the 2D cross-section around the torus with evenly spaced
+    toroidal angles.
+
+    .. todo::
+        `with_subsets` is not yet implemented.
 
     Parameters
     ----------
     grid_ggd
         The ``grid_ggd`` structure.
     with_subsets
-        Read grid subset data if True.
+        Read grid subset data if True, by default False.
     num_toroidal
         Number of toroidal points.
         If specifying more than 1, the grid will be extended in 3D by repeating the 2D
@@ -64,11 +83,12 @@ def load_unstruct_grid_2d_extended(
         If the grid is not an unstructured extended 2D grid.
     """
     # Validate num_toroidal
+    num_toroidal = num_toroidal or NUM_TOROIDAL
     if num_toroidal < 1:
         raise ValueError("The number of toroidal points must be greater than 0.")
 
     # Get the R-Z space
-    space: IDSStructArray = grid_ggd.space[SPACE_RZ]
+    space: IDSStructArray = grid_ggd.space[SPACE.RZ]
 
     # Check if the grid is 2D
     if len(space.objects_per_dimension) != 3:
@@ -81,16 +101,16 @@ def load_unstruct_grid_2d_extended(
     # =========================================
     # Reading vertices (poloidal and toroidal)
     # =========================================
-    num_poloidal = len(space.objects_per_dimension[VERTEX_DIMENSION].object)
+    num_poloidal = len(space.objects_per_dimension[DIMENSION.VERTEX].object)
     num_vert = num_poloidal * num_toroidal
     vertices_rpz = np.empty((num_vert, 3), dtype=float)
 
     for i_phi, i_pol in np.ndindex(num_toroidal, num_poloidal):
         phi = 2.0 * np.pi * i_phi / num_toroidal
         vertices_rpz[i_pol + i_phi * num_poloidal] = (
-            space.objects_per_dimension[VERTEX_DIMENSION].object[i_pol].geometry[0],
+            space.objects_per_dimension[DIMENSION.VERTEX].object[i_pol].geometry[0],
             phi,
-            space.objects_per_dimension[VERTEX_DIMENSION].object[i_pol].geometry[1],
+            space.objects_per_dimension[DIMENSION.VERTEX].object[i_pol].geometry[1],
         )
     # Convert to cartesian coordinates
     vertices = np.empty((num_vert, 3), dtype=float)
@@ -102,7 +122,7 @@ def load_unstruct_grid_2d_extended(
     # =========================================
     # Reading cells indices
     # =========================================
-    faces: IDSStructArray = space.objects_per_dimension[FACE_DIMENSION].object
+    faces: IDSStructArray = space.objects_per_dimension[DIMENSION.FACE].object
     num_faces = len(faces)
     cells = np.zeros((num_faces * num_toroidal, 8), dtype=np.int32)
     i_cell = 0

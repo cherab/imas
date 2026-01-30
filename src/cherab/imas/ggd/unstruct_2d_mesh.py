@@ -294,7 +294,9 @@ class UnstructGrid2D(GGDGrid):
         return grid
 
     @override
-    def interpolator(self, grid_data: ArrayLike, fill_value: float = 0) -> UnstructGridFunction2D:
+    def interpolator(
+        self, grid_data: NDArray[np.float64], fill_value: float = 0
+    ) -> UnstructGridFunction2D:
         """Return an `UnstructGridFunction2D` interpolator instance for the data defined on this grid.
 
         On the second and subsequent calls, the interpolator is created as an instance of the
@@ -322,7 +324,7 @@ class UnstructGrid2D(GGDGrid):
 
     @override
     def vector_interpolator(
-        self, grid_vectors: ArrayLike, fill_vector: Vector3D = ZERO_VECTOR
+        self, grid_vectors: NDArray[np.float64], fill_vector: Vector3D = ZERO_VECTOR
     ) -> UnstructGridVectorFunction2D:
         """Return an `UnstructGridVectorFunction2D` interpolator instance for the vector data defined on this grid.
 

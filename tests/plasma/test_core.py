@@ -101,7 +101,7 @@ def test_load_core_plasma_error_handling(path_iter_jintrac: str):
     """Test error handling for invalid inputs."""
     # Test with non-existent file path
     with pytest.raises((FileNotFoundError, RuntimeError, OSError)):
-        load_core_plasma("non_existent_path", "r")
+        load_core_plasma("non_existent_path.nc", "r")
 
     # Test with invalid mode
     with pytest.raises((ValueError, RuntimeError, OSError)):

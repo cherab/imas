@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Literal
 
 import matplotlib.axes
@@ -62,15 +63,16 @@ class GGDGrid:
         self._name: str = str(name)
         self._coordinate_system: str = str(coordinate_system)
 
-        self._interpolator: object | None = None
-        self._cell_centre: NDArray[np.float64] | None = None
-        self._cell_area: NDArray[np.float64] | None = None
-        self._cell_volume: NDArray[np.float64] | None = None
-        self._mesh_extent: dict[str, float] | None = None
-        self._num_cell: int = 0
+        self._interpolator: object
+        self._cell_centre: NDArray[np.float64]
+        self._cell_area: NDArray[np.float64]
+        self._cell_volume: NDArray[np.float64]
+        self._mesh_extent: dict[str, float]
+        self._num_cell: int
 
         self._initial_setup()
 
+    @abstractmethod
     def _initial_setup(self) -> None:
         raise NotImplementedError("To be defined in subclass.")
 
@@ -99,28 +101,29 @@ class GGDGrid:
         return self._coordinate_system
 
     @property
-    def cell_centre(self) -> NDArray[np.float64] | None:
+    def cell_centre(self) -> NDArray[np.float64]:
         """Coordinate of cell centres as ``(num_cell, dimension)`` array."""
         return self._cell_centre
 
     @property
-    def cell_area(self) -> NDArray[np.float64] | None:
+    def cell_area(self) -> NDArray[np.float64]:
         """Cell areas as ``(num_cell,)`` array."""
         return self._cell_area
 
     @property
-    def cell_volume(self) -> NDArray[np.float64] | None:
+    def cell_volume(self) -> NDArray[np.float64]:
         """Cell volume as ``(num_cell,)`` array."""
         return self._cell_volume
 
     @property
-    def mesh_extent(self) -> dict[str, float] | None:
+    def mesh_extent(self) -> dict[str, float]:
         """Extent of the mesh.
 
         A dictionary with xmin, xmax, ymin and ymax, ... keys.
         """
         return self._mesh_extent
 
+    @abstractmethod
     def subset(self, indices: ArrayLike, name: str | None = None) -> GGDGrid:
         """Create a subset grid from this instance.
 
@@ -138,8 +141,9 @@ class GGDGrid:
         """
         raise NotImplementedError("To be defined in subclass.")
 
+    @abstractmethod
     def interpolator(
-        self, grid_data: ArrayLike, fill_value: float = 0.0
+        self, grid_data: NDArray[np.float64], fill_value: float = 0.0
     ) -> Function2D | Function3D:
         """Return an Function interpolator instance for the data defined on this grid.
 
@@ -160,8 +164,9 @@ class GGDGrid:
         """
         raise NotImplementedError("To be defined in subclass.")
 
+    @abstractmethod
     def vector_interpolator(
-        self, grid_vectors: ArrayLike, fill_vector: Vector3D = ZEROVECTOR
+        self, grid_vectors: NDArray[np.float64], fill_vector: Vector3D = ZEROVECTOR
     ) -> VectorFunction2D | VectorFunction3D:
         """Return a VectorFunction interpolator instance for the vector data defined on this grid.
 
@@ -182,7 +187,9 @@ class GGDGrid:
         """
         raise NotImplementedError("To be defined in subclass.")
 
-    def plot_mesh(self, data: ArrayLike | None = None, ax: matplotlib.axes.Axes | None = None):
+    def plot_mesh(
+        self, data: NDArray[np.float64] | None = None, ax: matplotlib.axes.Axes | None = None
+    ):
         """Plot the grid geometry to a matplotlib figure.
 
         Parameters
