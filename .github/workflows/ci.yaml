@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        environment: [test-py310, test-py313]
+        environment: [test-py310, test-py314]
     runs-on: ${{ matrix.os }}
 
     steps:

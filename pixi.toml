@@ -16,7 +16,7 @@ backend = { name = "pixi-build-python", version = "*" }
 noarch = false
 
 [workspace.build-variants]
-python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
+python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
 
 [package.host-dependencies]
 uv = "*"
@@ -138,16 +138,16 @@ clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.py
 # === Python environment features ===
 [feature.py310.dependencies]
 python = "3.10.*"
-[feature.py313.dependencies]
-python = "3.13.*"
+[feature.py314.dependencies]
+python = "3.14.*"
 
 [environments]
-default = { features = ["py313"], solve-group = "py313" }
-docs = { features = ["py313", "docs"], solve-group = "py313" }
-test = { features = ["py313", "test"], solve-group = "py313" }
-test-py313 = { features = [
-  "py313",
+default = { features = ["py314"], solve-group = "py314" }
+docs = { features = ["py314", "docs"], solve-group = "py314" }
+test = { features = ["py314", "test"], solve-group = "py314" }
+test-py314 = { features = [
+  "py314",
   "test",
-], solve-group = "py313" } # alias of test
+], solve-group = "py314" } # alias of test
 test-py310 = ["py310", "test"]
 lint = { features = ["lint"], no-default-feature = true }
