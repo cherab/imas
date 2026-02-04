@@ -43,6 +43,9 @@ rich = "*"
 # Publication-quality plot
 ultraplot = ">=1.72.0"
 
+# Visualization for 3D-related stuff
+plotly = ">=6.5.2,<7"
+
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
 
