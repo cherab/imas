@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support Python 3.14
+- Add `visualize` function for bolometer camera geometry visualization using `plotly`
 
 ### Changed
 
