@@ -239,28 +239,28 @@ def get_neutral(neutral: IDSStructure, elements: list[Element]) -> tuple[str, fr
     return "ion", species_id
 
 
-def get_element_list(element_aos: IDSStructArray) -> list[Element]:
-    """Get a list of elements from an IDS element_aos structure.
+def get_element_list(elements: IDSStructArray) -> list[Element]:
+    """Get a list of elements from an IDS array of structures.
 
     Parameters
     ----------
-    element_aos
-        The element_aos structure from IMAS.
+    elements
+        Element IDS array of structures
 
     Returns
     -------
-    list[`~cherab.core.atomic.elements.Element`]
-        List of elements extracted from the element_aos structure.
+    list[`~cherab.core.atomic.elements.Element` | `~cherab.core.atomic.elements.Isotope`]
+        List of elements that make up the species, with isotopes preferred over elements when possible.
     """
-    elements = []
-    for element in element_aos:
+    elements_list = []
+    for element in elements:
         mass_number = int(round(element.a))
         zn = int(round(element.z_n))
         isotope = lookup_isotope(zn, number=mass_number)
         if int(round(isotope.element.atomic_weight)) == mass_number:
             isotope = isotope.element  # prefer element over isotope
-        atoms_n = 1 if element.atoms_n == EMPTY_INT else element.atoms_n.value
+        atoms_n = 1 if element.atoms_n == EMPTY_INT else int(round(element.atoms_n))
         for _ in range(atoms_n):
-            elements.append(isotope)
+            elements_list.append(isotope)
 
-    return elements
+    return elements_list
