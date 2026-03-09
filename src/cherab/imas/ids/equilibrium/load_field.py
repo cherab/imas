@@ -67,6 +67,8 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> MagneticField2DData
     RuntimeError
         If unable to read the magnetic field due to unsupported grid type or
         mismatched array shapes.
+    RuntimeError
+        If the toroidal component of the magnetic field is not found in the IDS structure.
     """
     rectangular_grid = False
     for prof2d in profiles_2d:
@@ -85,8 +87,18 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> MagneticField2DData
     shape = (r.size, z.size)
 
     b_field_r = np.asarray_chkfinite(prof2d.b_field_r)
-    b_field_phi = np.asarray_chkfinite(prof2d.b_field_phi)
     b_field_z = np.asarray_chkfinite(prof2d.b_field_z)
+
+    # TODO: Remove fallback to `b_field_tor` after confirming that all relevant IDS structures have `b_field_phi`
+    if hasattr(prof2d, "b_field_phi"):
+        b_field_phi = np.asarray_chkfinite(prof2d.b_field_phi)
+    elif hasattr(prof2d, "b_field_tor"):
+        b_field_phi = np.asarray_chkfinite(prof2d.b_field_tor)
+    else:
+        raise RuntimeError(
+            "Unable to read magnetic field: "
+            + "toroidal component of the magnetic field is not found in the IDS structure."
+        )
 
     if b_field_r.shape != shape or b_field_phi.shape != shape or b_field_z.shape != shape:
         raise RuntimeError(
