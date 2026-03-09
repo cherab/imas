@@ -18,8 +18,10 @@
 """Module for loading core plasma profiles from the core_profiles IDS."""
 
 from collections.abc import Callable
+from dataclasses import dataclass
 
 import numpy as np
+from numpy.typing import NDArray
 from raysect.core.math import Vector3D, translate
 from raysect.core.math.function.float import Function2D, Function3D, Interpolator1DArray
 from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
@@ -28,18 +30,31 @@ from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
-from cherab.core import Maxwellian, Plasma, Species
+from cherab.core import AtomicData, Maxwellian, Plasma, Species
 from cherab.core.math import VectorAxisymmetricMapper
-from cherab.core.utility import RecursiveDict
+from cherab.imas.ids.core_profiles.load_profiles import ProfileData
 from cherab.tools.equilibrium import EFITEquilibrium
 from imas import DBEntry
 
 from ..ids.common import get_ids_time_slice
 from ..ids.core_profiles import load_core_grid, load_core_species
+from ._model import solve_coronal_equilibrium
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import warn_unsupported_species
 
-__all__ = ["load_core_plasma"]
+__all__ = ["ProfileInterporater", "load_core_plasma"]
+
+
+@dataclass
+class ProfileInterporater:
+    """Dataclass to hold the interpolators for core profiles."""
+
+    density: Function2D | Function3D | None = None
+    """Interpolating function for the density profile. Prefer ``density_thermal`` if available."""
+    density_thermal: Function2D | Function3D | None = None
+    """Interpolating function for the thermal density profile."""
+    temperature: Function2D | Function3D | None = None
+    """Interpolating function for the temperature profile."""
 
 
 def load_core_plasma(
@@ -50,12 +65,21 @@ def load_core_plasma(
     b_field: VectorFunction2D | None = None,
     psi_interpolator: Callable[[float], float] | None = None,
     time_threshold: float = np.inf,
+    atomic_data: AtomicData | None = None,
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
     """Load core profiles and Create a `~cherab.core.plasma.node.Plasma` object.
 
     Prefer ``density_thermal`` over ``density`` profile.
+
+    The distribution of each species is defined with `~cherab.core.distribution.Maxwellian`
+    using its density and temperature profiles, which are mapped to 3D using the provided `equilibrium`.
+
+    The plasma geometry is defined as a cylindrical annulus between the inner and outer radii of the
+    equilibrium, and between the minimum and maximum z values of the equilibrium.
+
+    The ion bundle species are split into their constituent charge states using `.solve_coronal_equilibrium`.
 
     Parameters
     ----------
@@ -82,6 +106,9 @@ def load_core_plasma(
     time_threshold
         Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
+    atomic_data
+        Atomic data provider class for this plasma, by default None.
+        If None, some species (e.g. ion_bundle) may not be properly loaded.
     parent
         Parent node in the Raysect scene graph, by default None.
         Typically a `~raysect.optical.scenegraph.world.World` instance.
@@ -101,6 +128,13 @@ def load_core_plasma(
         If the ``equilibrium`` argument is not an `~cherab.tools.equilibrium.efit.EFITEquilibrium`
         instance when provided.
     """
+    # ---------------------------------------------------------
+    # === Load core profiles and equilibrium data from IMAS ===
+    # ---------------------------------------------------------
+    # Load required data from the core_profiles IDS and form the core grid and species composition
+    # data structures.
+
+    # Load core_profiles IDS
     with DBEntry(*args, **kwargs) as entry:
         core_profiles_ids = get_ids_time_slice(
             entry, "core_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -109,6 +143,7 @@ def load_core_plasma(
     if not len(core_profiles_ids.profiles_1d):
         raise RuntimeError("The profiles_1d AOS in core_profiles IDS is empty.")
 
+    # Load equilibrium and magnetic field data
     if equilibrium is None:
         equilibrium, psi_interp = load_equilibrium(
             *args, time=time, occurrence=occurrence, with_psi_interpolator=True, **kwargs
@@ -124,101 +159,176 @@ def load_core_plasma(
         except RuntimeError:
             b_field = equilibrium.b_field
 
+    # Create core grid
     core_grid = load_core_grid(core_profiles_ids.profiles_1d[0].grid)
 
-    composition = load_core_species(core_profiles_ids.profiles_1d[0])
-
     psi_norm = get_psi_norm(
-        core_grid["psi"],
+        core_grid.psi,
         equilibrium.psi_axis,
         equilibrium.psi_lcfs,
-        core_grid["rho_tor_norm"],
+        core_grid.rho_tor_norm,
         psi_interpolator,
     )
 
+    # Load species composition
+    composition = load_core_species(core_profiles_ids.profiles_1d[0])
+
+    if composition.electron.density_thermal is not None:
+        composition.electron.density = composition.electron.density_thermal
+
+    if composition.electron is None:
+        raise RuntimeError("Electron profile is missing in the core_profiles IDS.")
+    if composition.electron.density is None:
+        raise RuntimeError("Electron density profile is missing in the core_profiles IDS.")
+    if composition.electron.temperature is None:
+        raise RuntimeError("Electron temperature profile is missing in the core_profiles IDS.")
+
+    # ------------------------------
+    # === Create plasma geometry ===
+    # ------------------------------
     name = f"IMAS core plasma: time {core_profiles_ids.time[0]}, uri {entry.uri}."
     plasma = Plasma(parent=parent, name=name)
-
-    # Create plasma geometry
     radius_inner, radius_outer = equilibrium.r_range
     zmin, zmax = equilibrium.z_range
     height = zmax - zmin
     plasma.geometry = Subtract(Cylinder(radius_outer, height), Cylinder(radius_inner, height))
     plasma.geometry_transform = translate(0, 0, zmin)
 
+    # Add magnetic field
     plasma.b_field = VectorAxisymmetricMapper(b_field)
 
-    # Add electron species
-    electrons = get_core_interpolators(
-        psi_norm, composition["electron"], equilibrium, return3d=True
+    # Add atomic data
+    if atomic_data is not None:
+        plasma.atomic_data = atomic_data
+
+    # ------------------------------------
+    # === Define Electron Distribution ===
+    # ------------------------------------
+    interp_electron = get_core_interpolators(
+        psi_norm, composition.electron, equilibrium, return3d=True
     )
-    if electrons["density_thermal"] is not None:
-        electrons["density"] = electrons["density_thermal"]
 
-    if electrons["density"] is None:
-        print("Unable to create Core Plasma: electron density is not available.")
-    if electrons["temperature"] is None:
-        print("Unable to create Core Plasma: electron temperature is not available.")
-
+    # TODO: properly support non-Maxwellian species distributions.
     zero_velocity = ConstantVector3D(Vector3D(0, 0, 0))
 
     plasma.electron_distribution = Maxwellian(
-        electrons["density"], electrons["temperature"], zero_velocity, electron_mass
+        interp_electron.density, interp_electron.temperature, zero_velocity, electron_mass
     )
 
-    warn_unsupported_species(composition, "molecule")
-    warn_unsupported_species(composition, "molecular_bundle")
-    warn_unsupported_species(composition, "ion_bundle")
+    # -----------------------------------------------
+    # === Define Species Distribution/Composition ===
+    # -----------------------------------------------
 
-    # Add ion and neutral species
-    for species_id, profiles in composition["ion"].items():
-        d = {first: second for first, second in species_id}
-        species_type = d["element"]
-        charge = int(round(d["z"]))
-
-        sp_key = (species_type, charge)
-        if sp_key in plasma.composition:
-            print(
-                f"Warning! Skipping {d['name']} species. "
-                + f"Species with the same (element, charge): {sp_key} is already added."
-            )
+    # === Ion/Neutral Species ===
+    for profile in composition.ion + composition.neutral:
+        if profile.species is None:
+            print(f"Warning! Skipping species with missing element or charge: {profile}")
+            continue
+        if profile.species.element is None:
+            print(f"Warning! Skipping species with missing element: {profile}")
+            continue
+        if profile.density_thermal is not None:
+            profile.density = profile.density_thermal
+        if profile.density is None:
+            print(f"Warning! Skipping {profile.species}: density profile is missing.")
+            continue
+        if profile.temperature is None:
+            print(f"Warning! Skipping {profile.species}: temperature profile is missing.")
             continue
 
-        interp = get_core_interpolators(psi_norm, profiles, equilibrium, return3d=True)
-        if interp["density_thermal"] is not None:
-            interp["density"] = interp["density_thermal"]
+        element = profile.species.element
+        charge = profile.species.z_min
 
-        if interp["density"] is None:
-            print(f"Warning! Skipping {d['name']} species: density is not available.")
-        if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
+        try:
+            species = plasma.composition.get(element, int(charge))
+            print(f"Warning! Skipping {species}: already defined")
+            continue
+        except ValueError:
+            pass
+
+        interp = get_core_interpolators(psi_norm, profile, equilibrium, return3d=True)
 
         distribution = Maxwellian(
-            interp["density"],
-            interp["temperature"],
+            interp.density,
+            interp.temperature,
             zero_velocity,
-            species_type.atomic_weight * atomic_mass,
+            element.atomic_weight * atomic_mass,
         )
 
-        plasma.composition.add(Species(species_type, charge, distribution))
+        plasma.composition.add(Species(element, int(charge), distribution))
+
+    # === Ion Bundles ===
+    for profile in composition.ion_bundle:
+        if profile.species is None:
+            print(f"Warning! Skipping species with missing element or charge: {profile}")
+            continue
+        if profile.species.element is None:
+            print(f"Warning! Skipping species with missing element: {profile}")
+            continue
+        if profile.density_thermal is not None:
+            profile.density = profile.density_thermal
+        if profile.density is None:
+            print(f"Warning! Skipping {profile.species}: density profile is missing.")
+            continue
+
+        element = profile.species.element
+
+        # Split the ion bundle into its constituent charge states using the coronal equilibrium solver
+        z_min, z_max = profile.species.z_min, profile.species.z_max
+        densities_per_charge = solve_coronal_equilibrium(
+            element,
+            profile.density,
+            composition.electron.density,
+            composition.electron.temperature,
+            atomic_data=atomic_data,
+            z_min=z_min,
+            z_max=z_max,
+        )
+        charge_states = np.arange(int(z_min), int(z_max) + 1, dtype=int)
+        for i_charge, charge in enumerate(charge_states):
+            # Check if any of the constituent charge states are already defined
+            try:
+                species = plasma.composition.get(element, charge)
+                print(f"Warning! Skipping {species}: already defined")
+                continue
+            except ValueError:
+                pass
+
+            profile.density = densities_per_charge[i_charge, :]
+            interp = get_core_interpolators(psi_norm, profile, equilibrium, return3d=True)
+
+            distribution = Maxwellian(
+                interp.density,
+                interp.temperature,
+                zero_velocity,
+                element.atomic_weight * atomic_mass,
+            )
+
+            plasma.composition.add(Species(element, int(charge), distribution))
+
+    # === Molecular Species ===
+    # TODO: properly support molecular species when loading from the core_profiles IDS.
+    # For now, just issue a warning if any molecule or molecular_bundle species are present in the composition.
+    warn_unsupported_species(composition, "molecule")
+    warn_unsupported_species(composition, "molecular_bundle")
 
     return plasma
 
 
 def get_core_interpolators(
-    psi_norm: np.ndarray,
-    profiles: dict,
+    psi_norm: NDArray[np.float64],
+    profile: ProfileData,
     equilibrium: EFITEquilibrium,
     return3d: bool = False,
-) -> dict[str, Function3D | Function2D | None]:
+) -> ProfileInterporater:
     """Create interpolators for the core profiles.
 
     Parameters
     ----------
     psi_norm
         Normalized poloidal flux values.
-    profiles
-       Dictionary with core plasma profiles.
+    profile
+        Instance of the `ProfileData` dataclass containing core plasma profiles.
     equilibrium
         `EFITEquilibrium` object used to map core profiles.
     return3d
@@ -226,8 +336,8 @@ def get_core_interpolators(
 
     Returns
     -------
-    dict[str, Function3D | Function2D | None]
-       Dictionary with core interpolators.
+    `.ProfileInterporater`
+        Instance of the `ProfileInterporater` dataclass containing the interpolators for density and temperature.
 
     Raises
     ------
@@ -240,30 +350,31 @@ def get_core_interpolators(
 
     psi_norm, index = np.unique(psi_norm, return_index=True)
 
-    interpolators = RecursiveDict()
+    interpolators = ProfileInterporater()
 
-    for prof_key, profile in profiles.items():
-        if profile is not None:
+    for prof_key in profile.__dataclass_fields__:
+        data_1d = getattr(profile, prof_key, None)
+        if isinstance(data_1d, np.ndarray) and data_1d.size > 0:
             extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
             func = Interpolator1DArray(
-                psi_norm, profile[index], "cubic", "nearest", extrapolation_range
+                psi_norm, data_1d[index], "cubic", "nearest", extrapolation_range
             )
-            interpolators[prof_key] = (
-                equilibrium.map3d(func) if return3d else equilibrium.map2d(func)
+            setattr(
+                interpolators,
+                prof_key,
+                equilibrium.map3d(func) if return3d else equilibrium.map2d(func),
             )
-        else:
-            interpolators[prof_key] = None
 
-    return interpolators.freeze()
+    return interpolators
 
 
 def get_psi_norm(
-    psi: np.ndarray | None,
+    psi: NDArray[np.float64] | None,
     psi_axis: float,
     psi_lcfs: float,
-    rho_tor_norm: np.ndarray | None,
+    rho_tor_norm: NDArray[np.float64] | None,
     psi_interpolator: Callable[[float], float] | None,
-) -> np.ndarray:
+) -> NDArray[np.float64]:
     """Calculate normalized poloidal flux.
 
     Parameters
@@ -282,7 +393,7 @@ def get_psi_norm(
 
     Returns
     -------
-    ndarray
+    `NDArray[np.float64]`
         Normalized poloidal flux values.
 
     Raises
