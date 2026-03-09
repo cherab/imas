@@ -17,28 +17,35 @@
 # under the Licence.
 """Module for utility to load profiles."""
 
+from typing import Literal
+
+from ..ids.common.species import SpeciesComposition
+
 __all__ = ["warn_unsupported_species", "get_subset_name_index"]
 
 
-def warn_unsupported_species(composition: dict[str, dict], species_type: str) -> None:
+def warn_unsupported_species(
+    composition: SpeciesComposition,
+    species_type: Literal["ion_bundle", "molecule", "molecular_bundle"],
+) -> None:
     """Warn if species of a given type are present in the composition dictionary.
 
     Parameters
     ----------
     composition
-        Dictionary with species composition.
+        Instance of the `.SpeciesComposition` dataclass
     species_type
-        Type of species to check for (e.g., 'ion_bundle', 'molecular_bundle').
+        Type of species to check for (e.g., 'ion_bundle', 'molecule', 'molecular_bundle').
     """
-    if species_type in composition and len(composition[species_type]):
+    if hasattr(composition, species_type) and len(getattr(composition, species_type)) > 0:
         print(
             f"Warning! Species of type '{species_type}' are currently not supported. "
             + "The following species will be skipped:"
         )
-        names = []
-        for species_id in composition[species_type]:
-            d = {first: second for first, second in species_id}
-            names.append(d["name"])
+        names: list[str] = []
+        for profile_data in getattr(composition, species_type):
+            name = profile_data.species.element.name
+            names.append(name)
         print("; ".join(names))
 
 
