@@ -18,13 +18,11 @@
 """Module for loading core plasma profiles from the core_profiles IDS."""
 
 from collections.abc import Callable
-from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
-from raysect.core.math import Vector3D, translate
-from raysect.core.math.function.float import Function2D, Function3D, Interpolator1DArray
-from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
+from raysect.core.math import translate
+from raysect.core.math.function.float import Interpolator1DArray
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
 from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
@@ -40,21 +38,9 @@ from ..ids.common import get_ids_time_slice
 from ..ids.core_profiles import load_core_grid, load_core_species
 from ._model import solve_coronal_equilibrium
 from .equilibrium import load_equilibrium, load_magnetic_field
-from .utility import warn_unsupported_species
+from .utility import ZERO_VELOCITY, ProfileInterporater, warn_unsupported_species
 
-__all__ = ["ProfileInterporater", "load_core_plasma"]
-
-
-@dataclass
-class ProfileInterporater:
-    """Dataclass to hold the interpolators for core profiles."""
-
-    density: Function2D | Function3D | None = None
-    """Interpolating function for the density profile. Prefer ``density_thermal`` if available."""
-    density_thermal: Function2D | Function3D | None = None
-    """Interpolating function for the thermal density profile."""
-    temperature: Function2D | Function3D | None = None
-    """Interpolating function for the temperature profile."""
+__all__ = ["load_core_plasma"]
 
 
 def load_core_plasma(
@@ -73,8 +59,8 @@ def load_core_plasma(
 
     Prefer ``density_thermal`` over ``density`` profile.
 
-    The distribution of each species is defined with `~cherab.core.distribution.Maxwellian`
-    using its density and temperature profiles, which are mapped to 3D using the provided `equilibrium`.
+    The distribution of each species is defined with `~cherab.core.distribution.Maxwellian` using
+    its density and temperature profiles, which are mapped to 3D using the provided `equilibrium`.
 
     The plasma geometry is defined as a cylindrical annulus between the inner and outer radii of the
     equilibrium, and between the minimum and maximum z values of the equilibrium.
@@ -133,8 +119,6 @@ def load_core_plasma(
     # ---------------------------------------------------------
     # Load required data from the core_profiles IDS and form the core grid and species composition
     # data structures.
-
-    # Load core_profiles IDS
     with DBEntry(*args, **kwargs) as entry:
         core_profiles_ids = get_ids_time_slice(
             entry, "core_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -173,16 +157,6 @@ def load_core_plasma(
     # Load species composition
     composition = load_core_species(core_profiles_ids.profiles_1d[0])
 
-    if composition.electron.density_thermal is not None:
-        composition.electron.density = composition.electron.density_thermal
-
-    if composition.electron is None:
-        raise RuntimeError("Electron profile is missing in the core_profiles IDS.")
-    if composition.electron.density is None:
-        raise RuntimeError("Electron density profile is missing in the core_profiles IDS.")
-    if composition.electron.temperature is None:
-        raise RuntimeError("Electron temperature profile is missing in the core_profiles IDS.")
-
     # ------------------------------
     # === Create plasma geometry ===
     # ------------------------------
@@ -204,15 +178,23 @@ def load_core_plasma(
     # ------------------------------------
     # === Define Electron Distribution ===
     # ------------------------------------
-    interp_electron = get_core_interpolators(
-        psi_norm, composition.electron, equilibrium, return3d=True
-    )
+    if composition.electron.density_thermal is not None:
+        composition.electron.density = composition.electron.density_thermal
 
-    # TODO: properly support non-Maxwellian species distributions.
-    zero_velocity = ConstantVector3D(Vector3D(0, 0, 0))
+    if composition.electron is None:
+        raise RuntimeError("Electron profile is missing in the core_profiles IDS.")
+    if composition.electron.density is None:
+        raise RuntimeError("Electron density profile is missing in the core_profiles IDS.")
+    if composition.electron.temperature is None:
+        raise RuntimeError("Electron temperature profile is missing in the core_profiles IDS.")
+
+    interp = get_core_interpolators(psi_norm, composition.electron, equilibrium, return3d=True)
 
     plasma.electron_distribution = Maxwellian(
-        interp_electron.density, interp_electron.temperature, zero_velocity, electron_mass
+        interp.density,
+        interp.temperature,
+        interp.velocity or ZERO_VELOCITY,
+        electron_mass,
     )
 
     # -----------------------------------------------
@@ -251,7 +233,7 @@ def load_core_plasma(
         distribution = Maxwellian(
             interp.density,
             interp.temperature,
-            zero_velocity,
+            interp.velocity or ZERO_VELOCITY,
             element.atomic_weight * atomic_mass,
         )
 
@@ -300,14 +282,14 @@ def load_core_plasma(
             distribution = Maxwellian(
                 interp.density,
                 interp.temperature,
-                zero_velocity,
+                interp.velocity or ZERO_VELOCITY,
                 element.atomic_weight * atomic_mass,
             )
 
             plasma.composition.add(Species(element, int(charge), distribution))
 
     # === Molecular Species ===
-    # TODO: properly support molecular species when loading from the core_profiles IDS.
+    # TODO: properly support molecular species.
     # For now, just issue a warning if any molecule or molecular_bundle species are present in the composition.
     warn_unsupported_species(composition, "molecule")
     warn_unsupported_species(composition, "molecular_bundle")
@@ -353,6 +335,8 @@ def get_core_interpolators(
     interpolators = ProfileInterporater()
 
     for prof_key in profile.__dataclass_fields__:
+        if prof_key in {"species", "velocity"}:
+            continue
         data_1d = getattr(profile, prof_key, None)
         if isinstance(data_1d, np.ndarray) and data_1d.size > 0:
             extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
@@ -364,6 +348,9 @@ def get_core_interpolators(
                 prof_key,
                 equilibrium.map3d(func) if return3d else equilibrium.map2d(func),
             )
+
+    if profile.velocity is not None:
+        pass  # TODO: handle velocity profile
 
     return interpolators
 
