@@ -84,8 +84,26 @@ class SpeciesData:
 
 
 @dataclass
+class VelocityData:
+    """Dataclass for storing the bulk velocity data of a species."""
+
+    radial: NDArray[np.float64] | None = None
+    """Radial velocity [m/s]."""
+    parallel: NDArray[np.float64] | None = None
+    """Parallel velocity [m/s]."""
+    poloidal: NDArray[np.float64] | None = None
+    """Poloidal velocity [m/s]."""
+    r: NDArray[np.float64] | None = None
+    """Radial velocity along the major radius axis [m/s]."""
+    phi: NDArray[np.float64] | None = None
+    """Toroidal velocity [m/s]."""
+    z: NDArray[np.float64] | None = None
+    """Vertical velocity along the height axis [m/s]."""
+
+
+@dataclass
 class ProfileData:
-    """Dataclass for storing core profile data for a single species."""
+    """Dataclass for storing the profile data of a species."""
 
     species: SpeciesData | None = None
     """Data of the species."""
@@ -97,6 +115,8 @@ class ProfileData:
     """Density of fast (non-thermal) particles [m^-3]."""
     temperature: NDArray[np.float64] | None = None
     """Temperature [eV]."""
+    velocity: VelocityData | None = None
+    """Bulk velocity data of the species."""
 
 
 @dataclass
