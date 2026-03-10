@@ -9,7 +9,7 @@ registry = {
 # dataset method mapping with their associated filenames
 # <method_name> : ["filename1", "filename2", ...]
 method_files_map = {
-    "iter_jintrac": ["iter_scenario_53298_seq1_DD4.nc"],
+    "iter_jintrac": ["iter_scenario_53298_seq1_DD4.nc", "iter_scenario_53298_seq1_DD4_mod.nc"],
     "iter_solps": ["iter_scenario_123364_1.nc"],
     "iter_jorek": ["iter_disruption_113112_1.nc"],
 }

@@ -1,6 +1,9 @@
 """Provide functionality to fetch IMAS sample datasets."""
 
+from pathlib import Path
+
 from ...imas import __version__
+from ._patch import fix_jintract
 from ._registry import registry
 
 try:
@@ -60,7 +63,16 @@ def iter_jintrac() -> str:
     >>> data_path
     '.../cherab/imas/iter_jintrac/iter_scenario_53298_seq1_DD4.nc'
     """
-    return fetch_data("iter_scenario_53298_seq1_DD4.nc")
+    path = fetch_data("iter_scenario_53298_seq1_DD4.nc")
+
+    # NOTE: Apply patch to fix datasets
+    path_in = Path(path)
+    path_out = path_in.parent / f"{path_in.stem}_mod.{path_in.suffix}"
+    if not path_out.exists():
+        fix_jintract(path, str(path_out))
+    path = str(path_out)
+
+    return path
 
 
 def iter_solps() -> str:
