@@ -187,11 +187,11 @@ def load_edge_plasma(
         composition.electron.density = composition.electron.density_thermal
 
     if composition.electron is None:
-        raise RuntimeError("Electron profile is missing in the core_profiles IDS.")
+        raise RuntimeError("Electron profile is missing in the edge_profiles IDS.")
     if composition.electron.density is None:
-        raise RuntimeError("Electron density profile is missing in the core_profiles IDS.")
+        raise RuntimeError("Electron density profile is missing in the edge_profiles IDS.")
     if composition.electron.temperature is None:
-        raise RuntimeError("Electron temperature profile is missing in the core_profiles IDS.")
+        raise RuntimeError("Electron temperature profile is missing in the edge_profiles IDS.")
 
     interp = get_edge_interpolators(grid, composition.electron, b_field, return3d=True)
 
