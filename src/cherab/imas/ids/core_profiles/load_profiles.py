@@ -101,8 +101,6 @@ def load_core_profiles(
 ) -> ProfileData:
     """Load core profiles from a given species structure.
 
-    The returned dictionary values for missing profiles are None.
-
     Parameters
     ----------
     species_struct
