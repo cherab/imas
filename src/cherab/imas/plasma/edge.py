@@ -352,14 +352,6 @@ def get_edge_interpolators(
 def _get_velocity_interpolators(
     grid: GGDGrid, v: VelocityData, b_field: VectorFunction2D | None = None
 ):
-    # Note: np.all(None == 0) returns False
-    # vrad = None if np.all(profiles["velocity_radial"] == 0) else profiles["velocity_radial"]
-    # vpol = None if np.all(profiles["velocity_poloidal"] == 0) else profiles["velocity_poloidal"]
-    # vpar = None if np.all(profiles["velocity_parallel"] == 0) else profiles["velocity_parallel"]
-    # vtor = None if np.all(profiles["velocity_phi"] == 0) else profiles["velocity_phi"]
-    # vr = None if np.all(profiles["velocity_r"] == 0) else profiles["velocity_r"]
-    # vz = None if np.all(profiles["velocity_z"] == 0) else profiles["velocity_z"]
-
     if b_field is None:
         return _get_cylindrical_velocity_interpolators(grid, v.r, v.z, v.phi)
 
