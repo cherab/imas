@@ -135,7 +135,7 @@ def load_core_plasma(
         psi_interpolator = psi_interpolator or psi_interp
 
     if not isinstance(equilibrium, EFITEquilibrium):
-        raise ValueError("Argiment equilibrium must be a EFITEquilibrium instance.")
+        raise ValueError("Argument equilibrium must be a EFITEquilibrium instance.")
 
     if b_field is None:
         try:
