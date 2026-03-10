@@ -20,18 +20,17 @@
 from collections.abc import Callable
 
 import numpy as np
-from raysect.core.math import Vector3D, translate
+from raysect.core.math import translate
 from raysect.core.math.function.float import Blend2D, Blend3D, Function2D, Function3D
 from raysect.core.math.function.vector3d import Blend2D as VectorBlend2D
 from raysect.core.math.function.vector3d import Blend3D as VectorBlend3D
-from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
 from raysect.core.math.function.vector3d import Function3D as VectorFunction3D
 from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
-from cherab.core import Maxwellian, Plasma, Species
+from cherab.core import AtomicData, Maxwellian, Plasma, Species
 from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
 from cherab.tools.equilibrium import EFITEquilibrium
 from imas import DBEntry
@@ -39,12 +38,19 @@ from imas.ids_structure import IDSStructure
 
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
+from ..ids.common.species import ProfileData, SpeciesData, SpeciesType
 from ..ids.core_profiles import load_core_grid, load_core_species
 from ..ids.edge_profiles import load_edge_species
+from ._model import solve_coronal_equilibrium
 from .core import get_core_interpolators, get_psi_norm, load_core_plasma
 from .edge import get_edge_interpolators, load_edge_plasma
 from .equilibrium import load_equilibrium, load_magnetic_field
-from .utility import get_subset_name_index, warn_unsupported_species
+from .utility import (
+    ZERO_VELOCITY,
+    ProfileInterporater,
+    get_subset_name_index,
+    warn_unsupported_species,
+)
 
 __all__ = ["load_plasma"]
 
@@ -64,6 +70,7 @@ def load_plasma(
     psi_interpolator: Callable[[float], float] | None = None,
     mask: Function2D | Function3D | None = None,
     time_threshold: float = np.inf,
+    atomic_data: AtomicData | None = None,
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
@@ -74,6 +81,11 @@ def load_plasma(
 
     To load the edge plasma from a different IMAS entry, use `edge_args` and `edge_kwargs`
     to pass different arguments to the `~imas.db_entry.DBEntry` constructor.
+
+    The distribution of each species is defined with `~cherab.core.distribution.Maxwellian` using
+    its density and temperature profiles, which are mapped to 3D using the provided `equilibrium`.
+
+    The ion bundle species are split into their constituent charge states using `.solve_coronal_equilibrium`.
 
     Parameters
     ----------
@@ -114,6 +126,9 @@ def load_plasma(
     time_threshold
         Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
+    atomic_data
+        Atomic data provider class for this plasma, by default None.
+        If None, some species (e.g. ion_bundle) may not be properly loaded.
     parent
         Parent node in the Raysect scene graph, by default None.
         Typically a `~raysect.optical.scenegraph.world.World` instance.
@@ -128,13 +143,26 @@ def load_plasma(
     Raises
     ------
     RuntimeError
-        If neither core nor edge profiles are available.
+        If neither core nor edge profiles are available in the IMAS entry.
+    ValueError
+        If the provided equilibrium is not an instance of `~cherab.tools.equilibrium.efit.EFITEquilibrium`.
+    RuntimeError
+        If there are issues with the core or edge profiles (e.g. missing electron profile,
+        missing density or temperature profiles, empty grids, etc.) that prevent the plasma from
+        being created.
     """
+    # -----------------------------------------
+    # === Load core/edge profiles from IMAS ===
+    # -----------------------------------------
+    # The core and edge profiles are loaded separately to allow for the case where one of them is missing.
+    # If the edge profiles are missing, the core plasma is still created and returned, and vice versa.
+
     edge_args = edge_args or args
     edge_kwargs = edge_kwargs or kwargs
     if time_edge is None:
         time_edge = time
 
+    # === Core profiles IDS ===
     try:
         with DBEntry(*args, **kwargs) as entry_core:
             core_profiles_ids = get_ids_time_slice(
@@ -153,10 +181,12 @@ def load_plasma(
             grid_subset_id=grid_subset_id,
             b_field=b_field,
             time_threshold=time_threshold,
+            atomic_data=atomic_data,
             parent=parent,
             **edge_kwargs,
         )
 
+    # === Edge profiles IDS ===
     try:
         with DBEntry(*edge_args, **edge_kwargs) as entry_edge:
             edge_profiles_ids = get_ids_time_slice(
@@ -176,6 +206,7 @@ def load_plasma(
             psi_interpolator=psi_interpolator,
             time_threshold=time_threshold,
             parent=parent,
+            atomic_data=atomic_data,
             **kwargs,
         )
 
@@ -191,12 +222,15 @@ def load_plasma(
     if not len(edge_profiles_ids.ggd):
         raise RuntimeError("The 'ggd' AOS of the edge_profiles IDS is empty.")
 
-    # Getting equilibrium and magnetic field
+    # Load equilibrium and magnetic field data
     if equilibrium is None:
         equilibrium, psi_interp = load_equilibrium(
             *args, time=time, with_psi_interpolator=True, **kwargs
         )
         psi_interpolator = psi_interpolator or psi_interp
+
+    if not isinstance(equilibrium, EFITEquilibrium):
+        raise ValueError("Argument equilibrium must be a EFITEquilibrium instance.")
 
     if b_field is None:
         try:
@@ -204,22 +238,23 @@ def load_plasma(
         except RuntimeError:
             b_field = equilibrium.b_field
 
+    # If no mask is provided, use the inside_lcfs function of the equilibrium as the default mask.
     mask = mask or equilibrium.inside_lcfs
 
-    # Getting core data
+    # === Core grid, composition and psi_norm ===
     core_grid = load_core_grid(core_profiles_ids.profiles_1d[0].grid)
 
     composition_core = load_core_species(core_profiles_ids.profiles_1d[0])
 
     psi_norm = get_psi_norm(
-        core_grid["psi"],
+        core_grid.psi,
         equilibrium.psi_axis,
         equilibrium.psi_lcfs,
-        core_grid["rho_tor_norm"],
+        core_grid.rho_tor_norm,
         psi_interpolator,
     )
 
-    # Getting edge data
+    # === Edge grid and composition ===
     grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
     grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
 
@@ -233,11 +268,13 @@ def load_plasma(
         edge_profiles_ids.ggd[0], grid_subset_index=grid_subset_index
     )
 
-    # Creating plasma
-    tcore = core_profiles_ids.time[0]
-    tedge = edge_profiles_ids.time[0]
+    # ----------------------------
+    # === Create Plasma object ===
+    # ----------------------------
+    time_core = core_profiles_ids.time[0]
+    time_edge = edge_profiles_ids.time[0]
     name = (
-        f"IMAS core + edge plasma: core/edge time {tcore}/{tedge}, "
+        f"IMAS core + edge plasma: core/edge time {time_core}/{time_edge}, "
         f"uri {entry_core.uri} / {entry_edge.uri}."
     )
     plasma = Plasma(parent=parent, name=name)
@@ -250,152 +287,295 @@ def load_plasma(
     plasma.geometry = Subtract(Cylinder(radius_outer, height), Cylinder(radius_inner, height))
     plasma.geometry_transform = translate(0, 0, zmin)
 
+    # Add magnetic field
     plasma.b_field = VectorAxisymmetricMapper(b_field)
 
-    # Add electron species
-    electrons_core = get_core_interpolators(
-        psi_norm, composition_core["electron"], equilibrium, return3d=False
+    # Add atomic data
+    if atomic_data is not None:
+        plasma.atomic_data = atomic_data
+
+    # ------------------------------------
+    # === Define Electron Distribution ===
+    # ------------------------------------
+    for composition, ids_name in [
+        (composition_core, "core_profiles"),
+        (composition_edge, "edge_profiles"),
+    ]:
+        if composition.electron.density_thermal is not None:
+            composition.electron.density = composition.electron.density_thermal
+
+        if composition.electron is None:
+            raise RuntimeError(f"Electron profile is missing in the {ids_name} IDS.")
+        if composition.electron.density is None:
+            raise RuntimeError(f"Electron density profile is missing in the {ids_name} IDS.")
+        if composition.electron.temperature is None:
+            raise RuntimeError(f"Electron temperature profile is missing in the {ids_name} IDS.")
+
+    interp_edge = get_edge_interpolators(grid, composition_edge.electron, b_field, return3d=True)
+    interp_core = get_core_interpolators(
+        psi_norm,
+        composition_core.electron,
+        equilibrium,
+        return3d=True,
     )
-    if electrons_core["density_thermal"] is not None:
-        electrons_core["density"] = electrons_core["density_thermal"]
 
-    electrons_edge = get_edge_interpolators(
-        grid, composition_edge["electron"], b_field, return3d=False
-    )
-
-    electrons = blend_core_edge_interpolators(electrons_core, electrons_edge, mask, return3d=True)
-
-    if electrons["density"] is None:
-        print("Unable to create Core Plasma: electron density is not available.")
-    if electrons["temperature"] is None:
-        print("Unable to create Core Plasma: electron temperature is not available.")
+    interp = blend_core_edge_interpolators(interp_core, interp_edge, mask, return3d=True)
 
     plasma.electron_distribution = Maxwellian(
-        electrons["density"], electrons["temperature"], electrons["velocity"], electron_mass
+        interp.density,
+        interp.temperature,
+        interp.velocity or ZERO_VELOCITY,
+        electron_mass,
     )
 
-    warn_unsupported_species(composition_core, "molecule")
-    warn_unsupported_species(composition_edge, "molecule")
-    warn_unsupported_species(composition_core, "molecular_bundle")
-    warn_unsupported_species(composition_edge, "molecular_bundle")
-    warn_unsupported_species(composition_core, "ion_bundle")
-    warn_unsupported_species(composition_edge, "ion_bundle")
+    # -----------------------------------------------
+    # === Define Species Distribution/Composition ===
+    # -----------------------------------------------
 
-    # -----------------------------------
-    # === Add ion & neutral species ===
-    # -----------------------------------
-    # List core species
-    core_species = {}
-    for species_id, profiles in composition_core["ion"].items():
-        d = {first: second for first, second in species_id}
-        sp_key = (d["element"], int(round(d["z"])))
-        if sp_key in core_species:
-            print(
-                f"Warning! Skipping {d['name']} core species. "
-                + f"Species with the same (element, charge): {sp_key} is already added."
-            )
-            continue
-        if profiles["density_thermal"] is not None:
-            profiles["density"] = profiles["density_thermal"]
-        core_species[sp_key] = profiles
+    # === Ion/Neutral Species ===
 
-    # List edge species
-    edge_species = {}
-    for species_id, profiles in composition_edge["ion"].items():
-        d = {first: second for first, second in species_id}
-        sp_key = (d["element"], int(round(d["z"])))
-        if sp_key in edge_species:
-            print(
-                f"Warning! Skipping {d['name']} edge species. "
-                + f"Species with the same (element, charge): {sp_key} is already added."
-            )
-            continue
-        edge_species[sp_key] = profiles
+    # Validate and prepare the core and edge species profiles
+    species_core = {}
+    species_edge = {}
+    for composition, space in [
+        (composition_core, "core"),
+        (composition_edge, "edge"),
+    ]:
+        for profile in composition.ion + composition.neutral:
+            if profile.species is None:
+                print(
+                    f"Warning! Skipping {space} species with missing element or charge: {profile}"
+                )
+                continue
+            if profile.species.element is None:
+                print(f"Warning! Skipping {space} species with missing element: {profile}")
+                continue
+            if profile.density_thermal is not None:
+                profile.density = profile.density_thermal
+            if profile.density is None:
+                print(f"Warning! Skipping {space} {profile.species}: density profile is missing.")
+                continue
+            if profile.temperature is None:
+                print(
+                    f"Warning! Skipping {space} {profile.species}: temperature profile is missing."
+                )
+                continue
 
+            element = profile.species.element
+            charge = profile.species.z_min
+
+            # Store the profile temporarily
+            sp_key = (element, charge)
+            if space == "core":
+                species_core[sp_key] = profile
+            else:
+                species_edge[sp_key] = profile
+
+    # Blend core and edge species profiles together
     species = {}
-    for core_key, core_profiles in core_species.items():
-        if core_key in edge_species:
-            edge_profiles = edge_species[core_key]
+
+    for core_key, core_profile in species_core.items():
+        if core_key in species_edge:
+            edge_profiles = species_edge[core_key]
+
             core_interp = get_core_interpolators(
-                psi_norm, core_profiles, equilibrium, return3d=False
+                psi_norm, core_profile, equilibrium, return3d=False
             )
             edge_interp = get_edge_interpolators(grid, edge_profiles, b_field, return3d=False)
+
             species[core_key] = blend_core_edge_interpolators(
                 core_interp, edge_interp, mask, return3d=True
             )
         else:
             species[core_key] = get_core_interpolators(
-                psi_norm, core_profiles, equilibrium, return3d=True
+                psi_norm, core_profile, equilibrium, return3d=True
             )
-    for edge_key, edge_profiles in edge_species.items():
-        if edge_key not in core_species:
+
+    for edge_key, edge_profiles in species_edge.items():
+        if edge_key not in species_core:
             species[edge_key] = get_edge_interpolators(grid, edge_profiles, b_field, return3d=True)
 
-    for (species_type, charge), interp in species.items():
-        if "velocity" not in interp or interp["velocity"] is None:
-            interp["velocity"] = ConstantVector3D(Vector3D(0, 0, 0))
-
-        if interp["density"] is None:
-            print(f"Warning! Skipping {d['name']} species: density is not available.")
-        if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
+    # Add the blended species to the plasma composition
+    for (element, charge), interp in species.items():
+        try:
+            species = plasma.composition.get(element, int(charge))
+            print(f"Warning! Skipping {species}: already defined")
+            continue
+        except ValueError:
+            pass
 
         distribution = Maxwellian(
-            interp["density"],
-            interp["temperature"],
-            interp["velocity"],
-            species_type.atomic_weight * atomic_mass,
+            interp.density,
+            interp.temperature,
+            interp.velocity or ZERO_VELOCITY,
+            element.atomic_weight * atomic_mass,
         )
 
-        plasma.composition.add(Species(species_type, charge, distribution))
+        plasma.composition.add(Species(element, int(charge), distribution))
+
+    # === Ion Bundle Species ===
+
+    # Validate and prepare the core and edge species profiles, splitting the ion bundles
+    species_core = {}
+    species_edge = {}
+    for composition, space in [
+        (composition_core, "core"),
+        (composition_edge, "edge"),
+    ]:
+        for profile in composition.ion_bundle:
+            if profile.species is None:
+                print(
+                    f"Warning! Skipping {space} species with missing element or charge: {profile}"
+                )
+                continue
+            if profile.species.element is None:
+                print(f"Warning! Skipping {space} species with missing element: {profile}")
+                continue
+            if profile.density_thermal is not None:
+                profile.density = profile.density_thermal
+            if profile.density is None:
+                print(f"Warning! Skipping {space} {profile.species}: density profile is missing.")
+                continue
+            if profile.temperature is None:
+                print(
+                    f"Warning! Skipping {space} {profile.species}: temperature profile is missing."
+                )
+                continue
+
+            element = profile.species.element
+
+            # Split the ion bundle into its constituent charge states using the coronal equilibrium solver
+            z_min, z_max = profile.species.z_min, profile.species.z_max
+            densities_per_charge = solve_coronal_equilibrium(
+                element,
+                profile.density,
+                composition.electron.density,  # type: ignore[union-attr]
+                composition.electron.temperature,  # type: ignore[union-attr]
+                atomic_data=atomic_data,
+                z_min=z_min,
+                z_max=z_max,
+            )
+            charge_states = np.arange(int(z_min), int(z_max) + 1, dtype=int)
+            for i_charge, charge in enumerate(charge_states):
+                # New profile data
+                new_profile = ProfileData(
+                    species=SpeciesData(
+                        element.name,
+                        z_min=charge,
+                        z_max=charge,
+                        element=element,
+                        species_type=SpeciesType.ION,
+                    ),
+                    density=densities_per_charge[i_charge],
+                    temperature=profile.temperature,
+                    velocity=profile.velocity,
+                )
+
+                # Store the profile temporarily
+                sp_key = (element, int(charge))
+                if space == "core":
+                    species_core[sp_key] = new_profile
+                else:
+                    species_edge[sp_key] = new_profile
+
+    # Blend core and edge species profiles together
+    species = {}
+
+    for core_key, core_profile in species_core.items():
+        if core_key in species_edge:
+            edge_profiles = species_edge[core_key]
+
+            core_interp = get_core_interpolators(
+                psi_norm, core_profile, equilibrium, return3d=False
+            )
+            edge_interp = get_edge_interpolators(grid, edge_profiles, b_field, return3d=False)
+
+            species[core_key] = blend_core_edge_interpolators(
+                core_interp, edge_interp, mask, return3d=True
+            )
+        else:
+            species[core_key] = get_core_interpolators(
+                psi_norm, core_profile, equilibrium, return3d=True
+            )
+
+    for edge_key, edge_profiles in species_edge.items():
+        if edge_key not in species_core:
+            species[edge_key] = get_edge_interpolators(grid, edge_profiles, b_field, return3d=True)
+
+    # Add the blended species to the plasma composition
+    for (element, charge), interp in species.items():
+        try:
+            species = plasma.composition.get(element, int(charge))
+            print(f"Warning! Skipping {species}: already defined")
+            continue
+        except ValueError:
+            pass
+
+        distribution = Maxwellian(
+            interp.density,
+            interp.temperature,
+            interp.velocity or ZERO_VELOCITY,
+            element.atomic_weight * atomic_mass,
+        )
+
+        plasma.composition.add(Species(element, int(charge), distribution))
+
+    # === Molecular Species ===
+    # TODO: properly support molecular species.
+    # For now, just issue a warning if any molecule or molecular_bundle species are present in the composition.
+    warn_unsupported_species(composition_core, "molecule")
+    warn_unsupported_species(composition_edge, "molecule")
+    warn_unsupported_species(composition_core, "molecular_bundle")
+    warn_unsupported_species(composition_edge, "molecular_bundle")
 
     return plasma
 
 
 def blend_core_edge_interpolators(
-    core_interpolators: dict[str, Function3D | VectorFunction3D | None],
-    edge_interpolators: dict[str, Function3D | VectorFunction3D | None],
+    core_interpolators: ProfileInterporater,
+    edge_interpolators: ProfileInterporater,
     mask: Function2D | Function3D,
     return3d: bool = False,
-) -> dict[str, Function3D | VectorFunction3D | None]:
+) -> ProfileInterporater:
     """Blend together interpolators for the core and edge using the modulating mask function.
 
     Parameters
     ----------
     core_interpolators
-        Dictionary with 2D or 3D core profiles interpolators.
+        Instance of `.ProfileInterporater` with 2D or 3D core profiles interpolators.
     edge_interpolators
-        Dictionary with 2D or 3D edge profiles interpolators.
+        Instance of `.ProfileInterporater` with 2D or 3D edge profiles interpolators.
     mask
         Mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
     return3d
-        If True, return the 3D functions for 2D interpolators assuming
-        rotational symmetry, by default False.
+        If True, return the 3D functions for 2D interpolators assuming rotational symmetry,
+        by default False.
 
     Returns
     -------
-    dict
-        Dictionary with blended interpolators.
+    ProfileInterporater
+        Instance of `.ProfileInterporater` with blended interpolators.
     """
-    interpolators = {}
+    interpolators = ProfileInterporater()
 
-    for core_key, core_func in core_interpolators.items():
-        edge_func = edge_interpolators[core_key] if core_key in edge_interpolators else None
-        interpolators[core_key] = blend_core_edge_functions(core_func, edge_func, mask, return3d)
-
-    for edge_key, edge_func in edge_interpolators.items():
-        if edge_key not in core_interpolators:
-            interpolators[edge_key] = blend_core_edge_functions(None, edge_func, mask, return3d)
+    for core_key in core_interpolators.__dataclass_fields__:
+        core_func = getattr(core_interpolators, core_key, None)
+        edge_func = getattr(edge_interpolators, core_key, None)
+        setattr(
+            interpolators,
+            core_key,
+            _blend_core_edge_functions(core_func, edge_func, mask, return3d),
+        )
 
     return interpolators
 
 
-def blend_core_edge_functions(
+def _blend_core_edge_functions(
     core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     mask: Function2D | Function3D,
     return3d: bool,
-) -> Function3D | VectorFunction3D | None:
+) -> Function2D | Function3D | VectorFunction2D | VectorFunction3D | None:
     """Blend together the core and edge interpolating functions using the modulating mask function.
 
     Parameters
@@ -412,48 +592,51 @@ def blend_core_edge_functions(
 
     Returns
     -------
-    Function3D | VectorFunction3D | None
-        Blended interpolator.
+    Function2D | Function3D | VectorFunction2D | VectorFunction3D | None
+        The blended function, or None if both input functions are None.
 
     Raises
     ------
-    ValueError
-        If both core and edge functions are None.
+    TypeError
+        If the input functions are not 2D or 3D scalar/vector functions.
+    RuntimeError
+        If the core and edge functions have incompatible dimensions or types for blending.
     """
     if core_func is None and edge_func is None:
         return None
 
+    # === Validation ===
     if core_func is not None and not isinstance(
         core_func, Function2D | Function3D | VectorFunction2D | VectorFunction3D
     ):
-        raise ValueError("The core_func must be a 2D or 3D function.")
+        raise TypeError("The core_func must be a 2D or 3D function.")
 
     if edge_func is not None and not isinstance(
         edge_func, Function2D | Function3D | VectorFunction2D | VectorFunction3D
     ):
-        raise ValueError("The edge_func must be a 2D or 3D function.")
+        raise TypeError("The edge_func must be a 2D or 3D function.")
 
     if not isinstance(mask, Function2D | Function3D):
-        raise ValueError("The mask must be a 2D or 3D function.")
+        raise TypeError("The mask must be a 2D or 3D function.")
 
+    # === Only one of the two functions is available ===
     if core_func is None:
         if isinstance(edge_func, Function2D) and return3d:
             return AxisymmetricMapper(edge_func)
-
-        if isinstance(edge_func, VectorFunction2D) and return3d:
+        elif isinstance(edge_func, VectorFunction2D) and return3d:
             return VectorAxisymmetricMapper(edge_func)
-
-        return edge_func
+        else:
+            return edge_func
 
     if edge_func is None:
         if isinstance(core_func, Function2D) and return3d:
             return AxisymmetricMapper(core_func)
-
-        if isinstance(core_func, VectorFunction2D) and return3d:
+        elif isinstance(core_func, VectorFunction2D) and return3d:
             return VectorAxisymmetricMapper(core_func)
+        else:
+            return core_func
 
-        return core_func
-
+    # === Both functions are available: blend them together ===
     if (
         isinstance(core_func, Function2D)
         and isinstance(edge_func, Function2D)
@@ -493,4 +676,4 @@ def blend_core_edge_functions(
     if isinstance(core_func, VectorFunction3D) and isinstance(edge_func, VectorFunction3D):
         return VectorBlend3D(edge_func, core_func, mask)
 
-    raise ValueError("Cannot blend scalar and vector functions.")
+    raise RuntimeError("Cannot blend scalar and vector functions.")
