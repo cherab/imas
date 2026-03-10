@@ -22,6 +22,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 
+from imas.ids_primitive import IDSNumericArray
 from imas.ids_structure import IDSStructure
 
 from ..common.species import (
@@ -59,10 +60,16 @@ class GridData:
     """Surface-averaged value of the profile on the flux surface."""
 
 
-def _get_profile(ids_struct: IDSStructure, name: str):
-    arr = getattr(ids_struct, name, None)
-    if arr is not None and len(arr):
-        return np.asarray(arr)
+def _get_profile(ids_struct: IDSStructure, name: str, name2: str | None = None):
+    data = getattr(ids_struct, name, None)
+    if isinstance(data, IDSNumericArray):
+        if len(data):
+            return np.asarray(data)
+        else:
+            return None
+    elif isinstance(data, IDSStructure):
+        # Try to search lower-level structure
+        return _get_profile(data, name2) if name2 is not None else None
     else:
         return None
 
@@ -284,7 +291,7 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
                 if getattr(profile, "temperature", None) is None:
                     print(
                         "Warning! Using average ion temperature for "
-                        f"the {species_type} {profile.name}."
+                        f"the {species_type} {profile.species.name}."
                     )
                     profile.temperature = t_ion
 
