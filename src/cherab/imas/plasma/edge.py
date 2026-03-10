@@ -158,9 +158,9 @@ def load_edge_plasma(
     # Load species composition
     composition = load_edge_species(edge_profiles_ids.ggd[0], grid_subset_index=grid_subset_index)
 
-    # ------------------------------
-    # === Create plasma geometry ===
-    # ------------------------------
+    # ----------------------------
+    # === Create Plasma object ===
+    # ----------------------------
     name = f"IMAS edge plasma: time {edge_profiles_ids.time[0]}, uri {entry.uri}."
     plasma = Plasma(parent=parent, name=name)
 

@@ -157,9 +157,9 @@ def load_core_plasma(
     # Load species composition
     composition = load_core_species(core_profiles_ids.profiles_1d[0])
 
-    # ------------------------------
-    # === Create plasma geometry ===
-    # ------------------------------
+    # ----------------------------
+    # === Create Plasma object ===
+    # ----------------------------
     name = f"IMAS core plasma: time {core_profiles_ids.time[0]}, uri {entry.uri}."
     plasma = Plasma(parent=parent, name=name)
     radius_inner, radius_outer = equilibrium.r_range
