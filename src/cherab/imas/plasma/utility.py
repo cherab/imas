@@ -15,13 +15,41 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
-"""Module for utility to load profiles."""
+"""Module for common utilities to load profiles."""
 
+from dataclasses import dataclass
 from typing import Literal
+
+from raysect.core.math import Vector3D
+from raysect.core.math.function.float import Function2D, Function3D
+from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
+from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
+from raysect.core.math.function.vector3d import Function3D as VectorFunction3D
 
 from ..ids.common.species import SpeciesComposition
 
-__all__ = ["warn_unsupported_species", "get_subset_name_index"]
+__all__ = [
+    "ProfileInterporater",
+    "warn_unsupported_species",
+    "get_subset_name_index",
+]
+
+
+ZERO_VELOCITY = ConstantVector3D(Vector3D(0, 0, 0))
+
+
+@dataclass
+class ProfileInterporater:
+    """Dataclass to hold the interpolators for profiles."""
+
+    density: Function2D | Function3D | None = None
+    """Interpolating function for the density profile. Prefer ``density_thermal`` if available."""
+    density_thermal: Function2D | Function3D | None = None
+    """Interpolating function for the thermal density profile."""
+    temperature: Function2D | Function3D | None = None
+    """Interpolating function for the temperature profile."""
+    velocity: VectorFunction2D | VectorFunction3D | None = None
+    """Interpolating function for the velocity profile."""
 
 
 def warn_unsupported_species(
@@ -38,15 +66,26 @@ def warn_unsupported_species(
         Type of species to check for (e.g., 'ion_bundle', 'molecule', 'molecular_bundle').
     """
     if hasattr(composition, species_type) and len(getattr(composition, species_type)) > 0:
-        print(
-            f"Warning! Species of type '{species_type}' are currently not supported. "
-            + "The following species will be skipped:"
-        )
         names: list[str] = []
         for profile_data in getattr(composition, species_type):
-            name = profile_data.species.element.name
+            name: str | None = getattr(profile_data.species, "name", None)
+            if name is None:
+                element = getattr(profile_data.species, "element", None)
+                if element is None:
+                    elements = getattr(profile_data.species, "elements", None)
+                    if elements is None or len(elements) == 0:
+                        name = "Unknown"
+                    else:
+                        name = "".join([e.name for e in elements])
+                else:
+                    name = element.name
+
             names.append(name)
-        print("; ".join(names))
+
+        print(
+            f"Warning! Species of type '{species_type}' are currently not supported.\n"
+            + f"The following species will be skipped: {'; '.join(names)}"
+        )
 
 
 def get_subset_name_index(subset_id_dict: dict, grid_subset_id: int | str) -> tuple[str, int]:
