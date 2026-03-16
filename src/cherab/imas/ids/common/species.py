@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for common functions used to get IDS species information."""
 
+from __future__ import annotations
+
 from dataclasses import astuple, dataclass, field
 from enum import StrEnum
 
@@ -34,6 +36,7 @@ __all__ = [
     "SpeciesData",
     "ProfileData",
     "SpeciesComposition",
+    "VelocityData",
     "get_ion_state",
     "get_neutral_state",
     "get_ion",
