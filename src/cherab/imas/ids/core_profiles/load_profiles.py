@@ -87,7 +87,7 @@ def load_core_grid(grid_struct: IDSStructure) -> GridData:
     Returns
     -------
     `.GridData`
-        Instance of the `GridData` dataclass containing the grid properties for the core profiles.
+        Instance of the `.GridData` dataclass containing the grid properties for the core profiles.
     """
     grid = GridData()
     for name in grid.__dataclass_fields__:
