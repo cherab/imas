@@ -50,8 +50,8 @@ def fix_jintract(path_in: str, path_out: str) -> None:
             entry.get("edge_sources", autoconvert=False),
             entry.get("edge_transport", autoconvert=False),
             entry.get("equilibrium", autoconvert=False),
-            entry.get("ntms"),
-            entry.get("summary"),
+            entry.get("ntms", autoconvert=False),
+            entry.get("summary", autoconvert=False),
         ]
 
     # %%

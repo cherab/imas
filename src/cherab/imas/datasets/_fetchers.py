@@ -67,7 +67,7 @@ def iter_jintrac() -> str:
 
     # NOTE: Apply patch to fix datasets
     path_in = Path(path)
-    path_out = path_in.parent / f"{path_in.stem}_mod.{path_in.suffix}"
+    path_out = (path_in.parent / f"{path_in.stem}_mod").with_suffix(path_in.suffix)
     if not path_out.exists():
         fix_jintract(path, str(path_out))
     path = str(path_out)
