@@ -41,6 +41,10 @@ pre-commit:
         - run: test ${CI} -eq 1
       run: pixi {run} ruff format {staged_files}
 
+    - name: pyrefly
+      glob: "*.{py,pyi}"
+      run: pixi {run} pyrefly-check {staged_files}
+
     - name: typos
       stage_fixed: true
       run: pixi {run} typos {staged_files}
