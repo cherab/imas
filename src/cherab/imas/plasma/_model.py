@@ -1,5 +1,7 @@
 """Module for solving some plasma models, such as the coronal equilibrium model."""
 
+from __future__ import annotations
+
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
@@ -45,37 +47,97 @@ def solve_coronal_equilibrium(
     .. math::
 
         n_\mathrm{total}
-            &= \sum_{Z=z_\mathrm{min}}^{z_\mathrm{max}} n_Z\\
-            &= \frac{S_{Z_\mathrm{min}}}
+            &= \sum_{Z=Z_\mathrm{min}}^{Z_\mathrm{max}} n_Z\\
+            &= n_{Z_\mathrm{min}} + n_{Z_\mathrm{min}+1} + n_{Z_\mathrm{min}+2} + \dots\\
+            &= n_{Z_\mathrm{min}}
+               +
+               \frac{S_{Z_\mathrm{min}}}
                     {\alpha_{Z_\mathrm{min}+1}}
-                \cdot n_{Z_\mathrm{min}}
-                + ...
+               \cdot n_{Z_\mathrm{min}}
+               +
+               \frac{S_{Z_\mathrm{min}+1}}
+                    {\alpha_{Z_\mathrm{min}+2}}
+               \cdot
+               \frac{S_{Z_\mathrm{min}}}
+                    {\alpha_{Z_\mathrm{min}+1}}
+               \cdot n_{Z_\mathrm{min}}
+               +
+               \dots\\
+            &= n_{Z_\mathrm{min}}
+               \cdot
+               \left[
+                 1
+                 +
+                 \sum_{i=0}^{Z_\mathrm{max} - Z_\mathrm{min} - 1}
+                 \left(
+                   \prod_{j=0}^{i}
+                      \frac{S_{Z_\mathrm{min}+j}}
+                           {\alpha_{Z_\mathrm{min}+j+1}}
+                 \right)
+               \right]
 
-    allows us to express each charge state density as a fraction of the total density as follows:
+    allows us to express the first charge state density :math:`n_{Z_\mathrm{min}}` as
 
     .. math::
 
-        n_Z = ...
+        n_{Z_\mathrm{min}}
+            =
+            n_\mathrm{total}
+            \cdot
+            \left[
+                1 + \sum_{i=0}^{Z_\mathrm{max} - Z_\mathrm{min} - 1}
+                    \left(
+                        \prod_{j=0}^{i}\frac{S_{Z_\mathrm{min}+j}}{\alpha_{Z_\mathrm{min}+j+1}}
+                    \right)
+            \right]^{-1}.
+
+    Substituting this back into the first equation :math:`n_{Z+1} = \frac{S_Z}{\alpha_{Z+1}} n_Z`
+    allows us to compute the density of each charge state as follows:
+
+    .. math::
+
+        \begin{bmatrix} n_{Z_\mathrm{min}}\\ n_{Z_\mathrm{min}+1}\\ n_{Z_\mathrm{min}+2}\\ \vdots\\ n_{Z_\mathrm{max}} \end{bmatrix}
+        =
+        \frac{
+          n_\mathrm{total}
+        }{
+          1 + \displaystyle\sum_{i=0}^{Z_\mathrm{max} - Z_\mathrm{min} - 1}
+            \left(
+                \prod_{j=0}^{i}\frac{S_{Z_\mathrm{min}+j}}{\alpha_{Z_\mathrm{min}+j+1}}
+            \right)
+        }
+        \begin{bmatrix}
+            1\\
+            \frac{S_{Z_\mathrm{min}}}{\alpha_{Z_\mathrm{min}+1}}\\
+            \frac{S_{Z_\mathrm{min}+1}}
+                 {\alpha_{Z_\mathrm{min}+2}}
+              \cdot
+              \frac{S_{Z_\mathrm{min}}}{\alpha_{Z_\mathrm{min}+1}}\\
+            \vdots\\
+            \displaystyle\prod_{j=0}^{Z_\mathrm{max} - Z_\mathrm{min} - 1}
+              \frac{S_{Z_\mathrm{min}+j}}{\alpha_{Z_\mathrm{min}+j+1}}
+        \end{bmatrix}.
 
     Parameters
     ----------
     element
         Element for which to solve the charge state distribution.
     density
-        Total density of the element (in m^-3).
+        Total density of the element, :math:`n_\mathrm{total}` (in m^-3).
         Should be the 1-D array of the same shape as `n_e` and `t_e`, or a scalar.
     n_e
-        Electron density (in m^-3).
+        Electron density, :math:`n_\mathrm{e}` (in m^-3).
         Should be the 1-D array of the same shape as `density` and `t_e`, or a scalar.
     t_e
-        Electron temperature (in eV).
+        Electron temperature, :math:`T_\mathrm{e}` (in eV).
         Should be the 1-D array of the same shape as `density` and `n_e`, or a scalar.
     atomic_data
-        Atomic data provider to use for ionisation and recombination rates. If None, the default OpenADAS database will be used.
+        Atomic data provider to use for ionisation and recombination rates.
+        If None, `~cherab.openadas.openadas.OpenADAS` will be used by default.
     z_min
-        Minimum charge state to consider (inclusive). If None, defaults to 0.
+        Minimum charge state to consider (inclusive), :math:`Z_\mathrm{min}`. If None, defaults to 0.
     z_max
-        Maximum charge state to consider (inclusive). If None, defaults to the atomic number of the element.
+        Maximum charge state to consider (inclusive), :math:`Z_\mathrm{max}`. If None, defaults to the atomic number of the element.
 
     Returns
     -------
@@ -85,9 +147,9 @@ def solve_coronal_equilibrium(
     Raises
     ------
     ValueError
-        If z_min or z_max are out of valid range, or if density, n_e, and t_e do not have the same shape.
+        If `z_min` or `z_max` are out of valid range, or if `density`, `n_e`, and `t_e` do not have the same shape.
     TypeError
-        If atomic_data is not an instance of `~cherab.core.atomic.interface.AtomicData`.
+        If `atomic_data` is not an instance of `~cherab.core.atomic.interface.AtomicData`.
 
     Examples
     --------
