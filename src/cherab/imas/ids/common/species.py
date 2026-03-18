@@ -25,8 +25,7 @@ from enum import StrEnum
 import numpy as np
 from numpy.typing import NDArray
 
-from cherab.core import Isotope
-from cherab.core.atomic.elements import Element, lookup_isotope
+from cherab.core.atomic.elements import Element, Isotope, lookup_isotope
 from imas.ids_defs import EMPTY_FLOAT, EMPTY_INT
 from imas.ids_struct_array import IDSStructArray
 from imas.ids_structure import IDSStructure

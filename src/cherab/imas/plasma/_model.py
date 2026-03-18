@@ -12,15 +12,13 @@ __all__ = [
     "solve_coronal_equilibrium",
 ]
 
-ATOMIC_DB = OpenADAS(permit_extrapolation=True)
-
 
 def solve_coronal_equilibrium(
     element: Element,
     density: ArrayLike,
     n_e: ArrayLike,
     t_e: ArrayLike,
-    atomic_data: AtomicData | None = ATOMIC_DB,
+    atomic_data: AtomicData | None = None,
     z_min: float | None = None,
     z_max: float | None = None,
 ) -> NDArray[np.float64]:
@@ -141,7 +139,7 @@ def solve_coronal_equilibrium(
 
     Returns
     -------
-    NDArray[np.float64]
+    `numpy.ndarray`
         Density of the element in each charge state (in m^-3), with shape ``(z_max - z_min + 1, *density.shape)``.
 
     Raises
@@ -164,7 +162,7 @@ def solve_coronal_equilibrium(
     # Initialize variables if not provided
     z_min = z_min or 0
     z_max = z_max or element.atomic_number
-    atomic_data = atomic_data or ATOMIC_DB
+    atomic_data = atomic_data or OpenADAS(permit_extrapolation=True)
 
     # Validate z_min/z_max
     if z_min is not None and z_min < 0:
