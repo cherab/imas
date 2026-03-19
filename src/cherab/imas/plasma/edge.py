@@ -321,9 +321,10 @@ def _get_velocity_interpolators(
         return _get_cylindrical_velocity_interpolators(grid, v.r, v.z, v.phi)
 
     if v.radial is None and v.r is not None and v.z is not None:
-        if v.phi is None and v.parallel is not None:
-            _, v.phi = _get_components_from_vpar(grid, v.parallel, b_field)
-        return _get_cylindrical_velocity_interpolators(grid, v.r, v.z, v.phi)
+        v_phi = v.phi
+        if v_phi is None and v.parallel is not None:
+            _, v_phi = _get_components_from_vpar(grid, v.parallel, b_field)
+        return _get_cylindrical_velocity_interpolators(grid, v.r, v.z, v_phi)
 
     if v.parallel is None:
         return _get_poloidal_velocity_interpolators(grid, v.poloidal, v.radial, v.phi, b_field)
