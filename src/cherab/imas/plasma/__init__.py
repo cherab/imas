@@ -17,7 +17,6 @@
 # under the Licence.
 """Subpackage for creating plasma/equilibrium/magnetic field objects from IMAS."""
 
-from ._model import solve_coronal_equilibrium
 from .blend import load_plasma
 from .core import load_core_plasma
 from .edge import load_edge_plasma
@@ -29,5 +28,4 @@ __all__ = [
     "load_edge_plasma",
     "load_equilibrium",
     "load_magnetic_field",
-    "solve_coronal_equilibrium",
 ]

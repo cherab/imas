@@ -36,7 +36,6 @@ from imas import DBEntry
 
 from ..ids.common import get_ids_time_slice
 from ..ids.core_profiles import load_core_grid, load_core_species
-from ._model import solve_coronal_equilibrium
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import ZERO_VELOCITY, ProfileInterporater, warn_unsupported_species
 
@@ -51,6 +50,7 @@ def load_core_plasma(
     b_field: VectorFunction2D | None = None,
     psi_interpolator: Callable[[float], float] | None = None,
     time_threshold: float = np.inf,
+    split_ion_bundles: bool = True,
     atomic_data: AtomicData | None = None,
     parent: _NodeBase | None = None,
     **kwargs,
@@ -92,6 +92,9 @@ def load_core_plasma(
     time_threshold
         Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
+    split_ion_bundles
+        Whether to split ion bundles into their constituent charge states using
+        `.solve_coronal_equilibrium`, by default True.
     atomic_data
         Atomic data provider class for this plasma, by default None.
         If None, some species (e.g. ion_bundle) may not be properly loaded.
@@ -155,7 +158,11 @@ def load_core_plasma(
     )
 
     # Load species composition
-    composition = load_core_species(core_profiles_ids.profiles_1d[0])
+    composition = load_core_species(
+        core_profiles_ids.profiles_1d[0],
+        split_ion_bundles=split_ion_bundles,
+        atomic_data=atomic_data,
+    )
 
     # ----------------------------
     # === Create Plasma object ===
@@ -240,53 +247,8 @@ def load_core_plasma(
         plasma.composition.add(Species(element, int(charge), distribution))
 
     # === Ion Bundles ===
-    for profile in composition.ion_bundle:
-        if profile.species is None:
-            print(f"Warning! Skipping species with missing element or charge: {profile}")
-            continue
-        if profile.species.element is None:
-            print(f"Warning! Skipping species with missing element: {profile}")
-            continue
-        if profile.density_thermal is not None:
-            profile.density = profile.density_thermal
-        if profile.density is None:
-            print(f"Warning! Skipping {profile.species}: density profile is missing.")
-            continue
-
-        element = profile.species.element
-
-        # Split the ion bundle into its constituent charge states using the coronal equilibrium solver
-        z_min, z_max = profile.species.z_min, profile.species.z_max
-        densities_per_charge = solve_coronal_equilibrium(
-            element,
-            profile.density,
-            composition.electron.density,
-            composition.electron.temperature,
-            atomic_data=atomic_data,
-            z_min=z_min,
-            z_max=z_max,
-        )
-        charge_states = np.arange(int(z_min), int(z_max) + 1, dtype=int)
-        for i_charge, charge in enumerate(charge_states):
-            # Check if any of the constituent charge states are already defined
-            try:
-                species = plasma.composition.get(element, charge)
-                print(f"Warning! Skipping {species}: already defined")
-                continue
-            except ValueError:
-                pass
-
-            profile.density = densities_per_charge[i_charge, :]
-            interp = get_core_interpolators(psi_norm, profile, equilibrium, return3d=True)
-
-            distribution = Maxwellian(
-                interp.density,
-                interp.temperature,
-                interp.velocity or ZERO_VELOCITY,
-                element.atomic_weight * atomic_mass,
-            )
-
-            plasma.composition.add(Species(element, int(charge), distribution))
+    # Ion bundles are split into their constituent charge states at the composition level.
+    warn_unsupported_species(composition, "ion_bundle")
 
     # === Molecular Species ===
     # TODO: properly support molecular species.

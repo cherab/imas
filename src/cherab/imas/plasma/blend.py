@@ -38,10 +38,8 @@ from imas.ids_structure import IDSStructure
 
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
-from ..ids.common.species import ProfileData, SpeciesData, SpeciesType
 from ..ids.core_profiles import load_core_grid, load_core_species
 from ..ids.edge_profiles import load_edge_species
-from ._model import solve_coronal_equilibrium
 from .core import get_core_interpolators, get_psi_norm, load_core_plasma
 from .edge import get_edge_interpolators, load_edge_plasma
 from .equilibrium import load_equilibrium, load_magnetic_field
@@ -70,6 +68,7 @@ def load_plasma(
     psi_interpolator: Callable[[float], float] | None = None,
     mask: Function2D | Function3D | None = None,
     time_threshold: float = np.inf,
+    split_ion_bundles: bool = True,
     atomic_data: AtomicData | None = None,
     parent: _NodeBase | None = None,
     **kwargs,
@@ -126,6 +125,9 @@ def load_plasma(
     time_threshold
         Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
+    split_ion_bundles
+        Whether to split ion bundles into their constituent charge states using
+        `.solve_coronal_equilibrium`, by default True.
     atomic_data
         Atomic data provider class for this plasma, by default None.
         If None, some species (e.g. ion_bundle) may not be properly loaded.
@@ -181,6 +183,7 @@ def load_plasma(
             grid_subset_id=grid_subset_id,
             b_field=b_field,
             time_threshold=time_threshold,
+            split_ion_bundles=split_ion_bundles,
             atomic_data=atomic_data,
             parent=parent,
             **edge_kwargs,
@@ -206,6 +209,7 @@ def load_plasma(
             psi_interpolator=psi_interpolator,
             time_threshold=time_threshold,
             parent=parent,
+            split_ion_bundles=split_ion_bundles,
             atomic_data=atomic_data,
             **kwargs,
         )
@@ -244,7 +248,11 @@ def load_plasma(
     # === Core grid, composition and psi_norm ===
     core_grid = load_core_grid(core_profiles_ids.profiles_1d[0].grid)
 
-    composition_core = load_core_species(core_profiles_ids.profiles_1d[0])
+    composition_core = load_core_species(
+        core_profiles_ids.profiles_1d[0],
+        split_ion_bundles=split_ion_bundles,
+        atomic_data=atomic_data,
+    )
 
     psi_norm = get_psi_norm(
         core_grid.psi,
@@ -265,7 +273,10 @@ def load_plasma(
         grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
 
     composition_edge = load_edge_species(
-        edge_profiles_ids.ggd[0], grid_subset_index=grid_subset_index
+        edge_profiles_ids.ggd[0],
+        grid_subset_index=grid_subset_index,
+        split_ion_bundles=split_ion_bundles,
+        atomic_data=atomic_data,
     )
 
     # ----------------------------
@@ -414,111 +425,9 @@ def load_plasma(
         plasma.composition.add(Species(element, int(charge), distribution))
 
     # === Ion Bundle Species ===
-
-    # Validate and prepare the core and edge species profiles, splitting the ion bundles
-    species_core = {}
-    species_edge = {}
-    for composition, space in [
-        (composition_core, "core"),
-        (composition_edge, "edge"),
-    ]:
-        for profile in composition.ion_bundle:
-            if profile.species is None:
-                print(
-                    f"Warning! Skipping {space} species with missing element or charge: {profile}"
-                )
-                continue
-            if profile.species.element is None:
-                print(f"Warning! Skipping {space} species with missing element: {profile}")
-                continue
-            if profile.density_thermal is not None:
-                profile.density = profile.density_thermal
-            if profile.density is None:
-                print(f"Warning! Skipping {space} {profile.species}: density profile is missing.")
-                continue
-            if profile.temperature is None:
-                print(
-                    f"Warning! Skipping {space} {profile.species}: temperature profile is missing."
-                )
-                continue
-
-            element = profile.species.element
-
-            # Split the ion bundle into its constituent charge states using the coronal equilibrium solver
-            z_min, z_max = profile.species.z_min, profile.species.z_max
-            densities_per_charge = solve_coronal_equilibrium(
-                element,
-                profile.density,
-                composition.electron.density,  # type: ignore[union-attr]
-                composition.electron.temperature,  # type: ignore[union-attr]
-                atomic_data=atomic_data,
-                z_min=z_min,
-                z_max=z_max,
-            )
-            charge_states = np.arange(int(z_min), int(z_max) + 1, dtype=int)
-            for i_charge, charge in enumerate(charge_states):
-                # New profile data
-                new_profile = ProfileData(
-                    species=SpeciesData(
-                        element.name,
-                        z_min=charge,
-                        z_max=charge,
-                        element=element,
-                        species_type=SpeciesType.ION,
-                    ),
-                    density=densities_per_charge[i_charge],
-                    temperature=profile.temperature,
-                    velocity=profile.velocity,
-                )
-
-                # Store the profile temporarily
-                sp_key = (element, int(charge))
-                if space == "core":
-                    species_core[sp_key] = new_profile
-                else:
-                    species_edge[sp_key] = new_profile
-
-    # Blend core and edge species profiles together
-    species = {}
-
-    for core_key, core_profile in species_core.items():
-        if core_key in species_edge:
-            edge_profiles = species_edge[core_key]
-
-            core_interp = get_core_interpolators(
-                psi_norm, core_profile, equilibrium, return3d=False
-            )
-            edge_interp = get_edge_interpolators(grid, edge_profiles, b_field, return3d=False)
-
-            species[core_key] = blend_core_edge_interpolators(
-                core_interp, edge_interp, mask, return3d=True
-            )
-        else:
-            species[core_key] = get_core_interpolators(
-                psi_norm, core_profile, equilibrium, return3d=True
-            )
-
-    for edge_key, edge_profiles in species_edge.items():
-        if edge_key not in species_core:
-            species[edge_key] = get_edge_interpolators(grid, edge_profiles, b_field, return3d=True)
-
-    # Add the blended species to the plasma composition
-    for (element, charge), interp in species.items():
-        try:
-            species = plasma.composition.get(element, int(charge))
-            print(f"Warning! Skipping {species}: already defined")
-            continue
-        except ValueError:
-            pass
-
-        distribution = Maxwellian(
-            interp.density,
-            interp.temperature,
-            interp.velocity or ZERO_VELOCITY,
-            element.atomic_weight * atomic_mass,
-        )
-
-        plasma.composition.add(Species(element, int(charge), distribution))
+    # Ion bundles are split into their constituent charge states at the composition level.
+    warn_unsupported_species(composition_core, "ion_bundle")
+    warn_unsupported_species(composition_edge, "ion_bundle")
 
     # === Molecular Species ===
     # TODO: properly support molecular species.
