@@ -51,6 +51,7 @@ autosummary_ignore_module_all = False
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_attr_annotations = True
+napoleon_use_rtype = False
 
 # todo config
 todo_include_todos = True
