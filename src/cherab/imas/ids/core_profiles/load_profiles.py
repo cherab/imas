@@ -17,17 +17,20 @@
 # under the Licence.
 """Module for loading core-profile-related data from IMAS IDS structures."""
 
-from dataclasses import dataclass
+from dataclasses import astuple, dataclass
 
 import numpy as np
 from numpy.typing import NDArray
 
+from cherab.core.atomic import AtomicData
 from imas.ids_primitive import IDSNumericArray
 from imas.ids_structure import IDSStructure
 
+from ..common import solve_coronal_equilibrium
 from ..common.species import (
     ProfileData,
     SpeciesComposition,
+    SpeciesData,
     SpeciesType,
     get_elements,
     get_ion,
@@ -124,13 +127,22 @@ def load_core_profiles(
     return profiles
 
 
-def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
+def load_core_species(
+    profile_1d: IDSStructure,
+    split_ion_bundles: bool = True,
+    atomic_data: AtomicData | None = None,
+) -> SpeciesComposition:
     """Load core plasma species and their profiles from a given profiles IDS structure.
 
     Parameters
     ----------
     profile_1d
         The IDS structure containing the core profiles data.
+    split_ion_bundles
+        Whether to split ion bundles into individual ion states using `.solve_coronal_equilibrium`,
+        by default True.
+    atomic_data
+        Optional atomic data to pass to `.solve_coronal_equilibrium` when splitting ion bundles.
 
     Returns
     -------
@@ -140,11 +152,24 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
     Raises
     ------
     RuntimeError
-        If unable to determine the ion species due to missing element information.
+        If electron temperature or density profiles are missing, which are required for determining
+        the species composition and solving coronal equilibrium when splitting ion bundles.
+    RuntimeError
+        If unable to determine the species due to missing element information, density profiles,
+        or other necessary data.
     """
     composition = SpeciesComposition(
         electron=load_core_profiles(profile_1d.electrons),
     )
+
+    if composition.electron.temperature is None:
+        raise RuntimeError("Electron temperature profiles are required.")
+
+    electron_density = composition.electron.density_thermal
+    if electron_density is None:
+        electron_density = composition.electron.density
+    if electron_density is None:
+        raise RuntimeError("Electron density or density_thermal profiles are required.")
 
     # Temporary sets
     ion_elements = []
@@ -174,25 +199,88 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
 
             for i, state in enumerate(ion.state):
                 uuid, species_data = get_ion_state(state, i, elements)
-                if uuid in ion_bundle_uuids:
-                    print(f"Warning! Skipping duplicated ion: {species_data.name}")
+                if uuid in ion_bundle_uuids or uuid in ion_uuids:
+                    print(f"Warning! Skipping duplicated ion: {species_data}")
                     continue
-                ion_bundle_uuids.add(uuid)
 
                 profile_data = load_core_profiles(state, backup_ids)
                 profile_data.species = species_data
 
                 if backup_ids is None and profile_data.temperature is None:
                     profile_data.temperature = shared_temperature
-                if species_data.species_type == SpeciesType.ION_BUNDLE:
-                    composition.ion_bundle.append(profile_data)
-                elif species_data.species_type == SpeciesType.ION:
+
+                # === Case: ION ===
+                if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
+                    ion_uuids.add(uuid)
+
+                # === Case: ION_BUNDLE ===
+                elif species_data.species_type == SpeciesType.ION_BUNDLE:
+                    # Split ion bundles into individual ion states
+                    if split_ion_bundles:
+                        # Check if the necessary data is available before attempting to solve coronal equilibrium
+                        elm = species_data.element or species_data.elements[0]
+                        if elm is None:
+                            raise RuntimeError(
+                                f"Unable to determine the element for ion {species_data}, "
+                                "cannot solve coronal equilibrium to split ion bundle."
+                            )
+                        density = profile_data.density_thermal
+                        if density is None:
+                            density = profile_data.density
+                        if density is None:
+                            raise RuntimeError(
+                                f"Missing density profiles for ion {species_data}, "
+                                "cannot solve coronal equilibrium to split ion bundle."
+                            )
+                        try:
+                            densities_per_charge = solve_coronal_equilibrium(
+                                elm,
+                                density,
+                                electron_density,
+                                composition.electron.temperature,
+                                atomic_data=atomic_data,
+                                z_min=species_data.z_min,
+                                z_max=species_data.z_max,
+                            )
+                        except Exception as e:
+                            print(
+                                f"Skipping ion bundle {species_data} "
+                                f"due to error in solving coronal equilibrium: {e}"
+                            )
+                            composition.ion_bundle.append(profile_data)
+                            ion_bundle_uuids.add(uuid)
+                            continue
+
+                        charge_states = np.arange(
+                            species_data.z_min, species_data.z_max + 1, dtype=int
+                        )
+
+                        for i_charge, charge in enumerate(charge_states):
+                            species = SpeciesData(
+                                element=species_data.element,
+                                z_min=charge,
+                                z_max=charge,
+                                species_type=SpeciesType.ION,
+                            )
+                            composition.ion.append(
+                                ProfileData(
+                                    species=species,
+                                    density=densities_per_charge[i_charge],
+                                    temperature=profile_data.temperature,
+                                    velocity=profile_data.velocity,
+                                )
+                            )
+                            ion_uuids.add(hash(astuple(species)))
+
+                    # Don't split ion bundles, just add the bundle as is
+                    else:
+                        composition.ion_bundle.append(profile_data)
+                        ion_bundle_uuids.add(uuid)
+
+                # === Case: Unexpected species type ===
                 else:
-                    print(
-                        f"Warning! Skipping ion with unexpected species type "
-                        f"{species_data.species_type}: {species_data.name}"
-                    )
+                    print(f"Warning! Skipping ion with unexpected species {species_data}")
 
         # -------------------
         # === Non-bundled ===
@@ -200,7 +288,7 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
         else:
             uuid, species_data = get_ion(ion, elements)
             if uuid in ion_uuids:
-                print(f"Warning! Skipping duplicated ion: {species_data.name}")
+                print(f"Warning! Skipping duplicated ion: {species_data}")
             else:
                 profile_data = load_core_profiles(ion)
                 profile_data.species = species_data
@@ -209,8 +297,7 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
                     ion_uuids.add(uuid)
                 else:
                     print(
-                        f"Warning! Skipping non-bundled ion with unexpected species type "
-                        f"{species_data.species_type}: {species_data.name}"
+                        f"Warning! Skipping non-bundled ion with unexpected species {species_data}"
                     )
 
     # ----------------------------
@@ -233,7 +320,7 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
             for state in neutral.state:
                 uuid, species_data = get_neutral_state(state, elements)
                 if uuid in neutral_bundle_uuids:
-                    print(f"Warning! Skipping duplicated neutral: {species_data.name}")
+                    print(f"Warning! Skipping duplicated neutral: {species_data}")
                     continue
                 neutral_bundle_uuids.add(uuid)
 
@@ -252,10 +339,7 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
                 elif species_data.species_type == SpeciesType.NEUTRAL:
                     composition.neutral.append(profile_data)
                 else:
-                    print(
-                        f"Warning! Skipping neutral with unexpected species type "
-                        f"{species_data.species_type}: {species_data.name}"
-                    )
+                    print(f"Warning! Skipping neutral with unexpected species {species_data}")
 
         # -------------------
         # === Non-bundled ===
@@ -263,7 +347,7 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
         else:
             uuid, species_data = get_neutral(neutral, elements)
             if uuid in neutral_uuids:
-                print(f"Warning! Skipping duplicated neutral: {species_data.name}")
+                print(f"Warning! Skipping duplicated neutral: {species_data}")
             else:
                 profile_data = load_core_profiles(neutral)
                 profile_data.species = species_data
@@ -275,22 +359,19 @@ def load_core_species(profile_1d: IDSStructure) -> SpeciesComposition:
                     neutral_uuids.add(uuid)
                 else:
                     print(
-                        f"Warning! Skipping non-bundled neutral with unexpected species type "
-                        f"{species_data.species_type}: {species_data.name}"
+                        f"Warning! Skipping non-bundled neutral with unexpected species: "
+                        f"{species_data}"
                     )
 
     # Replace missing species temperature with average ion temperature
-    t_ion = profile_1d.t_i_average
-    if len(t_ion):
+    t_ion = _get_profile(profile_1d, "t_i_average")
+    if t_ion is not None and len(t_ion):
         species_types = set(composition.__dataclass_fields__.keys())
         species_types.remove("electron")
         for species_type in species_types:
             for profile in getattr(composition, species_type):
                 if getattr(profile, "temperature", None) is None:
-                    print(
-                        "Warning! Using average ion temperature for "
-                        f"the {species_type} {profile.species.name}."
-                    )
+                    print(f"Warning! Using average ion temperature for {profile.species}.")
                     profile.temperature = t_ion
 
     return composition
