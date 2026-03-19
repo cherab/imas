@@ -17,7 +17,7 @@ output:
   - skips # Print "skip" (i.e. no files matched)
 
 pre-commit:
-  parallel: true
+  parallel: false
   jobs:
     - name: dprint
       glob: "*.{json,jsonc,md,yaml,yml}"
