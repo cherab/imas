@@ -18,6 +18,7 @@
 """Module for loading core plasma profiles from the core_profiles IDS."""
 
 from collections.abc import Callable
+from dataclasses import fields
 
 import numpy as np
 from numpy.typing import NDArray
@@ -296,10 +297,10 @@ def get_core_interpolators(
 
     interpolators = ProfileInterporater()
 
-    for prof_key in profile.__dataclass_fields__:
-        if prof_key in {"species", "velocity"}:
+    for field in fields(profile):
+        if field.name in {"species", "velocity"}:
             continue
-        data_1d = getattr(profile, prof_key, None)
+        data_1d = getattr(profile, field.name, None)
         if isinstance(data_1d, np.ndarray) and data_1d.size > 0:
             extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
             func = Interpolator1DArray(
@@ -307,7 +308,7 @@ def get_core_interpolators(
             )
             setattr(
                 interpolators,
-                prof_key,
+                field.name,
                 equilibrium.map3d(func) if return3d else equilibrium.map2d(func),
             )
 

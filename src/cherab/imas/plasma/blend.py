@@ -18,6 +18,7 @@
 """Module to offer the plasma object, blending core with edge profiles."""
 
 from collections.abc import Callable
+from dataclasses import fields
 
 import numpy as np
 from raysect.core.math import translate
@@ -467,12 +468,12 @@ def blend_core_edge_interpolators(
     """
     interpolators = ProfileInterporater()
 
-    for core_key in core_interpolators.__dataclass_fields__:
-        core_func = getattr(core_interpolators, core_key, None)
-        edge_func = getattr(edge_interpolators, core_key, None)
+    for field in fields(core_interpolators):
+        core_func = getattr(core_interpolators, field.name, None)
+        edge_func = getattr(edge_interpolators, field.name, None)
         setattr(
             interpolators,
-            core_key,
+            field.name,
             _blend_core_edge_functions(core_func, edge_func, mask, return3d),
         )
 

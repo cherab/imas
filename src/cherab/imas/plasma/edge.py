@@ -17,6 +17,8 @@
 # under the Licence.
 """Module for loading edge plasma profiles from the edge_profiles IDS."""
 
+from dataclasses import fields
+
 import numpy as np
 from numpy.typing import NDArray
 from raysect.core.math import Vector3D, translate
@@ -292,15 +294,15 @@ def get_edge_interpolators(
     """
     interpolators = ProfileInterporater()
 
-    for prof_key in profile.__dataclass_fields__:
-        if prof_key in {"species", "velocity"}:
+    for field in fields(profile):
+        if field.name in {"species", "velocity"}:
             continue
-        data = getattr(profile, prof_key, None)
+        data = getattr(profile, field.name, None)
         if data is not None:
             func = grid.interpolator(data)
             if isinstance(func, Function2D) and return3d:
                 func = AxisymmetricMapper(func)
-            setattr(interpolators, prof_key, func)
+            setattr(interpolators, field.name, func)
 
     # Create velocity interpolator
     if profile.velocity is not None:

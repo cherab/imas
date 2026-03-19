@@ -17,7 +17,7 @@
 # under the Licence.
 """Module for loading edge-profile-related data from IMAS IDS structures."""
 
-from dataclasses import astuple
+from dataclasses import astuple, fields
 
 import numpy as np
 from numpy.typing import NDArray
@@ -100,25 +100,27 @@ def load_edge_profiles(
     profiles = ProfileData()
     velocities = VelocityData()
 
-    for name in profiles.__dataclass_fields__:
-        match name:
+    for field in fields(profiles):
+        match field.name:
             case "velocity":
-                for name2 in velocities.__dataclass_fields__:
-                    data = _get_profile(species_struct, name, grid_subset_index, name2=name2)
+                for field2 in fields(velocities):
+                    data = _get_profile(
+                        species_struct, field.name, grid_subset_index, name2=field2.name
+                    )
                     if data is None and backup_species_struct is not None:
                         data = _get_profile(
-                            backup_species_struct, name, grid_subset_index, name2=name2
+                            backup_species_struct, field.name, grid_subset_index, name2=field2.name
                         )
-                    setattr(velocities, name2, data)
-                setattr(profiles, name, velocities)
+                    setattr(velocities, field2.name, data)
+                setattr(profiles, field.name, velocities)
             case "species":
                 # species data is not stored in the profile structure, skip loading it here
                 continue
             case _:
-                data = _get_profile(species_struct, name, grid_subset_index)
+                data = _get_profile(species_struct, field.name, grid_subset_index)
                 if data is None and backup_species_struct is not None:
-                    data = _get_profile(backup_species_struct, name, grid_subset_index)
-                setattr(profiles, name, data)
+                    data = _get_profile(backup_species_struct, field.name, grid_subset_index)
+                setattr(profiles, field.name, data)
 
     return profiles
 
@@ -364,7 +366,7 @@ def load_edge_species(
     # Replace missing species temperature with average ion temperature
     t_ion = _get_profile(ggd_struct, "t_i_average", grid_subset_index)
     if t_ion is not None:
-        species_types = set(composition.__dataclass_fields__.keys())
+        species_types = {field.name for field in fields(composition)}
         species_types.remove("electron")
         for species_type in species_types:
             for profile in getattr(composition, species_type):

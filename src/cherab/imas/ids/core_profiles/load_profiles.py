@@ -17,7 +17,7 @@
 # under the Licence.
 """Module for loading core-profile-related data from IMAS IDS structures."""
 
-from dataclasses import astuple, dataclass
+from dataclasses import astuple, dataclass, fields
 
 import numpy as np
 from numpy.typing import NDArray
@@ -93,8 +93,8 @@ def load_core_grid(grid_struct: IDSStructure) -> GridData:
         Instance of the `.GridData` dataclass containing the grid properties for the core profiles.
     """
     grid = GridData()
-    for name in grid.__dataclass_fields__:
-        setattr(grid, name, _get_profile(grid_struct, name))
+    for field in fields(grid):
+        setattr(grid, field.name, _get_profile(grid_struct, field.name))
 
     return grid
 
@@ -119,10 +119,10 @@ def load_core_profiles(
     """
     profiles = ProfileData()
 
-    for name in profiles.__dataclass_fields__:
-        setattr(profiles, name, _get_profile(species_struct, name))
-        if getattr(profiles, name) is None and backup_species_struct is not None:
-            setattr(profiles, name, _get_profile(backup_species_struct, name))
+    for field in fields(profiles):
+        setattr(profiles, field.name, _get_profile(species_struct, field.name))
+        if getattr(profiles, field.name) is None and backup_species_struct is not None:
+            setattr(profiles, field.name, _get_profile(backup_species_struct, field.name))
 
     return profiles
 
@@ -366,7 +366,7 @@ def load_core_species(
     # Replace missing species temperature with average ion temperature
     t_ion = _get_profile(profile_1d, "t_i_average")
     if t_ion is not None and len(t_ion):
-        species_types = set(composition.__dataclass_fields__.keys())
+        species_types = {field.name for field in fields(composition)}
         species_types.remove("electron")
         for species_type in species_types:
             for profile in getattr(composition, species_type):
