@@ -19,8 +19,8 @@ def solve_coronal_equilibrium(
     n_e: ArrayLike,
     t_e: ArrayLike,
     atomic_data: AtomicData | None = None,
-    z_min: float | None = None,
-    z_max: float | None = None,
+    z_min: int | None = None,
+    z_max: int | None = None,
 ) -> NDArray[np.float64]:
     r"""Solve the charge state distribution of an element in coronal equilibrium.
 
@@ -185,7 +185,7 @@ def solve_coronal_equilibrium(
         raise ValueError("density, n_e, and t_e must have the same shape.")
 
     # Define charge states and compute ionisation/recombination ratios
-    charges = np.arange(int(z_min), int(z_max) + 1, dtype=int)
+    charges = np.arange(z_min, z_max + 1, dtype=int)
     ratios = np.zeros((len(charges), len(density)))
 
     for i_charge in range(len(charges) - 1):

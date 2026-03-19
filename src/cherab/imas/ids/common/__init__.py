@@ -18,6 +18,7 @@
 """Subpackage for common utilities for loading data from IMAS IDS structures."""
 
 from . import ggd, species
+from ._model import solve_coronal_equilibrium
 from .slice import get_ids_time_slice
 
-__all__ = ["species", "get_ids_time_slice", "ggd"]
+__all__ = ["species", "get_ids_time_slice", "ggd", "solve_coronal_equilibrium"]

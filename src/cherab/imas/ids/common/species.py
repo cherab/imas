@@ -65,11 +65,9 @@ class SpeciesType(StrEnum):
 class SpeciesData:
     """Dataclass to represent the data of a species in IMAS."""
 
-    name: str
-    """Name of the state"""
-    z_min: float
+    z_min: int
     """Minimum ionization state of the species"""
-    z_max: float
+    z_max: int
     """Maximum ionization state of the species"""
     element: Element | None = None
     """Element that makes up the species, if it is a single particle"""
@@ -83,6 +81,33 @@ class SpeciesData:
     """Vibrational mode of the species, if it is a molecule"""
     vibrational_level: float | None = None
     """Vibrational level of the species, if it is a molecule"""
+
+    def __str__(self) -> str:
+        """Return a string representation of the species data.
+
+        Returns
+        -------
+        str
+            String representation of the species data.
+        """
+        if self.species_type in {SpeciesType.ION, SpeciesType.NEUTRAL}:
+            if self.element is not None:
+                return f"{self.element.symbol} {self.species_type.value} (z=+{self.z_min})"
+            else:
+                return f"{self.species_type.value} (z=+{self.z_min})"
+        elif self.species_type in {SpeciesType.ION_BUNDLE, SpeciesType.NEUTRAL_BUNDLE}:
+            if self.element is not None:
+                return (
+                    f"{self.element.symbol} {self.species_type.value} (z={self.z_min}-{self.z_max})"
+                )
+            else:
+                return f"{self.species_type.value} (z={self.z_min}-{self.z_max})"
+        elif self.species_type == SpeciesType.MOLECULE:
+            return f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value}"
+        elif self.species_type == SpeciesType.MOLECULAR_BUNDLE:
+            return f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value} (z={self.z_min}-{self.z_max})"
+        else:
+            return "Unknown species type"
 
 
 @dataclass
@@ -178,18 +203,19 @@ def get_ion_state(
             else:
                 z_average = []
         if len(z_average):  # probably, a bundle
-            z_min = float(state.z_min) if state.z_min != EMPTY_FLOAT else float(min(z_average))
-            z_max = float(state.z_max) if state.z_max != EMPTY_FLOAT else float(max(z_average))
+            z_min = (
+                int(state.z_min) if state.z_min != EMPTY_FLOAT else int(np.floor(min(z_average)))
+            )
+            z_max = int(state.z_max) if state.z_max != EMPTY_FLOAT else int(np.ceil(max(z_average)))
         else:  # probably, a single ion
-            z_min = float(state.z_min) if state.z_min != EMPTY_FLOAT else state_index + 1.0
-            z_max = float(state.z_max) if state.z_max != EMPTY_FLOAT else z_min
+            z_min = int(state.z_min) if state.z_min != EMPTY_FLOAT else state_index + 1
+            z_max = int(state.z_max) if state.z_max != EMPTY_FLOAT else z_min
     else:
-        z_min = float(state.z_min)
-        z_max = float(state.z_max)
+        z_min = int(state.z_min)
+        z_max = int(state.z_max)
 
     # Initialize the state species dataclass
     species_data = SpeciesData(
-        name=getattr(state, "name", "").strip(),
         z_min=z_min,
         z_max=z_max,
         electron_configuration=str(getattr(state, "electron_configuration", "")).strip()
@@ -199,7 +225,7 @@ def get_ion_state(
 
     if len(elements) > 1:  # molecular ions and bundles
         species_data.elements = elements
-        if z_min == z_max == 0.0:
+        if z_min == z_max == 0:
             species_data.species_type = SpeciesType.NEUTRAL_BUNDLE
         elif z_min == z_max:
             species_data.species_type = SpeciesType.MOLECULE
@@ -213,7 +239,7 @@ def get_ion_state(
             species_data.species_type = SpeciesType.MOLECULAR_BUNDLE
     else:  # ions and bundles
         species_data.element = elements[0]
-        if z_min == z_max == 0.0:
+        if z_min == z_max == 0:
             species_data.species_type = SpeciesType.NEUTRAL
         elif z_min == z_max:
             species_data.species_type = SpeciesType.ION
@@ -244,9 +270,8 @@ def get_neutral_state(
     """
     # Initialize the state species dataclass
     species_data = SpeciesData(
-        name=getattr(state, "name", "").strip(),
-        z_min=0.0,
-        z_max=0.0,
+        z_min=0,
+        z_max=0,
         electron_configuration=str(getattr(state, "electron_configuration", "")).strip()
         if len(getattr(state, "electron_configuration", "")) > 0
         else None,
@@ -296,7 +321,6 @@ def get_ion(ion: IDSStructure, elements: tuple[Element, ...]) -> tuple[int, Spec
     """
     z_ion = int(ion.z_ion) if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
     species_data = SpeciesData(
-        name=getattr(ion, "name", "").strip(),
         z_min=z_ion,
         z_max=z_ion,
         element=elements[0] if len(elements) == 1 else None,
@@ -325,9 +349,8 @@ def get_neutral(neutral: IDSStructure, elements: tuple[Element, ...]) -> tuple[i
         Instance of the `SpeciesData` dataclass representing the neutral or molecule.
     """
     species_data = SpeciesData(
-        name=getattr(neutral, "name", "").strip(),
-        z_min=0.0,
-        z_max=0.0,
+        z_min=0,
+        z_max=0,
         element=elements[0] if len(elements) == 1 else None,
         elements=elements if len(elements) > 1 else tuple(),
         species_type=SpeciesType.MOLECULE if len(elements) > 1 else SpeciesType.NEUTRAL,
