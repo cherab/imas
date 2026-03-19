@@ -18,6 +18,7 @@
 """Module for loading magnetic field data from the equilibrium IDS."""
 
 from dataclasses import dataclass
+from warnings import warn
 
 import numpy as np
 
@@ -93,6 +94,12 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> MagneticField2DData
     if hasattr(prof2d, "b_field_phi"):
         b_field_phi = np.asarray_chkfinite(prof2d.b_field_phi)
     elif hasattr(prof2d, "b_field_tor"):
+        warn(
+            "The 'b_field_tor' field is deprecated over DD v3.42.0; "
+            + "Support for 'b_field_tor' fallback will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         b_field_phi = np.asarray_chkfinite(prof2d.b_field_tor)
     else:
         raise RuntimeError(
