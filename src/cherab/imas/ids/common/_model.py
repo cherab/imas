@@ -160,14 +160,14 @@ def solve_coronal_equilibrium(
     ['0.0%', '0.0%', '13.1%', '80.4%', '6.4%', '0.0%', '0.0%', '0.0%', '0.0%', '0.0%', '0.0%']
     """
     # Initialize variables if not provided
-    z_min = z_min or 0
-    z_max = z_max or element.atomic_number
-    atomic_data = atomic_data or OpenADAS(permit_extrapolation=True)
+    z_min = z_min if z_min is not None else 0
+    z_max = z_max if z_max is not None else element.atomic_number
+    atomic_data = atomic_data if atomic_data is not None else OpenADAS(permit_extrapolation=True)
 
     # Validate z_min/z_max
-    if z_min is not None and z_min < 0:
+    if z_min < 0:
         raise ValueError("z_min must be non-negative.")
-    if z_max is not None and z_max > element.atomic_number:
+    if z_max > element.atomic_number:
         raise ValueError("z_max cannot exceed the atomic number of the element.")
     if z_min >= z_max:
         raise ValueError("z_min cannot be greater than or equal to z_max.")
@@ -210,18 +210,3 @@ def solve_coronal_equilibrium(
 
     # Return the charge state densities by multiplying the fractions with the total density
     return fractions * density
-
-
-if __name__ == "__main__":
-    # Example usage
-
-    from cherab.core.atomic.elements import neon as element
-
-    density = 1
-    n_e = 1e20
-    t_e = 10
-
-    result = solve_coronal_equilibrium(element, density, n_e, t_e)
-
-    for charge_state, fraction in enumerate(result.ravel()):
-        print(f"{charge_state:+3}: {fraction:5.1%}")
