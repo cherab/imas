@@ -29,7 +29,7 @@ from raysect.core.math.function.vector3d import Function3D as VectorFunction3D
 from ..ids.common.species import SpeciesComposition
 
 __all__ = [
-    "ProfileInterporater",
+    "ProfileInterpolator",
     "warn_unsupported_species",
     "get_subset_name_index",
 ]
@@ -39,7 +39,7 @@ ZERO_VELOCITY = ConstantVector3D(Vector3D(0, 0, 0))
 
 
 @dataclass
-class ProfileInterporater:
+class ProfileInterpolator:
     """Dataclass to hold the interpolators for profiles."""
 
     density: Function2D | Function3D | None = None

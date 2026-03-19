@@ -38,7 +38,7 @@ from imas import DBEntry
 from ..ids.common import get_ids_time_slice
 from ..ids.core_profiles import load_core_grid, load_core_species
 from .equilibrium import load_equilibrium, load_magnetic_field
-from .utility import ZERO_VELOCITY, ProfileInterporater, warn_unsupported_species
+from .utility import ZERO_VELOCITY, ProfileInterpolator, warn_unsupported_species
 
 __all__ = ["load_core_plasma"]
 
@@ -265,7 +265,7 @@ def get_core_interpolators(
     profile: ProfileData,
     equilibrium: EFITEquilibrium,
     return3d: bool = False,
-) -> ProfileInterporater:
+) -> ProfileInterpolator:
     """Create interpolators for the core profiles.
 
     Parameters
@@ -281,8 +281,8 @@ def get_core_interpolators(
 
     Returns
     -------
-    `.ProfileInterporater`
-        Instance of the `ProfileInterporater` dataclass containing the interpolators for density and temperature.
+    `.ProfileInterpolator`
+        Instance of the `ProfileInterpolator` dataclass containing the interpolators for density and temperature.
 
     Raises
     ------
@@ -295,7 +295,7 @@ def get_core_interpolators(
 
     psi_norm, index = np.unique(psi_norm, return_index=True)
 
-    interpolators = ProfileInterporater()
+    interpolators = ProfileInterpolator()
 
     for field in fields(profile):
         if field.name in {"species", "velocity"}:

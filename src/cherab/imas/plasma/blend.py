@@ -46,7 +46,7 @@ from .edge import get_edge_interpolators, load_edge_plasma
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import (
     ZERO_VELOCITY,
-    ProfileInterporater,
+    ProfileInterpolator,
     get_subset_name_index,
     warn_unsupported_species,
 )
@@ -442,19 +442,19 @@ def load_plasma(
 
 
 def blend_core_edge_interpolators(
-    core_interpolators: ProfileInterporater,
-    edge_interpolators: ProfileInterporater,
+    core_interpolators: ProfileInterpolator,
+    edge_interpolators: ProfileInterpolator,
     mask: Function2D | Function3D,
     return3d: bool = False,
-) -> ProfileInterporater:
+) -> ProfileInterpolator:
     """Blend together interpolators for the core and edge using the modulating mask function.
 
     Parameters
     ----------
     core_interpolators
-        Instance of `.ProfileInterporater` with 2D or 3D core profiles interpolators.
+        Instance of `.ProfileInterpolator` with 2D or 3D core profiles interpolators.
     edge_interpolators
-        Instance of `.ProfileInterporater` with 2D or 3D edge profiles interpolators.
+        Instance of `.ProfileInterpolator` with 2D or 3D edge profiles interpolators.
     mask
         Mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
     return3d
@@ -463,10 +463,10 @@ def blend_core_edge_interpolators(
 
     Returns
     -------
-    ProfileInterporater
-        Instance of `.ProfileInterporater` with blended interpolators.
+    ProfileInterpolator
+        Instance of `.ProfileInterpolator` with blended interpolators.
     """
-    interpolators = ProfileInterporater()
+    interpolators = ProfileInterpolator()
 
     for field in fields(core_interpolators):
         core_func = getattr(core_interpolators, field.name, None)

@@ -45,7 +45,7 @@ from ..math import UnitVector2D
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import (
     ZERO_VELOCITY,
-    ProfileInterporater,
+    ProfileInterpolator,
     get_subset_name_index,
     warn_unsupported_species,
 )
@@ -272,7 +272,7 @@ def get_edge_interpolators(
     profile: ProfileData,
     b_field: VectorFunction2D | None = None,
     return3d: bool = False,
-) -> ProfileInterporater:
+) -> ProfileInterpolator:
     """Create interpolators for the profiles defined on a grid.
 
     Parameters
@@ -289,10 +289,10 @@ def get_edge_interpolators(
 
     Returns
     -------
-    ProfileInterporater
-        Instance of the `ProfileInterporater` dataclass containing the interpolators for density and temperature.
+    ProfileInterpolator
+        Instance of the `ProfileInterpolator` dataclass containing the interpolators for density and temperature.
     """
-    interpolators = ProfileInterporater()
+    interpolators = ProfileInterpolator()
 
     for field in fields(profile):
         if field.name in {"species", "velocity"}:
