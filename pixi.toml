@@ -88,12 +88,6 @@ doc-build = { cmd = [
 ], cwd = "docs", args = [
   { arg = "target", default = "html" },
 ], description = "📝 Build the docs" }
-doc-clean = { cmd = [
-  "rm",
-  "-rf",
-  "build",
-  "source/_api",
-], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
 doc-serve = { cmd = [
   "python",
   "-m",
@@ -137,7 +131,14 @@ cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
 # Clean build artifacts
+[feature.tools.tasks]
 clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
+doc-clean = { cmd = [
+  "rm",
+  "-rf",
+  "build",
+  "source/_api",
+], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
 
 # === Python environment features ===
 [feature.py310.dependencies]
@@ -154,4 +155,5 @@ test-py314 = { features = [
   "test",
 ], solve-group = "py314" } # alias of test
 test-py310 = ["py310", "test"]
-lint = { features = ["lint"], no-default-feature = true }
+lint = { features = ["lint", "test"], solve-group = "py314" }
+tools = { features = ["tools"], no-default-feature = true }
