@@ -202,8 +202,9 @@ def load_core_species(
             backup_ids = None if len(ion.state) > 1 else ion
 
             for i, state in enumerate(ion.state):
-                uuid, species_data = get_ion_state(state, i, elements)
-                if uuid in ion_bundle_uuids or uuid in ion_uuids:
+                species_data = get_ion_state(state, i, elements)
+                species_tuple = astuple(species_data)
+                if species_tuple in ion_bundle_uuids or species_tuple in ion_uuids:
                     print(f"Warning! Skipping duplicated ion: {species_data}")
                     continue
 
@@ -219,7 +220,7 @@ def load_core_species(
                 # === Case: ION ===
                 if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
-                    ion_uuids.add(uuid)
+                    ion_uuids.add(species_tuple)
 
                 # === Case: ION_BUNDLE ===
                 elif species_data.species_type == SpeciesType.ION_BUNDLE:
@@ -256,7 +257,7 @@ def load_core_species(
                                 f"due to error in solving coronal equilibrium: {e}"
                             )
                             composition.ion_bundle.append(profile_data)
-                            ion_bundle_uuids.add(uuid)
+                            ion_bundle_uuids.add(astuple(species_data))
                             continue
 
                         charge_states = np.arange(
@@ -279,12 +280,12 @@ def load_core_species(
                                     velocity=profile_data.velocity,
                                 )
                             )
-                            ion_uuids.add(hash(astuple(species)))
+                            ion_uuids.add(astuple(species))
 
                     # Don't split ion bundles, just add the bundle as is
                     else:
                         composition.ion_bundle.append(profile_data)
-                        ion_bundle_uuids.add(uuid)
+                        ion_bundle_uuids.add(astuple(species_data))
 
                 # === Case: Unexpected species type ===
                 else:
@@ -294,14 +295,15 @@ def load_core_species(
         # === Non-bundled ===
         # -------------------
         else:
-            uuid, species_data = get_ion(ion, elements)
-            if uuid in ion_uuids:
+            species_data = get_ion(ion, elements)
+            species_tuple = astuple(species_data)
+            if species_tuple in ion_uuids:
                 print(f"Warning! Skipping duplicated ion: {species_data}")
             else:
                 profile_data = load_core_profiles(ion, species_data)
                 if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
-                    ion_uuids.add(uuid)
+                    ion_uuids.add(species_tuple)
                 else:
                     print(
                         f"Warning! Skipping non-bundled ion with unexpected species {species_data}"
@@ -325,11 +327,12 @@ def load_core_species(
             backup_ids = None if len(neutral.state) > 1 else neutral
 
             for state in neutral.state:
-                uuid, species_data = get_neutral_state(state, elements)
-                if uuid in neutral_bundle_uuids:
+                species_data = get_neutral_state(state, elements)
+                species_tuple = astuple(species_data)
+                if species_tuple in neutral_bundle_uuids:
                     print(f"Warning! Skipping duplicated neutral: {species_data}")
                     continue
-                neutral_bundle_uuids.add(uuid)
+                neutral_bundle_uuids.add(species_tuple)
 
                 profile_data = load_core_profiles(
                     state, species_data, backup_species_struct=backup_ids
@@ -353,17 +356,18 @@ def load_core_species(
         # === Non-bundled ===
         # -------------------
         else:
-            uuid, species_data = get_neutral(neutral, elements)
-            if uuid in neutral_uuids:
+            species_data = get_neutral(neutral, elements)
+            species_tuple = astuple(species_data)
+            if species_tuple in neutral_uuids:
                 print(f"Warning! Skipping duplicated neutral: {species_data}")
             else:
                 profile_data = load_core_profiles(neutral, species_data)
                 if species_data.species_type == SpeciesType.MOLECULE:
                     composition.molecule.append(profile_data)
-                    neutral_uuids.add(uuid)
+                    neutral_uuids.add(species_tuple)
                 elif species_data.species_type == SpeciesType.NEUTRAL:
                     composition.neutral.append(profile_data)
-                    neutral_uuids.add(uuid)
+                    neutral_uuids.add(species_tuple)
                 else:
                     print(
                         f"Warning! Skipping non-bundled neutral with unexpected species: "
