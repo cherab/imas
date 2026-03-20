@@ -187,7 +187,7 @@ def get_ion_state(
 
     Returns
     -------
-    species_data : `.SpeciesData`
+    `.SpeciesData`
         Instance of the `SpeciesData` dataclass representing the ion state.
     """
     if state.z_min == EMPTY_FLOAT or state.z_max == EMPTY_FLOAT:
@@ -259,7 +259,7 @@ def get_neutral_state(state: IDSStructure, elements: tuple[Element, ...]) -> Spe
 
     Returns
     -------
-    species_data : `.SpeciesData`
+    `.SpeciesData`
         Instance of the `SpeciesData` dataclass representing the neutral state.
     """
     # Initialize the state species dataclass
@@ -308,7 +308,7 @@ def get_ion(ion: IDSStructure, elements: tuple[Element, ...]) -> SpeciesData:
 
     Returns
     -------
-    species_data : `.SpeciesData`
+    `.SpeciesData`
         Instance of the `SpeciesData` dataclass representing the ion or molecule.
     """
     z_ion = int(ion.z_ion) if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
@@ -335,7 +335,7 @@ def get_neutral(neutral: IDSStructure, elements: tuple[Element, ...]) -> Species
 
     Returns
     -------
-    species_data : `.SpeciesData`
+    `.SpeciesData`
         Instance of the `SpeciesData` dataclass representing the neutral or molecule.
     """
     species_data = SpeciesData(
