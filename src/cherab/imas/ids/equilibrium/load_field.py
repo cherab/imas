@@ -96,7 +96,7 @@ def load_magnetic_field_data(profiles_2d: IDSStructArray) -> MagneticField2DData
     elif hasattr(prof2d, "b_field_tor"):
         warn(
             "The 'b_field_tor' field is deprecated over DD v3.42.0; "
-            + "Support for 'b_field_tor' fallback will be removed in a future release.",
+            "Support for 'b_field_tor' fallback will be removed in a future release.",
             DeprecationWarning,
             stacklevel=2,
         )
