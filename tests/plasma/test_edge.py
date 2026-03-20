@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from imas import DBEntry
 from matplotlib import pyplot as plt
@@ -101,8 +102,8 @@ def test_load_edge_plasma_time_threshold(path_iter_jintrac: str):
         load_edge_plasma(path_iter_jintrac, "r", time_threshold=0.0, split_ion_bundles=False)
 
 
-def test_plot_edge_plasma_profiles(path_iter_jintrac: str):
-    """Test mesh plotting of edge plasma profiles."""
+def test_edge_plasma_profiles(path_iter_jintrac: str):
+    """Test that edge plasma profiles can be loaded and plotted."""
     with DBEntry(path_iter_jintrac, "r") as entry:
         ids = get_ids_time_slice(entry, "edge_profiles", time=0)
 
@@ -113,12 +114,47 @@ def test_plot_edge_plasma_profiles(path_iter_jintrac: str):
         grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
     except KeyError:
         grid_subset_name = grid_subset_name.lower()
-        grid = grid.subset(subsets[grid_subset_name.lower()], name=grid_subset_name)
+        grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
 
     # Load edge species composition
-    composition = load_edge_species(
-        ids.ggd[0], grid_subset_index=subset_id[grid_subset_name], split_ion_bundles=False
+    composition_w_bundle = load_edge_species(
+        ids.ggd[0],
+        grid_subset_index=subset_id[grid_subset_name],
+        split_ion_bundles=False,
     )
+    composition = load_edge_species(
+        ids.ggd[0],
+        grid_subset_index=subset_id[grid_subset_name],
+        split_ion_bundles=True,
+    )
+
+    # Check that the summed density of the split ion species matches the original bundled species density
+    index_bundle = 2
+    ion_bundle = composition_w_bundle.ion_bundle[index_bundle]
+    original_density = ion_bundle.density
+    if original_density is None:
+        raise ValueError(
+            "Test dataset does not contain density for the bundled ion species at the expected index."
+        )
+    element = ion_bundle.species.element
+    if element != neon:
+        raise ValueError("Test dataset does not contain Ne ion bundle at the expected index.")
+    z_min = ion_bundle.species.z_min
+    z_max = ion_bundle.species.z_max
+    split_density_sum = np.zeros_like(original_density)
+    for profile in composition.ion:
+        if (
+            profile.species.element == element
+            and profile.species.z_min >= z_min
+            and profile.species.z_max <= z_max
+        ):
+            if profile.density is None:
+                raise ValueError(
+                    f"Test dataset does not contain density for split ion species: {profile.species}."
+                )
+            split_density_sum += profile.density
+
+    np.testing.assert_allclose(split_density_sum, original_density)
 
     # Plot electron density
     electron_density = composition.electron.density
