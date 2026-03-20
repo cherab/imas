@@ -132,7 +132,7 @@ class VelocityData:
 class ProfileData:
     """Dataclass for storing the profile data of a species."""
 
-    species: SpeciesData | None = None
+    species: SpeciesData
     """Data of the species."""
     density: NDArray[np.float64] | None = None
     """Density (thermal+non-thermal) [m^-3]."""

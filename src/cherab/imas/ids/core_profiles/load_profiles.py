@@ -100,7 +100,9 @@ def load_core_grid(grid_struct: IDSStructure) -> GridData:
 
 
 def load_core_profiles(
-    species_struct: IDSStructure, backup_species_struct: IDSStructure | None = None
+    species_struct: IDSStructure,
+    species: SpeciesData,
+    backup_species_struct: IDSStructure | None = None,
 ) -> ProfileData:
     """Load core profiles from a given species structure.
 
@@ -108,6 +110,8 @@ def load_core_profiles(
     ----------
     species_struct
         IDS structure containing the profiles for a single species.
+    species
+        The species data for the profiles to be loaded.
     backup_species_struct
         The backup ids structure that is used if the profile is missing in species_struct,
         by default None.
@@ -117,7 +121,7 @@ def load_core_profiles(
     `.ProfileData`
         Instance of the `ProfileData` dataclass containing the core profiles for the species.
     """
-    profiles = ProfileData()
+    profiles = ProfileData(species)
 
     for field in fields(profiles):
         setattr(profiles, field.name, _get_profile(species_struct, field.name))
@@ -159,7 +163,7 @@ def load_core_species(
         or other necessary data.
     """
     composition = SpeciesComposition(
-        electron=load_core_profiles(profile_1d.electrons),
+        electron=load_core_profiles(profile_1d.electrons, SpeciesData(z_min=-1, z_max=-1)),
     )
 
     if composition.electron.temperature is None:
@@ -203,8 +207,11 @@ def load_core_species(
                     print(f"Warning! Skipping duplicated ion: {species_data}")
                     continue
 
-                profile_data = load_core_profiles(state, backup_ids)
-                profile_data.species = species_data
+                profile_data = load_core_profiles(
+                    state,
+                    species_data,
+                    backup_species_struct=backup_ids,
+                )
 
                 if backup_ids is None and profile_data.temperature is None:
                     profile_data.temperature = shared_temperature
@@ -267,6 +274,7 @@ def load_core_species(
                                 ProfileData(
                                     species=species,
                                     density=densities_per_charge[i_charge],
+                                    density_thermal=densities_per_charge[i_charge],
                                     temperature=profile_data.temperature,
                                     velocity=profile_data.velocity,
                                 )
@@ -290,8 +298,7 @@ def load_core_species(
             if uuid in ion_uuids:
                 print(f"Warning! Skipping duplicated ion: {species_data}")
             else:
-                profile_data = load_core_profiles(ion)
-                profile_data.species = species_data
+                profile_data = load_core_profiles(ion, species_data)
                 if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
                     ion_uuids.add(uuid)
@@ -324,8 +331,9 @@ def load_core_species(
                     continue
                 neutral_bundle_uuids.add(uuid)
 
-                profile_data = load_core_profiles(state, backup_ids)
-                profile_data.species = species_data
+                profile_data = load_core_profiles(
+                    state, species_data, backup_species_struct=backup_ids
+                )
 
                 if backup_ids is None and profile_data.temperature is None:
                     profile_data.temperature = shared_temperature
@@ -349,8 +357,7 @@ def load_core_species(
             if uuid in neutral_uuids:
                 print(f"Warning! Skipping duplicated neutral: {species_data}")
             else:
-                profile_data = load_core_profiles(neutral)
-                profile_data.species = species_data
+                profile_data = load_core_profiles(neutral, species_data)
                 if species_data.species_type == SpeciesType.MOLECULE:
                     composition.molecule.append(profile_data)
                     neutral_uuids.add(uuid)

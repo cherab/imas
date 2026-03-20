@@ -77,6 +77,7 @@ def _get_profile(
 
 def load_edge_profiles(
     species_struct: IDSStructure,
+    species: SpeciesData,
     grid_subset_index: int = 5,
     backup_species_struct: IDSStructure | None = None,
 ) -> ProfileData:
@@ -86,6 +87,8 @@ def load_edge_profiles(
     ----------
     species_struct
         The ids structure containing the profiles for a single species.
+    species
+        The species data for the profiles to be loaded.
     grid_subset_index
         Identifier index of the grid subset, by default 5 (``"Cells"``).
     backup_species_struct
@@ -97,7 +100,7 @@ def load_edge_profiles(
     `.ProfileData`
         Instance of the `.ProfileData` dataclass containing the loaded profiles.
     """
-    profiles = ProfileData()
+    profiles = ProfileData(species)
     velocities = VelocityData()
 
     for field in fields(profiles):
@@ -160,7 +163,9 @@ def load_edge_species(
         or other necessary data.
     """
     composition = SpeciesComposition(
-        electron=load_edge_profiles(ggd_struct.electrons, grid_subset_index),
+        electron=load_edge_profiles(
+            ggd_struct.electrons, SpeciesData(z_min=-1, z_max=-1), grid_subset_index
+        ),
     )
 
     if composition.electron.temperature is None:
@@ -204,11 +209,11 @@ def load_edge_species(
                     print(f"Warning! Skipping duplicated ion: {species_data}")
                     continue
 
-                profile_data = load_edge_profiles(state, grid_subset_index, backup_ids)
+                profile_data = load_edge_profiles(
+                    state, species_data, grid_subset_index, backup_ids
+                )
                 if backup_ids is None and profile_data.temperature is None:
                     profile_data.temperature = shared_temperature
-                profile_data.species = species_data
-
                 # === Case: ION ===
                 if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
@@ -267,6 +272,7 @@ def load_edge_species(
                                 ProfileData(
                                     species=species,
                                     density=densities_per_charge[i_charge],
+                                    density_thermal=densities_per_charge[i_charge],
                                     temperature=profile_data.temperature,
                                     velocity=profile_data.velocity,
                                 )
@@ -290,8 +296,7 @@ def load_edge_species(
             if uuid in ion_uuids:
                 print(f"Warning! Skipping duplicated ion: {species_data}")
             else:
-                profile_data = load_edge_profiles(ion, grid_subset_index)
-                profile_data.species = species_data
+                profile_data = load_edge_profiles(ion, species_data, grid_subset_index)
                 if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
                     ion_uuids.add(uuid)
@@ -324,8 +329,9 @@ def load_edge_species(
                     continue
                 neutral_bundle_uuids.add(uuid)
 
-                profile_data = load_edge_profiles(state, grid_subset_index, backup_ids)
-                profile_data.species = species_data
+                profile_data = load_edge_profiles(
+                    state, species_data, grid_subset_index, backup_ids
+                )
 
                 if backup_ids is None and profile_data.temperature is None:
                     profile_data.temperature = shared_temperature
@@ -349,8 +355,7 @@ def load_edge_species(
             if uuid in neutral_uuids:
                 print(f"Warning! Skipping duplicated neutral: {species_data}")
             else:
-                profile_data = load_edge_profiles(neutral, grid_subset_index, None)
-                profile_data.species = species_data
+                profile_data = load_edge_profiles(neutral, species_data, grid_subset_index, None)
                 if species_data.species_type == SpeciesType.MOLECULE:
                     composition.molecule.append(profile_data)
                     neutral_uuids.add(uuid)
