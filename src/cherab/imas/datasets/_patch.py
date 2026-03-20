@@ -4,7 +4,7 @@ from cherab.imas.ids.common import get_ids_time_slice
 from imas import DBEntry
 
 
-def fix_jintract(path_in: str, path_out: str) -> None:
+def fix_jintrac(path_in: str, path_out: str) -> None:
     """Fix the JINTRAC IDS.
 
     This function modifies the JINTRAC IDS by updating the `z_min` and `z_max` values for the ion
