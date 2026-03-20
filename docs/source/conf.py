@@ -98,7 +98,7 @@ myst_url_schemes = {
 
 # -- HTML output ------------------------------------------------------------
 html_theme = "sphinx_immaterial"
-html_title = f"{project}"
+html_title = project
 html_theme_options = {
     "repo_url": "https://github.com/cherab/imas",
     "repo_name": "CHERAB-IMAS",
