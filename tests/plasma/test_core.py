@@ -33,7 +33,7 @@ def test_load_core_plasma(path_iter_jintrac: str):
     ion_charges = set()
     for species in plasma.composition:
         # Check that we have multiple ionization states for Ne
-        if species.element.symbol == "Ne":
+        if species.element == neon:
             ion_charges.add(species.charge)
 
     # Expecting all charge states from 0 to Z for Ne
@@ -97,7 +97,7 @@ def test_load_core_plasma_not_split_ion_bundles(path_iter_jintrac: str):
     plasma = load_core_plasma(path_iter_jintrac, "r", split_ion_bundles=False)
     ion_charges_no_split = set()
     for species in plasma.composition:
-        if species.element.symbol == "Ne":
+        if species.element == neon:
             ion_charges_no_split.add(species.charge)
 
     # Expecting only the bundled charge state
