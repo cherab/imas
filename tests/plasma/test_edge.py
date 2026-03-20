@@ -129,32 +129,31 @@ def test_edge_plasma_profiles(path_iter_jintrac: str):
     )
 
     # Check that the summed density of the split ion species matches the original bundled species density
-    index_bundle = 2
-    ion_bundle = composition_w_bundle.ion_bundle[index_bundle]
-    original_density = ion_bundle.density
-    if original_density is None:
-        raise ValueError(
-            "Test dataset does not contain density for the bundled ion species at the expected index."
-        )
-    element = ion_bundle.species.element
-    if element != neon:
-        raise ValueError("Test dataset does not contain Ne ion bundle at the expected index.")
-    z_min = ion_bundle.species.z_min
-    z_max = ion_bundle.species.z_max
-    split_density_sum = np.zeros_like(original_density)
-    for profile in composition.ion:
-        if (
-            profile.species.element == element
-            and profile.species.z_min >= z_min
-            and profile.species.z_max <= z_max
-        ):
-            if profile.density is None:
-                raise ValueError(
-                    f"Test dataset does not contain density for split ion species: {profile.species}."
-                )
-            split_density_sum += profile.density
+    ion_bundles = []
+    for bundle in composition_w_bundle.ion_bundle:
+        if bundle.species.element == neon and bundle.density is not None:
+            ion_bundles += [bundle]
+    if not ion_bundles:
+        raise ValueError("Test dataset does not contain a bundled Ne ion species with density.")
+    for ion_bundle in ion_bundles:
+        original_density = ion_bundle.density
+        element = ion_bundle.species.element
+        z_min = ion_bundle.species.z_min
+        z_max = ion_bundle.species.z_max
+        split_density_sum = np.zeros_like(original_density)
+        for profile in composition.ion:
+            if (
+                profile.species.element == element
+                and profile.species.z_min >= z_min
+                and profile.species.z_max <= z_max
+            ):
+                if profile.density is None:
+                    raise ValueError(
+                        f"Test dataset does not contain density for split ion species: {profile.species}."
+                    )
+                split_density_sum += profile.density
 
-    np.testing.assert_allclose(split_density_sum, original_density)
+        np.testing.assert_allclose(split_density_sum, original_density)
 
     # Plot electron density
     electron_density = composition.electron.density
