@@ -65,9 +65,10 @@ def warn_unsupported_species(
     species_type
         Type of species to check for (e.g., 'ion_bundle', 'molecule', 'molecular_bundle').
     """
-    if hasattr(composition, species_type) and len(getattr(composition, species_type)) > 0:
+    profiles = getattr(composition, species_type, None)
+    if profiles is not None and len(profiles) > 0:
         names: list[str] = []
-        for profile_data in getattr(composition, species_type):
+        for profile_data in profiles:
             name: str | None = getattr(profile_data.species, "name", None)
             if name is None:
                 element = getattr(profile_data.species, "element", None)
