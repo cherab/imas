@@ -149,7 +149,7 @@ def load_magnetic_field(
     time_threshold: float = np.inf,
     **kwargs,
 ) -> Function2D:
-    """Load the magnetic field from the equilibrium IDS and return a interpolator function.
+    """Load the magnetic field from the equilibrium IDS and return an interpolator function.
 
     Parameters
     ----------
