@@ -20,8 +20,8 @@
 from typing import Literal, overload
 
 import numpy as np
-from raysect.core.math.function.float.function1d.interpolate import Interpolator1DArray
-from raysect.core.math.function.float.function2d.interpolate import Interpolator2DArray
+from raysect.core.math.function.float.function1d import Interpolator1DArray
+from raysect.core.math.function.float.function2d import Interpolator2DArray
 from raysect.core.math.function.vector3d import Function2D
 
 from cherab.imas.ids.equilibrium.load_equilibrium import Equilibrium2DData
