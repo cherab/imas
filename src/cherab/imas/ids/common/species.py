@@ -20,7 +20,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 
 import numpy as np
 from numpy.typing import NDArray
@@ -44,7 +44,7 @@ __all__ = [
 ]
 
 
-class SpeciesType(StrEnum):
+class SpeciesType(Enum):
     """Enumeration of species types in IMAS."""
 
     ION = "ion"
