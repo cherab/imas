@@ -32,6 +32,7 @@ from ..common.species import (
     SpeciesComposition,
     SpeciesData,
     SpeciesType,
+    VelocityData,
     get_elements,
     get_ion,
     get_ion_state,
@@ -122,11 +123,24 @@ def load_core_profiles(
         Instance of the `ProfileData` dataclass containing the core profiles for the species.
     """
     profiles = ProfileData(species)
+    velocities = VelocityData()
 
     for field in fields(profiles):
-        setattr(profiles, field.name, _get_profile(species_struct, field.name))
-        if getattr(profiles, field.name) is None and backup_species_struct is not None:
-            setattr(profiles, field.name, _get_profile(backup_species_struct, field.name))
+        match field.name:
+            case "velocity":
+                for field_vel in fields(velocities):
+                    data = _get_profile(species_struct, field.name, name2=field_vel.name)
+                    if data is None and backup_species_struct is not None:
+                        data = _get_profile(backup_species_struct, field.name, name2=field_vel.name)
+                    setattr(velocities, field_vel.name, data)
+                profiles.velocity = velocities
+            case "species":
+                # species data is not stored in the profile structure, skip loading it here
+                continue
+            case _:
+                setattr(profiles, field.name, _get_profile(species_struct, field.name))
+                if getattr(profiles, field.name) is None and backup_species_struct is not None:
+                    setattr(profiles, field.name, _get_profile(backup_species_struct, field.name))
 
     return profiles
 
