@@ -102,7 +102,8 @@ def load_plasma(
         Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma
         if different from the core plasma. By default None: uses the same as `**kwargs`.
     time_edge
-        Time for the edge plasma. If None, uses `time`. By default None.
+        Time for the edge plasma. If None, uses `~cherab.imas.plasma.load_plasma.time`.
+        By default None.
     occurrence_edge
         Occurrence index of the ``edge_profiles`` IDS, by default 0.
     grid_ggd
@@ -203,8 +204,8 @@ def load_plasma(
     except RuntimeError:
         return load_core_plasma(
             *args,
-            time=0,
-            occurrence=0,
+            time=time,
+            occurrence=occurrence_core,
             equilibrium=equilibrium,
             b_field=b_field,
             psi_interpolator=psi_interpolator,
