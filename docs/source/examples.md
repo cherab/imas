@@ -22,5 +22,5 @@ Each notebook is designed to showcase specific functionalities and provide pract
     :glob:
     :reversed:
 
-    notebooks/misc/*.ipynb
+    notebooks/misc/*
 ```
