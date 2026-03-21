@@ -64,7 +64,7 @@ def iter_jintrac() -> str:
     >>> from cherab.imas import datasets
     >>> data_path = datasets.iter_jintrac()
     >>> data_path
-    '.../cherab/imas/iter_jintrac/iter_scenario_53298_seq1_DD4.nc'
+    '.../cherab/imas/iter_jintrac/iter_scenario_53298_seq1_DD4_mod.nc'
     """
     path = fetch_data("iter_scenario_53298_seq1_DD4.nc")
 
