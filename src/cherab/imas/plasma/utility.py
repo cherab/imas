@@ -46,6 +46,8 @@ class ProfileInterpolator:
     """Interpolating function for the density profile. Prefer ``density_thermal`` if available."""
     density_thermal: Function2D | Function3D | None = None
     """Interpolating function for the thermal density profile."""
+    density_fast: Function2D | Function3D | None = None
+    """Interpolating function for the fast density profile."""
     temperature: Function2D | Function3D | None = None
     """Interpolating function for the temperature profile."""
     velocity: VectorFunction2D | VectorFunction3D | None = None
