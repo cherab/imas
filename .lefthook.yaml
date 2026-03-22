@@ -17,7 +17,7 @@ output:
   - skips # Print "skip" (i.e. no files matched)
 
 pre-commit:
-  parallel: true
+  parallel: false
   jobs:
     - name: dprint
       glob: "*.{json,jsonc,md,yaml,yml}"
@@ -29,25 +29,21 @@ pre-commit:
       stage_fixed: true
       run: pixi {run} taplo {staged_files}
 
-    - name: ruff
+    - name: ruff check
       glob: "*.{py,pyi}"
-      group:
-        piped: true
-        jobs:
-          - name: ruff check
-            run: pixi {run} ruff check --fix {staged_files}
-            stage_fixed: true
-          - name: ruff format
-            run: pixi {run} ruff format {staged_files}
-            stage_fixed: true
+      stage_fixed: true
+      run: pixi {run} ruff check --fix {staged_files}
 
-    # - name: pyrefly
-    #   glob: "*.{py,pyi}"
-    #   run: pixi {run} pyrefly-check {staged_files}
+    - name: ruff format
+      glob: "*.{py,pyi}"
+      stage_fixed: true
+      skip:
+        - run: test ${CI} -eq 1
+      run: pixi {run} ruff format {staged_files}
 
-    # - name: mypy
-    #   glob: "*.{py,pyi}"
-    #   run: pixi {run} mypy {staged_files}
+    - name: pyrefly
+      glob: "*.{py,pyi}"
+      run: pixi {run} pyrefly-check {staged_files}
 
     - name: typos
       stage_fixed: true
@@ -69,3 +65,16 @@ pre-commit:
     - name: cython-lint
       glob: "*.{pyx,pxd}"
       run: pixi {run} cython-lint {staged_files}
+
+    - name: nbstripout clean
+      glob: "*.ipynb"
+      stage_fixed: true
+      skip:
+        - run: test ${CI} -eq 1
+      run: pixi {run} nbstripout {staged_files}
+
+    - name: nbstripout check
+      glob: "*.ipynb"
+      only:
+        - run: test ${CI} -eq 1
+      run: pixi {run} nbstripout --verify {staged_files}

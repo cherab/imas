@@ -17,9 +17,12 @@
 # under the Licence.
 """Module for loading edge plasma profiles from the edge_profiles IDS."""
 
+from dataclasses import fields
+
 import numpy as np
+from numpy.typing import NDArray
 from raysect.core.math import Vector3D, translate
-from raysect.core.math.function.float import Constant2D, Constant3D, Function2D, Function3D
+from raysect.core.math.function.float import Constant2D, Constant3D, Function2D
 from raysect.core.math.function.vector3d import Constant2D as ConstantVector2D
 from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
@@ -27,9 +30,8 @@ from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
-from cherab.core import Maxwellian, Plasma, Species
+from cherab.core import AtomicData, Maxwellian, Plasma, Species
 from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
-from cherab.core.utility import RecursiveDict
 from cherab.tools.equilibrium.efit import FluxSurfaceNormal, PoloidalFieldVector
 from imas import DBEntry
 from imas.ids_structure import IDSStructure
@@ -37,10 +39,16 @@ from imas.ids_structure import IDSStructure
 from ..ggd.base_mesh import GGDGrid
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
+from ..ids.common.species import ProfileData, VelocityData
 from ..ids.edge_profiles import load_edge_species
 from ..math import UnitVector2D
 from .equilibrium import load_equilibrium, load_magnetic_field
-from .utility import get_subset_name_index, warn_unsupported_species
+from .utility import (
+    ZERO_VELOCITY,
+    ProfileInterpolator,
+    get_subset_name_index,
+    warn_unsupported_species,
+)
 
 __all__ = ["load_edge_plasma"]
 
@@ -53,10 +61,23 @@ def load_edge_plasma(
     grid_subset_id: int | str = 5,
     b_field: VectorFunction2D | None = None,
     time_threshold: float = np.inf,
+    split_ion_bundles: bool = True,
+    atomic_data: AtomicData | None = None,
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
     """Load edge profiles and Create a `~cherab.core.plasma.node.Plasma` object.
+
+    Prefer ``density_thermal`` over ``density`` profile.
+
+    The distribution of each species is defined with `~cherab.core.distribution.Maxwellian` using
+    its density, temperature, and bulk velocity profiles, which are mapped to GGD grid coordinates.
+
+    The plasma geometry is defined as a cylindrical annulus between the inner and outer limit of
+    the grid, and its height is defined as the difference between the maximum and minimum
+    z-coordinate of the grid.
+
+    The ion bundle species are split into their constituent charge states using `.solve_coronal_equilibrium`.
 
     Parameters
     ----------
@@ -76,6 +97,12 @@ def load_edge_plasma(
     time_threshold
         Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
+    split_ion_bundles
+        Whether to split ion bundles into their constituent charge states using
+        `.solve_coronal_equilibrium`, by default True.
+    atomic_data
+        Atomic data provider class for this plasma, by default None.
+        If None, some species (e.g. ion_bundle) may not be properly loaded.
     parent
         Parent node in the Raysect scene graph, by default None.
         Typically a `~raysect.optical.scenegraph.world.World` instance.
@@ -92,6 +119,11 @@ def load_edge_plasma(
     RuntimeError
         If the ``grid_ggd`` or ``ggd`` AOS of the edge_profiles IDS is empty.
     """
+    # -----------------------------------------
+    # === Load edge profiles data from IMAS ===
+    # -----------------------------------------
+    # Load required data from the edge_profiles IDS and form the edge grid and species composition
+    # data structures.
     with DBEntry(*args, **kwargs) as entry:
         edge_profiles_ids = get_ids_time_slice(
             entry, "edge_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
@@ -106,28 +138,7 @@ def load_edge_plasma(
     if not len(edge_profiles_ids.ggd):
         raise RuntimeError("The 'ggd' AOS of the edge_profiles IDS is empty.")
 
-    grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
-    grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
-
-    grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
-
-    if np.all(subsets[grid_subset_name] != np.arange(grid.num_cell, dtype=int)):
-        # To reduce memory usage, create the sub-grid only if needed.
-        grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
-
-    composition = load_edge_species(edge_profiles_ids.ggd[0], grid_subset_index=grid_subset_index)
-
-    name = f"IMAS edge plasma: time {edge_profiles_ids.time[0]}, uri {entry.uri}."
-    plasma = Plasma(parent=parent, name=name)
-
-    # Create plasma geometry
-    radius_outer = grid.mesh_extent["rmax"]
-    radius_inner = grid.mesh_extent["rmin"]
-    height = grid.mesh_extent["zmax"] - grid.mesh_extent["zmin"]
-    zmin = grid.mesh_extent["zmin"]
-    plasma.geometry = Subtract(Cylinder(radius_outer, height), Cylinder(radius_inner, height))
-    plasma.geometry_transform = translate(0, 0, zmin)
-
+    # Load magnetic field data. If not provided, try to load from the equilibrium IDS.
     if b_field is None:
         try:
             b_field = load_magnetic_field(*args, time=time, occurrence=occurrence, **kwargs)
@@ -139,72 +150,137 @@ def load_edge_plasma(
             except RuntimeError:
                 print("Warning! No magnetic field data available in the equilibrium IDS.")
 
+    # Create edge grid
+    grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
+    grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
+
+    grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
+
+    if np.all(subsets[grid_subset_name] != np.arange(grid.num_cell, dtype=int)):
+        # To reduce memory usage, create the sub-grid only if needed.
+        grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+
+    # Load species composition
+    composition = load_edge_species(
+        edge_profiles_ids.ggd[0],
+        grid_subset_index=grid_subset_index,
+        split_ion_bundles=split_ion_bundles,
+        atomic_data=atomic_data,
+    )
+
+    # ----------------------------
+    # === Create Plasma object ===
+    # ----------------------------
+    name = f"IMAS edge plasma: time {edge_profiles_ids.time[0]}, uri {entry.uri}."
+    plasma = Plasma(parent=parent, name=name)
+
+    # Create plasma geometry
+    radius_outer = grid.mesh_extent["rmax"]
+    radius_inner = grid.mesh_extent["rmin"]
+    height = grid.mesh_extent["zmax"] - grid.mesh_extent["zmin"]
+    zmin = grid.mesh_extent["zmin"]
+    plasma.geometry = Subtract(Cylinder(radius_outer, height), Cylinder(radius_inner, height))
+    plasma.geometry_transform = translate(0, 0, zmin)
+
+    # Add magnetic field
     if b_field is not None:
         plasma.b_field = VectorAxisymmetricMapper(b_field)
 
-    # Add electron species
-    electrons = get_edge_interpolators(grid, composition["electron"], b_field, return3d=True)
+    # Add atomic data
+    if atomic_data is not None:
+        plasma.atomic_data = atomic_data
 
-    if electrons["density"] is None:
-        print("Unable to create Edge Plasma: electron density is not available.")
-    if electrons["temperature"] is None:
-        print("Unable to create Edge Plasma: electron temperature is not available.")
+    # ------------------------------------
+    # === Define Electron Distribution ===
+    # ------------------------------------
+    if composition.electron.density_thermal is not None:
+        composition.electron.density = composition.electron.density_thermal
+
+    if composition.electron is None:
+        raise RuntimeError("Electron profile is missing in the edge_profiles IDS.")
+    if composition.electron.density is None:
+        raise RuntimeError("Electron density profile is missing in the edge_profiles IDS.")
+    if composition.electron.temperature is None:
+        raise RuntimeError("Electron temperature profile is missing in the edge_profiles IDS.")
+
+    interp = get_edge_interpolators(grid, composition.electron, b_field, return3d=True)
 
     plasma.electron_distribution = Maxwellian(
-        electrons["density"], electrons["temperature"], electrons["velocity"], electron_mass
+        interp.density,
+        interp.temperature,
+        interp.velocity or ZERO_VELOCITY,
+        electron_mass,
     )
 
-    warn_unsupported_species(composition, "molecule")
-    warn_unsupported_species(composition, "molecular_bundle")
-    warn_unsupported_species(composition, "ion_bundle")
+    # -----------------------------------------------
+    # === Define Species Distribution/Composition ===
+    # -----------------------------------------------
 
-    # Add ion and neutral species
-    for species_id, profiles in composition["ion"].items():
-        d = {first: second for first, second in species_id}
-        species_type = d["element"]
-        charge = int(round(d["z"]))
-
-        sp_key = (species_type, charge)
-        if sp_key in plasma.composition:
-            print(
-                f"Warning! Skipping {d['name']} species. "
-                + f"Species with the same (element, charge): {sp_key} is already added."
-            )
+    # === Ion/Neutral Species ===
+    for profile in composition.ion + composition.neutral:
+        if profile.species is None:
+            print(f"Warning! Skipping species with missing element or charge: {profile}")
+            continue
+        if profile.species.element is None:
+            print(f"Warning! Skipping species with missing element: {profile}")
+            continue
+        if profile.density_thermal is not None:
+            profile.density = profile.density_thermal
+        if profile.density is None:
+            print(f"Warning! Skipping {profile.species}: density profile is missing.")
+            continue
+        if profile.temperature is None:
+            print(f"Warning! Skipping {profile.species}: temperature profile is missing.")
             continue
 
-        interp = get_edge_interpolators(grid, profiles, b_field, return3d=True)
+        element = profile.species.element
+        charge = profile.species.z_min
 
-        if interp["density"] is None:
-            print(f"Warning! Skipping {d['name']} species: density is not available.")
-        if interp["temperature"] is None:
-            print(f"Warning! Skipping {d['name']} species: temperature is not available.")
+        try:
+            species = plasma.composition.get(element, int(charge))
+            print(f"Warning! Skipping {species}: already defined")
+            continue
+        except ValueError:
+            pass
+
+        interp = get_edge_interpolators(grid, profile, b_field, return3d=True)
 
         distribution = Maxwellian(
-            interp["density"],
-            interp["temperature"],
-            interp["velocity"],
-            species_type.atomic_weight * atomic_mass,
+            interp.density,
+            interp.temperature,
+            interp.velocity or ZERO_VELOCITY,
+            element.atomic_weight * atomic_mass,
         )
 
-        plasma.composition.add(Species(species_type, charge, distribution))
+        plasma.composition.add(Species(element, int(charge), distribution))
+
+    # === Ion Bundles ===
+    # Ion bundles are split into their constituent charge states at the composition level.
+    warn_unsupported_species(composition, "ion_bundle")
+
+    # === Molecular Species ===
+    # TODO: properly support molecular species.
+    # For now, just issue a warning if any molecule or molecular_bundle species are present in the composition.
+    warn_unsupported_species(composition, "molecule")
+    warn_unsupported_species(composition, "molecular_bundle")
 
     return plasma
 
 
 def get_edge_interpolators(
     grid: GGDGrid,
-    profiles: dict[str, np.ndarray | None],
+    profile: ProfileData,
     b_field: VectorFunction2D | None = None,
     return3d: bool = False,
-) -> dict[str, Function3D | Function2D | VectorFunction2D | VectorFunction2D | None]:
+) -> ProfileInterpolator:
     """Create interpolators for the profiles defined on a grid.
 
     Parameters
     ----------
     grid
         GGD-compatible grid object.
-    profiles
-        Dictionary with edge plasma profiles.
+    profile
+        Instance of the `ProfileData` dataclass containing the profiles to be interpolated.
     b_field
         2D interpolator of the magnetic field vector (Br, Btor, Bz), by default None.
     return3d
@@ -213,54 +289,55 @@ def get_edge_interpolators(
 
     Returns
     -------
-    dict[str, Function3D | Function2D | None]
-        Dictionary with edge interpolators.
+    ProfileInterpolator
+        Instance of the `ProfileInterpolator` dataclass containing the interpolators for density and temperature.
     """
-    interpolators = RecursiveDict()
+    interpolators = ProfileInterpolator()
 
-    for prof_key, profile in profiles.items():
-        if "velocity" in prof_key:
+    for field in fields(profile):
+        if field.name in {"species", "velocity"}:
             continue
-        if profile is not None:
-            func = grid.interpolator(profile)
+        data = getattr(profile, field.name, None)
+        if data is not None:
+            func = grid.interpolator(data)
             if isinstance(func, Function2D) and return3d:
                 func = AxisymmetricMapper(func)
-            interpolators[prof_key] = func
-        else:
-            interpolators[prof_key] = None
+            setattr(interpolators, field.name, func)
 
-    vector_func = _get_velocity_interpolators(grid, profiles, b_field)
-    if isinstance(vector_func, VectorFunction2D) and return3d:
-        vector_func = VectorAxisymmetricMapper(vector_func)
-    interpolators["velocity"] = vector_func
+    # Create velocity interpolator
+    if profile.velocity is not None:
+        vector_func = _get_velocity_interpolators(grid, profile.velocity, b_field)
+        if isinstance(vector_func, VectorFunction2D) and return3d:
+            vector_func = VectorAxisymmetricMapper(vector_func)
+        interpolators.velocity = vector_func
 
-    return interpolators.freeze()
-
-
-def _get_velocity_interpolators(grid: GGDGrid, profiles, b_field=None):
-    # Note: np.all(None == 0) returns False
-    vrad = None if np.all(profiles["velocity_radial"] == 0) else profiles["velocity_radial"]
-    vpol = None if np.all(profiles["velocity_poloidal"] == 0) else profiles["velocity_poloidal"]
-    vpar = None if np.all(profiles["velocity_parallel"] == 0) else profiles["velocity_parallel"]
-    vtor = None if np.all(profiles["velocity_phi"] == 0) else profiles["velocity_phi"]
-    vr = None if np.all(profiles["velocity_r"] == 0) else profiles["velocity_r"]
-    vz = None if np.all(profiles["velocity_z"] == 0) else profiles["velocity_z"]
-
-    if not b_field:
-        return _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
-
-    if vrad is None and vr is not None and vz is not None:
-        if vtor is None and vpar is not None:
-            _, vtor = _get_components_from_vpar(grid, vpar, b_field)
-        return _get_cylindrical_velocity_interpolators(grid, vr, vz, vtor)
-
-    if vpar is None:
-        return _get_poloidal_velocity_interpolators(grid, vpol, vrad, vtor, b_field)
-
-    return _get_parallel_velocity_interpolators(grid, vpar, vrad, b_field)
+    return interpolators
 
 
-def _get_cylindrical_velocity_interpolators(grid: GGDGrid, vr, vz, vtor):
+def _get_velocity_interpolators(
+    grid: GGDGrid, v: VelocityData, b_field: VectorFunction2D | None = None
+):
+    if b_field is None:
+        return _get_cylindrical_velocity_interpolators(grid, v.r, v.z, v.phi)
+
+    if v.radial is None and v.r is not None and v.z is not None:
+        v_phi = v.phi
+        if v_phi is None and v.parallel is not None:
+            _, v_phi = _get_components_from_vpar(grid, v.parallel, b_field)
+        return _get_cylindrical_velocity_interpolators(grid, v.r, v.z, v_phi)
+
+    if v.parallel is None:
+        return _get_poloidal_velocity_interpolators(grid, v.poloidal, v.radial, v.phi, b_field)
+
+    return _get_parallel_velocity_interpolators(grid, v.parallel, v.radial, b_field)
+
+
+def _get_cylindrical_velocity_interpolators(
+    grid: GGDGrid,
+    vr: NDArray[np.float64] | None,
+    vz: NDArray[np.float64] | None,
+    vtor: NDArray[np.float64] | None,
+):
     if vr is None and vz is None and vtor is None:
         if grid.dimension == 2:
             return ConstantVector2D(
@@ -279,7 +356,12 @@ def _get_cylindrical_velocity_interpolators(grid: GGDGrid, vr, vz, vtor):
     return grid.vector_interpolator(np.array([vr, vtor, vz]))
 
 
-def _get_parallel_velocity_interpolators(grid: GGDGrid, vpar, vrad, b_field):
+def _get_parallel_velocity_interpolators(
+    grid: GGDGrid,
+    vpar: NDArray[np.float64] | None,
+    vrad: NDArray[np.float64] | None,
+    b_field: VectorFunction2D,
+):
     if vpar is None and vrad is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(
@@ -303,7 +385,13 @@ def _get_parallel_velocity_interpolators(grid: GGDGrid, vpar, vrad, b_field):
     return vpar_i * parallel_vector + vrad_i * surface_normal
 
 
-def _get_poloidal_velocity_interpolators(grid: GGDGrid, vpol, vrad, vtor, b_field):
+def _get_poloidal_velocity_interpolators(
+    grid: GGDGrid,
+    vpol: NDArray[np.float64] | None,
+    vrad: NDArray[np.float64] | None,
+    vtor: NDArray[np.float64] | None,
+    b_field: VectorFunction2D,
+):
     if vpol is None and vrad is None and vtor is None:
         if grid.dimension == 2:  # 2D case
             return ConstantVector2D(
@@ -330,7 +418,7 @@ def _get_poloidal_velocity_interpolators(grid: GGDGrid, vpol, vrad, vtor, b_fiel
     return vpol_i * poloidal_vector + vrad_i * surface_normal + vtor_i * toroidal_vector
 
 
-def _get_components_from_vpar(grid: GGDGrid, vpar, b_field):
+def _get_components_from_vpar(grid: GGDGrid, vpar: NDArray[np.float64], b_field: VectorFunction2D):
     vpol = np.zeros(grid.num_cell, dtype=np.float64)
     vtor = np.zeros(grid.num_cell, dtype=np.float64)
 

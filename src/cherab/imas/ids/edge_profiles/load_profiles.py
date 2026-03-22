@@ -17,155 +17,124 @@
 # under the Licence.
 """Module for loading edge-profile-related data from IMAS IDS structures."""
 
+from dataclasses import astuple, fields
+
 import numpy as np
+from numpy.typing import NDArray
 
-from imas.ids_structure import IDSStructure
+from cherab.core.atomic import AtomicData
+from imas.ids_primitive import IDSNumericArray
+from imas.ids_structure import IDSStructArray, IDSStructure
 
+from ..common import solve_coronal_equilibrium
 from ..common.species import (
-    get_element_list,
+    ProfileData,
+    SpeciesComposition,
+    SpeciesData,
+    SpeciesType,
+    VelocityData,
+    get_elements,
     get_ion,
     get_ion_state,
     get_neutral,
     get_neutral_state,
 )
 
-__all__ = ["load_edge_profiles", "load_edge_species"]
+__all__ = [
+    "load_edge_profiles",
+    "load_edge_species",
+]
+
+
+def _get_profile(
+    ids_struct: IDSStructure,
+    name: str,
+    grid_subset_index: int,
+    name2: str | None = None,
+) -> NDArray[np.float64] | None:
+    struct_arr = getattr(ids_struct, name, None)
+    if isinstance(struct_arr, IDSStructArray):
+        for sub_struct in struct_arr:
+            index = getattr(sub_struct, "grid_subset_index", None)
+            if index is None:
+                return None
+            elif index == grid_subset_index:
+                data = getattr(sub_struct, "values", None)
+                if isinstance(data, IDSNumericArray):
+                    return np.asarray(data) if len(data) else None
+                elif data is None:
+                    data = getattr(sub_struct, name2, None) if name2 is not None else None
+                    if isinstance(data, IDSNumericArray):
+                        return np.asarray(data) if len(data) else None
+                    else:
+                        return None
+                else:
+                    return None
+        return None
+    else:
+        return None
 
 
 def load_edge_profiles(
     species_struct: IDSStructure,
+    species: SpeciesData,
     grid_subset_index: int = 5,
     backup_species_struct: IDSStructure | None = None,
-) -> dict[str, np.ndarray | None]:
+) -> ProfileData:
     """Load edge profiles from a given species structure.
-
-    The profiles are taken from the arrays with the given grid and subset indices
-    (e.g. ``ggd[i1].electrons``, ``ggd[i1].ion[i2].states[i3]``).
-
-    The returned dictionary values for missing profiles are None.
 
     Parameters
     ----------
     species_struct
         The ids structure containing the profiles for a single species.
+    species
+        The species data for the profiles to be loaded.
     grid_subset_index
         Identifier index of the grid subset, by default 5 (``"Cells"``).
     backup_species_struct
-        The backup ids structure that is used if the profile is missing in
-        species_struct, by default None.
+        The backup ids structure that is used if the profile is missing in species_struct,
+        by default None.
 
     Returns
     -------
-    dict[str, np.ndarray | None]
-        Dictionary with the following keys: ``density``, ``density_fast``, ``temperature``,
-        ``velocity_radial``, ``velocity_parallel``, ``velocity_poloidal``, ``velocity_phi``,
-        ``velocity_r``, ``velocity_z``, ``z_average``.
+    `.ProfileData`
+        Instance of the `.ProfileData` dataclass containing the loaded profiles.
     """
-    profiles = {
-        "density": None,
-        "density_fast": None,
-        "temperature": None,
-        "velocity_radial": None,
-        "velocity_parallel": None,
-        "velocity_poloidal": None,
-        "velocity_phi": None,
-        "velocity_r": None,
-        "velocity_z": None,
-        "z_average": None,
-    }
+    profiles = ProfileData(species)
+    velocities = VelocityData()
 
-    scalar_profiles = ("density", "density_fast", "temperature", "z_average")
-
-    for name in scalar_profiles:
-        profiles[name] = _get_profile(species_struct, name, grid_subset_index)
-        if profiles[name] is None and backup_species_struct is not None:
-            profiles[name] = _get_profile(backup_species_struct, name, grid_subset_index)
-
-    # velocity
-    velocity_profiles = ("radial", "parallel", "poloidal", "phi", "r", "z")
-    for s in species_struct.velocity:
-        if s.grid_subset_index == grid_subset_index:
-            for name in velocity_profiles:
-                prof = getattr(s, name)
-                profiles["velocity_" + name] = np.asarray_chkfinite(prof) if len(prof) else None
-            break
-    if (
-        all(profiles["velocity_" + name] is None for name in velocity_profiles)
-        and backup_species_struct is not None
-    ):
-        for s in backup_species_struct.velocity:
-            if s.grid_subset_index == grid_subset_index:
-                for name in velocity_profiles:
-                    prof = getattr(s, name)
-                    profiles["velocity_" + name] = np.asarray_chkfinite(prof) if len(prof) else None
-                break
+    for field in fields(profiles):
+        match field.name:
+            case "velocity":
+                for field2 in fields(velocities):
+                    data = _get_profile(
+                        species_struct, field.name, grid_subset_index, name2=field2.name
+                    )
+                    if data is None and backup_species_struct is not None:
+                        data = _get_profile(
+                            backup_species_struct, field.name, grid_subset_index, name2=field2.name
+                        )
+                    setattr(velocities, field2.name, data)
+                setattr(profiles, field.name, velocities)
+            case "species":
+                # species data is not stored in the profile structure, skip loading it here
+                continue
+            case _:
+                data = _get_profile(species_struct, field.name, grid_subset_index)
+                if data is None and backup_species_struct is not None:
+                    data = _get_profile(backup_species_struct, field.name, grid_subset_index)
+                setattr(profiles, field.name, data)
 
     return profiles
 
 
 def load_edge_species(
-    ggd_struct: IDSStructure, grid_subset_index: int = 5
-) -> dict[str, dict[str, np.ndarray | None]]:
+    ggd_struct: IDSStructure,
+    grid_subset_index: int = 5,
+    split_ion_bundles: bool = True,
+    atomic_data: AtomicData | None = None,
+) -> SpeciesComposition:
     """Load edge plasma species and their profiles from a given GGD structure.
-
-    The profiles are taken from the arrays with the given grid and subset indices
-    (e.g. ``ggd[i1].electrons``, ``ggd[i1].ion[i2].states[i3]``).
-
-    The returned dictionary has the following structure.
-
-    .. autolink-skip::
-    .. code-block:: python
-
-        {
-            'electron': {
-                'density': array,
-                'temperature': array,
-                ...
-            },
-            'molecule': {
-                molecule_id: {  # frozenset identifier
-                    'density': array,
-                    'temperature': array,
-                    ...
-                },
-                ...
-            'molecular_bundle': {
-                molecular_bundle_id: {  # frozenset identifier
-                    'density': array,
-                    'temperature': array,
-                    ...
-                },
-                ...
-            'ion': {
-                ion_id: {  # frozenset identifier
-                    'density': array,
-                    'temperature': array,
-                    ...
-                },
-                ...
-            'ion_bundle': {
-                ion_bundle_id: {  # frozenset identifier
-                    'density': array,
-                    'temperature': array,
-                    ...
-                },
-            },
-        }
-
-    where species are identified by frozensets with (key, value) pairs with the following keys.
-
-    +----------------------+------------------------------------------------------------+
-    | Species Type         | Identifier Keys                                            |
-    +======================+============================================================+
-    | ``molecule``         | ``name``, ``elements``, ``z``, ``electron_configuration``, |
-    |                      | ``vibrational_level``, ``vibrational_mode``;               |
-    +----------------------+------------------------------------------------------------+
-    | ``molecular_bundle`` | ``name``, ``elements``, ``z_min``, ``z_max``;              |
-    +----------------------+------------------------------------------------------------+
-    | ``ion``              | ``name``, ``element``, ``z``, ``electron_configuration``;  |
-    +----------------------+------------------------------------------------------------+
-    | ``ion_bundle``       | ``name``, ``element``, ``z_min``, ``z_max``.               |
-    +----------------------+------------------------------------------------------------+
 
     Parameters
     ----------
@@ -173,95 +142,245 @@ def load_edge_species(
         The ggd ids structure containing the profiles.
     grid_subset_index
         Identifier index of the grid subset, by default 5 (``"Cells"``).
+    split_ion_bundles
+        Whether to split ion bundles into individual ion states using `.solve_coronal_equilibrium`,
+        by default True.
+    atomic_data
+        Optional atomic data to pass to `.solve_coronal_equilibrium` when splitting ion bundles.
 
     Returns
     -------
-    dict[str, dict[str, ndarray | None]]
-        Dictionary with plasma profiles.
+    `.SpeciesComposition`
+        Instance of the `.SpeciesComposition` dataclass
 
     Raises
     ------
     RuntimeError
-        If unable to determine the species due to missing element information.
+        If electron temperature or density profiles are missing, which are required for determining
+        the species composition and solving coronal equilibrium when splitting ion bundles.
+    RuntimeError
+        If unable to determine the species due to missing element information, density profiles,
+        or other necessary data.
     """
-    species_types = ("molecule", "molecular_bundle", "ion", "ion_bundle")
-    composition = {species_type: {} for species_type in species_types}
+    composition = SpeciesComposition(
+        electron=load_edge_profiles(
+            ggd_struct.electrons, SpeciesData(z_min=-1, z_max=-1), grid_subset_index
+        ),
+    )
 
-    composition["electron"] = load_edge_profiles(ggd_struct.electrons, grid_subset_index)
+    if composition.electron.temperature is None:
+        raise RuntimeError("Electron temperature profiles are required.")
 
-    # ions
+    electron_density = composition.electron.density_thermal
+    if electron_density is None:
+        electron_density = composition.electron.density
+    if electron_density is None:
+        raise RuntimeError("Electron density or density_thermal profiles are required.")
+
+    # Temporary sets
     ion_elements = []
+    ion_uuids = set()
+    ion_bundle_uuids = set()
+    neutral_uuids = set()
+    neutral_bundle_uuids = set()
+
+    # ------------
+    # === Ions ===
+    # ------------
     for ion in ggd_struct.ion:
-        elements = tuple(get_element_list(ion.element))
+        ion: IDSStructure
+        elements = get_elements(ion.element)
         if not len(elements):
             raise RuntimeError("Unable to determine the ion species, ion.element AOS is empty.")
         ion_elements.append(elements)
 
+        # ---------------
+        # === Bundles ===
+        # ---------------
         if len(ion.state):
             shared_temperature = _get_profile(ion, "temperature", grid_subset_index)
-            backup_ids = None if len(ion.state) > 1 else ion
-            for i, state in enumerate(ion.state):
-                species_type, species_id = get_ion_state(state, i, elements, grid_subset_index)
-                if species_id in composition[species_type]:
-                    print(f"Warning! Skipping duplicated ion: {state.name.strip()}")
-                    continue
-                profiles = load_edge_profiles(state, grid_subset_index, backup_ids)
-                if backup_ids is None and profiles["temperature"] is None:
-                    profiles["temperature"] = shared_temperature
-                composition[species_type][species_id] = profiles
-        else:
-            species_type, species_id = get_ion(ion, elements)
-            if species_id in composition[species_type]:
-                print(f"Warning! Skipping duplicated ion: {ion.name.strip()}")
-            else:
-                composition[species_type][species_id] = load_edge_profiles(ion, grid_subset_index)
 
-    # neutrals
+            # Use the ion-level profiles as backup if there is only one state, otherwise no backup
+            backup_ids = None if len(ion.state) > 1 else ion
+
+            for i, state in enumerate(ion.state):
+                species_data = get_ion_state(state, i, elements, grid_subset_index)
+                species_tuple = astuple(species_data)
+                if species_tuple in ion_bundle_uuids or species_tuple in ion_uuids:
+                    print(f"Warning! Skipping duplicated ion: {species_data}")
+                    continue
+
+                profile_data = load_edge_profiles(
+                    state, species_data, grid_subset_index, backup_ids
+                )
+                if backup_ids is None and profile_data.temperature is None:
+                    profile_data.temperature = shared_temperature
+                # === Case: ION ===
+                if species_data.species_type == SpeciesType.ION:
+                    composition.ion.append(profile_data)
+                    ion_uuids.add(species_tuple)
+
+                # === Case: ION_BUNDLE ===
+                elif species_data.species_type == SpeciesType.ION_BUNDLE:
+                    # Split ion bundles into individual ion states
+                    if split_ion_bundles:
+                        # Check if the necessary data is available before attempting to solve coronal equilibrium
+                        elm = species_data.element or species_data.elements[0]
+                        if elm is None:
+                            raise RuntimeError(
+                                f"Unable to determine the element for ion {species_data}, "
+                                "cannot solve coronal equilibrium to split ion bundle."
+                            )
+                        density = profile_data.density_thermal
+                        if density is None:
+                            density = profile_data.density
+                        if density is None:
+                            raise RuntimeError(
+                                f"Missing density profiles for ion {species_data}, "
+                                "cannot solve coronal equilibrium to split ion bundle."
+                            )
+                        try:
+                            densities_per_charge = solve_coronal_equilibrium(
+                                elm,
+                                density,
+                                electron_density,
+                                composition.electron.temperature,
+                                atomic_data=atomic_data,
+                                z_min=species_data.z_min,
+                                z_max=species_data.z_max,
+                            )
+                        except Exception as e:
+                            print(
+                                f"Skipping ion bundle {species_data} "
+                                f"due to error in solving coronal equilibrium: {e}"
+                            )
+                            composition.ion_bundle.append(profile_data)
+                            ion_bundle_uuids.add(astuple(species_data))
+                            continue
+
+                        charge_states = np.arange(
+                            species_data.z_min, species_data.z_max + 1, dtype=int
+                        )
+
+                        for i_charge, charge in enumerate(charge_states):
+                            species = SpeciesData(
+                                element=species_data.element,
+                                z_min=charge,
+                                z_max=charge,
+                                species_type=SpeciesType.ION,
+                            )
+                            composition.ion.append(
+                                ProfileData(
+                                    species=species,
+                                    density=densities_per_charge[i_charge],
+                                    density_thermal=densities_per_charge[i_charge],
+                                    temperature=profile_data.temperature,
+                                    velocity=profile_data.velocity,
+                                )
+                            )
+                            ion_uuids.add(astuple(species))
+
+                    # Don't split ion bundles, just add the bundle as is
+                    else:
+                        composition.ion_bundle.append(profile_data)
+                        ion_bundle_uuids.add(astuple(species_data))
+
+                # === Case: Unexpected species type ===
+                else:
+                    print(f"Warning! Skipping ion with unexpected species {species_data}")
+
+        # -------------------
+        # === Non-bundled ===
+        # -------------------
+        else:
+            species_data = get_ion(ion, elements)
+            species_tuple = astuple(species_data)
+            if species_tuple in ion_uuids:
+                print(f"Warning! Skipping duplicated ion: {species_data}")
+            else:
+                profile_data = load_edge_profiles(ion, species_data, grid_subset_index)
+                if species_data.species_type == SpeciesType.ION:
+                    composition.ion.append(profile_data)
+                    ion_uuids.add(species_tuple)
+                else:
+                    print(
+                        f"Warning! Skipping non-bundled ion with unexpected species {species_data}"
+                    )
+
+    # ----------------------------
+    # === Neutrals (molecules) ===
+    # ----------------------------
     for neutral in ggd_struct.neutral:
-        elements = tuple(get_element_list(neutral.element))
+        elements = get_elements(neutral.element)
         if not len(elements):
             elements = ion_elements[neutral.ion_index - 1]
 
+        # ---------------
+        # === Bundles ===
+        # ---------------
         if len(neutral.state):
             shared_temperature = _get_profile(neutral, "temperature", grid_subset_index)
+
+            # Use the neutral-level profiles as backup if there is only one state, otherwise no backup
             backup_ids = None if len(neutral.state) > 1 else neutral
+
             for state in neutral.state:
-                species_type, species_id = get_neutral_state(state, elements)
-                if species_id in composition[species_type]:
-                    print(f"Warning! Skipping duplicated neutral: {state.name.strip()}")
+                species_data = get_neutral_state(state, elements)
+                species_tuple = astuple(species_data)
+                if species_tuple in neutral_bundle_uuids:
+                    print(f"Warning! Skipping duplicated neutral: {species_data}")
                     continue
-                profiles = load_edge_profiles(state, grid_subset_index, backup_ids)
-                if backup_ids is None and profiles["temperature"] is None:
-                    profiles["temperature"] = shared_temperature
-                composition[species_type][species_id] = profiles
-        else:
-            species_type, species_id = get_neutral(neutral, elements)
-            if species_id in composition[species_type]:
-                print(f"Warning! Skipping duplicated neutral: {neutral.name.strip()}")
-            else:
-                composition[species_type][species_id] = load_edge_profiles(
-                    neutral, grid_subset_index
+                neutral_bundle_uuids.add(species_tuple)
+
+                profile_data = load_edge_profiles(
+                    state, species_data, grid_subset_index, backup_ids
                 )
 
-    # Replace missing species temperature with average ion temperature
-    tion = _get_profile(ggd_struct, "t_i_average", grid_subset_index)
-    if tion is not None:
-        for species_type in species_types:
-            for species_id, profiles in composition[species_type].items():
-                if profiles["temperature"] is None:
-                    d = {first: second for first, second in species_id}
+                if backup_ids is None and profile_data.temperature is None:
+                    profile_data.temperature = shared_temperature
+
+                if species_data.species_type == SpeciesType.MOLECULAR_BUNDLE:
+                    composition.molecular_bundle.append(profile_data)
+                elif species_data.species_type == SpeciesType.MOLECULE:
+                    composition.molecule.append(profile_data)
+                elif species_data.species_type == SpeciesType.NEUTRAL_BUNDLE:
+                    composition.neutral_bundle.append(profile_data)
+                elif species_data.species_type == SpeciesType.NEUTRAL:
+                    composition.neutral.append(profile_data)
+                else:
+                    print(f"Warning! Skipping neutral with unexpected species: {species_data}")
+
+        # -------------------
+        # === Non-bundled ===
+        # -------------------
+        else:
+            species_data = get_neutral(neutral, elements)
+            species_tuple = astuple(species_data)
+            if species_tuple in neutral_uuids:
+                print(f"Warning! Skipping duplicated neutral: {species_data}")
+            else:
+                profile_data = load_edge_profiles(neutral, species_data, grid_subset_index, None)
+                if species_data.species_type == SpeciesType.MOLECULE:
+                    composition.molecule.append(profile_data)
+                    neutral_uuids.add(species_tuple)
+                elif species_data.species_type == SpeciesType.NEUTRAL:
+                    composition.neutral.append(profile_data)
+                    neutral_uuids.add(species_tuple)
+                else:
                     print(
-                        "Warning! Using average ion temperature for the {} {}.".format(
-                            d["name"], species_type
-                        )
+                        f"Warning! Skipping non-bundled neutral with unexpected species: "
+                        f"{species_data}"
                     )
-                    profiles["temperature"] = tion
+
+    # Replace missing species temperature with average ion temperature
+    t_ion = _get_profile(ggd_struct, "t_i_average", grid_subset_index)
+    if t_ion is not None:
+        species_types = {field.name for field in fields(composition)}
+        species_types.remove("electron")
+        for species_type in species_types:
+            for profile in getattr(composition, species_type):
+                if getattr(profile, "temperature", None) is None:
+                    print(f"Warning! Using average ion temperature for the {profile.species}.")
+                    profile.temperature = t_ion
 
     return composition
-
-
-def _get_profile(species_struct, name, grid_subset_index):
-    if hasattr(species_struct, name):
-        for s in getattr(species_struct, name):
-            if s.grid_subset_index == grid_subset_index:
-                return np.asarray_chkfinite(s.values)

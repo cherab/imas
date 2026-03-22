@@ -11,10 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support Python 3.14
 - Add `visualize` function for bolometer camera geometry visualization using `plotly`
+- Add ion bundle splitting support in `load_plasma` for edge/core plasma loading
+- Add `solve_coronal_equilibrium` utility and corresponding fractional abundance notebook
+- Add dataset patching utility and update dataset registry/fetchers for JINTRAC workflows
+- Add new plasma data models (`SpeciesData`, `ProfileData`, `SpeciesComposition`, `VelocityData`) in common IDs utilities
 
 ### Changed
 
 - Change pixi environment to use Python 3.14 as default
+- Refactor core/edge profile loaders to use dataclass-driven species/profile handling
+- Refactor magnetic field and equilibrium loading paths and improve interpolator imports/types
+- Improve documentation notebooks and Sphinx configuration for plasma workflows
+- Update CI/quality tooling (`pyrefly`, pre-commit hooks, notebook stripping, pixi tasks)
 
 ## [0.3.0] - 2026-01-30
 

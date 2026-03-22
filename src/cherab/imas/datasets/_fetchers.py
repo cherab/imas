@@ -1,6 +1,9 @@
 """Provide functionality to fetch IMAS sample datasets."""
 
+from pathlib import Path
+
 from ...imas import __version__
+from ._patch import fix_jintrac
 from ._registry import registry
 
 try:
@@ -18,10 +21,10 @@ else:
 
 
 def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress: bool = True) -> str:
-    if data_fetcher is None:
+    if data_fetcher is None or pooch is None:
         raise ImportError(
             "Missing optional dependency 'pooch' required for cherab.imas.datasets module. "
-            + "Please use pip or conda to install 'pooch'."
+            "Please use pip or conda to install 'pooch'."
         )
     if show_progress:
         from ._progress import PoochRichProgress
@@ -36,7 +39,10 @@ def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress: bool
 
     #  The "fetch" method returns the full path to the downloaded data file.
     try:
-        return data_fetcher.fetch(dataset_name, downloader=downloader)
+        return data_fetcher.fetch(
+            dataset_name,
+            downloader=downloader,  # pyrefly: ignore[bad-argument-type]
+        )
     except Exception as e:
         raise RuntimeError(f"Failed to fetch dataset '{dataset_name}'.") from e
     finally:
@@ -58,9 +64,18 @@ def iter_jintrac() -> str:
     >>> from cherab.imas import datasets
     >>> data_path = datasets.iter_jintrac()
     >>> data_path
-    '.../cherab/imas/iter_jintrac/iter_scenario_53298_seq1_DD4.nc'
+    '.../cherab/imas/iter_jintrac/iter_scenario_53298_seq1_DD4_mod.nc'
     """
-    return fetch_data("iter_scenario_53298_seq1_DD4.nc")
+    path = fetch_data("iter_scenario_53298_seq1_DD4.nc")
+
+    # NOTE: Apply patch to fix datasets
+    path_in = Path(path)
+    path_out = (path_in.parent / f"{path_in.stem}_mod").with_suffix(path_in.suffix)
+    if not path_out.exists():
+        fix_jintrac(path, str(path_out))
+    path = str(path_out)
+
+    return path
 
 
 def iter_solps() -> str:

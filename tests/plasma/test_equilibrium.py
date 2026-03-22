@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-from raysect.core.math.function.vector3d import FloatToVector3DFunction2D
+from raysect.core.math.function.vector3d import Function2D as Vector3DFunction2D
 
 from cherab.imas.plasma.equilibrium import load_equilibrium, load_magnetic_field
 from cherab.tools.equilibrium import EFITEquilibrium, plot_equilibrium
@@ -23,4 +23,11 @@ def test_load_magnetic_field(path_iter_jintrac: str):
     magnetic_field = load_magnetic_field(path_iter_jintrac, "r")
 
     # Test that Vector3DFunction2D object is returned
-    assert isinstance(magnetic_field, FloatToVector3DFunction2D)
+    assert isinstance(magnetic_field, Vector3DFunction2D)
+
+    try:
+        magnetic_field(0, 0)
+        magnetic_field(6.0, 2.5)
+        magnetic_field(4.5, -2.5)
+    except Exception as err:
+        raise RuntimeError("Error at magnetic function call") from err

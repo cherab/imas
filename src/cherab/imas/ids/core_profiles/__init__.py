@@ -17,6 +17,6 @@
 # under the Licence.
 """Subpackage for loading core profiles from IMAS IDS structures."""
 
-from .load_profiles import load_core_grid, load_core_profiles, load_core_species
+from .load_profiles import GridData, load_core_grid, load_core_profiles, load_core_species
 
-__all__ = ["load_core_grid", "load_core_profiles", "load_core_species"]
+__all__ = ["GridData", "load_core_grid", "load_core_profiles", "load_core_species"]
