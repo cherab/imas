@@ -24,3 +24,10 @@ def test_load_magnetic_field(path_iter_jintrac: str):
 
     # Test that Vector3DFunction2D object is returned
     assert isinstance(magnetic_field, Vector3DFunction2D)
+
+    try:
+        magnetic_field(0, 0)
+        magnetic_field(6.0, 2.5)
+        magnetic_field(4.5, -2.5)
+    except Exception as err:
+        raise RuntimeError("Error at magnetic function call") from err

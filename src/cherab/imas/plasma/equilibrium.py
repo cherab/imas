@@ -22,7 +22,7 @@ from typing import Literal, overload
 import numpy as np
 from raysect.core.math.function.float.function1d import Interpolator1DArray
 from raysect.core.math.function.float.function2d import Interpolator2DArray
-from raysect.core.math.function.vector3d import Function2D
+from raysect.core.math.function.vector3d.function2d import FloatToVector3DFunction2D, Function2D
 
 from cherab.imas.ids.equilibrium.load_equilibrium import Equilibrium2DData
 from cherab.tools.equilibrium import EFITEquilibrium
@@ -215,7 +215,7 @@ def load_magnetic_field(
         extra_range_r,
         extra_range_z,
     )
-    return Function2D(br, btor, bz)
+    return FloatToVector3DFunction2D(br, btor, bz)
 
 
 def cocos_11to3(eq_data: Equilibrium2DData) -> None:
