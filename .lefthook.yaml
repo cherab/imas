@@ -43,6 +43,8 @@ pre-commit:
 
     - name: pyrefly
       glob: "*.{py,pyi}"
+      skip: # Skip until raysect/cherab-stubs are released
+        - run: test ${CI} -eq 1
       run: pixi {run} pyrefly-check {staged_files}
 
     - name: typos
