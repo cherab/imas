@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-03-24
 
 ### Added
 
@@ -19,10 +19,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change pixi environment to use Python 3.14 as default
+- Add `plotly` dependency required by bolometer camera `visualize` support
 - Refactor core/edge profile loaders to use dataclass-driven species/profile handling
 - Refactor magnetic field and equilibrium loading paths and improve interpolator imports/types
 - Improve documentation notebooks and Sphinx configuration for plasma workflows
 - Update CI/quality tooling (`pyrefly`, pre-commit hooks, notebook stripping, pixi tasks)
+- Temporarily skip `pyrefly` check in CI until external stubs are available
+
+### Deprecated
+
+- Deprecate `b_field_tor` in magnetic field loading API (warning added)
+
+### Fixed
+
+- Fix regression in magnetic field loading
+- Fix path handling consistency in `iter_jintrac` / `fix_jintrac` dataset workflows
 
 ## [0.3.0] - 2026-01-30
 
