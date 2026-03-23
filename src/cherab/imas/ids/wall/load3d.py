@@ -43,20 +43,21 @@ def load_wall_3d(
 
     Returns
     -------
-    dict[str, dict[str, np.ndarray]]
+    `dict[str, dict[str, numpy.ndarray]]`
         Dictionary of wall components defined by vertices and triangles.
         The dictionary keys for components are assigns as follows:
         ``"{grid_name}.{subset_name}.{material_name}"``.
         So, the returning dictionary looks like:
-        ```python
-        {
-            "FullTokamak.full_main_chamber_wall.Be": {
-                "vertices": np.ndarray of shape (N, 3),
-                "triangles": np.ndarray of shape (M, 3),
-            },
-            ...
-        }
-        ```
+
+        .. code-block:: python
+
+            {
+                "FullTokamak.full_main_chamber_wall.Be": {
+                    "vertices": np.ndarray of shape (N, 3),
+                    "triangles": np.ndarray of shape (M, 3),
+                },
+                ...
+            }
 
     Raises
     ------
