@@ -75,4 +75,4 @@ You can find more examples and detailed documentation in the [Examples](examples
 
 ## Citations
 
-If you use `cherab-imas` in your research, please cite the <doi:10.5281/zenodo.1206142>.
+If you use `cherab-imas` in your research, please cite the <doi:10.5281/zenodo.1206141>.
