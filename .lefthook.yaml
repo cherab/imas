@@ -38,13 +38,13 @@ pre-commit:
       glob: "*.{py,pyi}"
       stage_fixed: true
       skip:
-        - run: test ${CI} -eq 1
+        - run: test ${CI:-false} = true
       run: pixi {run} ruff format {staged_files}
 
     - name: pyrefly
       glob: "*.{py,pyi}"
       skip: # Skip until raysect/cherab-stubs are released
-        - run: test ${CI} -eq 1
+        - run: test ${CI:-false} = true
       run: pixi {run} pyrefly-check {staged_files}
 
     - name: typos
@@ -72,11 +72,11 @@ pre-commit:
       glob: "*.ipynb"
       stage_fixed: true
       skip:
-        - run: test ${CI} -eq 1
+        - run: test ${CI:-false} = true
       run: pixi {run} nbstripout {staged_files}
 
     - name: nbstripout check
       glob: "*.ipynb"
       only:
-        - run: test ${CI} -eq 1
+        - run: test ${CI:-false} = true
       run: pixi {run} nbstripout --verify {staged_files}
