@@ -34,7 +34,7 @@ def load_wall_2d(description_2d: IDSStructure) -> dict[str, np.ndarray]:
 
     Returns
     -------
-    dict[str, np.ndarray]
+    `dict[str, numpy.ndarray]`
         Dictionary of wall unit outlines given in RZ coordinates.
     """
     wall_outline = {}

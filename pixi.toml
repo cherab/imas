@@ -16,7 +16,7 @@ backend = { name = "pixi-build-python", version = "*" }
 noarch = false
 
 [workspace.build-variants]
-python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*"]
+python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
 
 [package.host-dependencies]
 uv = "*"
@@ -42,6 +42,9 @@ rich = "*"
 
 # Publication-quality plot
 ultraplot = ">=1.72.0"
+
+# Visualization for 3D-related stuff
+plotly = ">=6.5.2,<7"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
@@ -85,12 +88,6 @@ doc-build = { cmd = [
 ], cwd = "docs", args = [
   { arg = "target", default = "html" },
 ], description = "📝 Build the docs" }
-doc-clean = { cmd = [
-  "rm",
-  "-rf",
-  "build",
-  "source/_api",
-], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
 doc-serve = { cmd = [
   "python",
   "-m",
@@ -114,6 +111,7 @@ validate-pyproject = "*"
 cython-lint = "*"
 blacken-docs = "*"
 taplo = "*"
+nbstripout = ">=0.9.1,<0.10"
 
 [feature.lint.tasks]
 lefthook = { cmd = "lefthook", description = "🔗 Run lefthook" }
@@ -133,21 +131,29 @@ cython-lint = { cmd = "cython-lint", description = "Lint Cython files" }
 lint = { cmd = "lefthook run pre-commit --all-files --force", description = "🧹 Run all linters" }
 
 # Clean build artifacts
+[feature.tools.tasks]
 clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
+doc-clean = { cmd = [
+  "rm",
+  "-rf",
+  "build",
+  "source/_api",
+], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
 
 # === Python environment features ===
 [feature.py310.dependencies]
 python = "3.10.*"
-[feature.py313.dependencies]
-python = "3.13.*"
+[feature.py314.dependencies]
+python = "3.14.*"
 
 [environments]
-default = { features = ["py313"], solve-group = "py313" }
-docs = { features = ["py313", "docs"], solve-group = "py313" }
-test = { features = ["py313", "test"], solve-group = "py313" }
-test-py313 = { features = [
-  "py313",
+default = { features = ["py314"], solve-group = "py314" }
+docs = { features = ["py314", "docs"], solve-group = "py314" }
+test = { features = ["py314", "test"], solve-group = "py314" }
+test-py314 = { features = [
+  "py314",
   "test",
-], solve-group = "py313" } # alias of test
+], solve-group = "py314" } # alias of test
 test-py310 = ["py310", "test"]
-lint = { features = ["lint"], no-default-feature = true }
+lint = { features = ["lint", "test"], solve-group = "py314" }
+tools = { features = ["tools"], no-default-feature = true }

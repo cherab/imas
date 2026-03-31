@@ -20,8 +20,9 @@
 from typing import Literal, overload
 
 import numpy as np
-from raysect.core.math.function.float import Interpolator1DArray, Interpolator2DArray
-from raysect.core.math.function.vector3d import FloatToVector3DFunction2D
+from raysect.core.math.function.float.function1d import Interpolator1DArray
+from raysect.core.math.function.float.function2d import Interpolator2DArray
+from raysect.core.math.function.vector3d.function2d import FloatToVector3DFunction2D, Function2D
 
 from cherab.imas.ids.equilibrium.load_equilibrium import Equilibrium2DData
 from cherab.tools.equilibrium import EFITEquilibrium
@@ -147,8 +148,8 @@ def load_magnetic_field(
     occurrence: int = 0,
     time_threshold: float = np.inf,
     **kwargs,
-) -> FloatToVector3DFunction2D:
-    """Load the magnetic field from the equilibrium IDS and returns a VectorFunction2D interpolator.
+) -> Function2D:
+    """Load the magnetic field from the equilibrium IDS and return an interpolator function.
 
     Parameters
     ----------

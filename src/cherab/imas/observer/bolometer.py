@@ -19,12 +19,16 @@
 
 from __future__ import annotations
 
-from typing import overload
+from itertools import cycle
+from typing import Literal, overload
 
+import numpy as np
 from raysect.core.constants import ORIGIN
-from raysect.core.math import Point3D, Vector3D, rotate_basis, translate
+from raysect.core.math import AffineMatrix3D, Point3D, Vector3D, rotate_basis, translate
 from raysect.core.scenegraph._nodebase import _NodeBase
+from raysect.optical.loggingray import LoggingRay
 from raysect.optical.material import AbsorbingSurface
+from raysect.optical.scenegraph import World
 from raysect.primitive import Box, Subtract, Union
 from raysect.primitive.csg import CSGPrimitive
 
@@ -36,7 +40,7 @@ from ..ids.bolometer._camera import BoloCamera, Geometry
 from ..ids.bolometer.utility import CameraType, GeometryType
 from ..ids.common import get_ids_time_slice
 
-__all__ = ["load_bolometers"]
+__all__ = ["load_bolometers", "visualize"]
 
 X_AXIS = Vector3D(1, 0, 0)
 Y_AXIS = Vector3D(0, 1, 0)
@@ -441,3 +445,382 @@ def _get_verts(geometry: Geometry) -> list[Point3D]:
             raise NotImplementedError(f"Geometry type {geometry.type} not implemented yet.")
 
     return verts
+
+
+def visualize(
+    camera: BolometerCamera,
+    fig=None,
+    num_rays: int | None = None,
+    ray_from_channel: int | list[int] | None = None,
+    ray_terminate_distance: float = 5.0e-2,
+    aspect: Literal["data", "auto"] = "data",
+    show: bool = True,
+):
+    """Visualize a bolometer camera geometry in 3D using Plotly.
+
+    .. note::
+        This function requires `plotly` to be installed.
+
+    Parameters
+    ----------
+    camera
+        The BolometerCamera object to visualize.
+    fig : plotly.graph_objects.Figure | None
+        An existing Plotly figure to add the camera visualization to, by default None.
+    num_rays
+        Number of rays to trace for visualizing the field of view, by default None.
+    ray_from_channel
+        Channel index or list of channel indices from which to trace rays, by default None.
+    ray_terminate_distance
+        Distance at which rays are terminated, by default 5.0e-2.
+    aspect
+        Aspect ratio of the plot, by default "data".
+    show
+        Whether to display the plot, by default True.
+
+    Returns
+    -------
+    `plotly.graph_objects.Figure`
+        The Plotly figure object.
+
+    Raises
+    ------
+    ImportError
+        If Plotly is not installed.
+    TypeError
+        If the provided fig is not a Plotly Figure instance.
+
+    Examples
+    --------
+    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", "r")
+    >>> fig = visualize(bolometers[0], num_rays=100, ray_from_channel=[0, 3])
+    """
+    try:
+        from plotly import graph_objects as go
+        from plotly.colors import qualitative
+    except ImportError as e:
+        raise ImportError("Plotly is required for visualization.") from e
+
+    if fig is None:
+        fig = go.Figure()
+    else:
+        if not isinstance(fig, go.Figure):
+            raise TypeError("fig must be a plotly.graph_objects.Figure instance.")
+
+    # Set up rays to be traced
+    foils_ray_triggered: list[BolometerFoil] = []
+    if isinstance(num_rays, int) and num_rays > 0:
+        if isinstance(ray_from_channel, int):
+            foils_ray_triggered = [camera.foil_detectors[ray_from_channel]]
+        elif isinstance(ray_from_channel, list):
+            foils_ray_triggered = [camera.foil_detectors[ch] for ch in ray_from_channel]
+        else:
+            foils_ray_triggered = camera.foil_detectors
+
+    # Create scene graph temporally
+    world = World()
+    prev_parent = camera.parent
+    camera.parent = world
+
+    # === Local Axis ===
+    local_origin = ORIGIN + sum(
+        [ORIGIN.vector_to(foil.slit.centre_point) for foil in camera.foil_detectors],
+        Vector3D(0, 0, 0),
+    ) / len(camera.foil_detectors)
+    local_z_axis: Vector3D = sum(
+        [foil.slit.normal_vector.normalise() for foil in camera.foil_detectors], Vector3D(0, 0, 0)
+    ).normalise()
+    local_x_axis: Vector3D = sum(
+        [foil.slit.basis_x.normalise() for foil in camera.foil_detectors], Vector3D(0, 0, 0)
+    ).normalise()
+
+    local_y_axis = local_z_axis.cross(local_x_axis).normalise()
+
+    # --------------------------
+    # === Plot Slits & Foils ===
+    # --------------------------
+    slit_name = ""
+    for i_ch, foil in enumerate(camera.foil_detectors):
+        foil: BolometerFoil
+        for rect in [foil.slit, foil]:
+            center = rect.centre_point
+
+            if isinstance(rect, BolometerSlit):
+                if rect.name == slit_name:
+                    continue
+                else:
+                    slit_name = rect.name
+                    dx = rect.dx
+                    dy = rect.dy
+            elif isinstance(rect, BolometerFoil):
+                dx = rect.x_width
+                dy = rect.y_width
+            else:
+                raise TypeError("Unknown rectangle type")
+
+            basis_x = rect.basis_x.normalise()
+            basis_y = rect.basis_y.normalise()
+
+            # Calculate the foil edge coordinates
+            vertices = [
+                center + 0.5 * dx * basis_x + 0.5 * dy * basis_y,
+                center - 0.5 * dx * basis_x + 0.5 * dy * basis_y,
+                center - 0.5 * dx * basis_x - 0.5 * dy * basis_y,
+                center + 0.5 * dx * basis_x - 0.5 * dy * basis_y,
+                center + 0.5 * dx * basis_x + 0.5 * dy * basis_y,  # Close the loop
+            ]
+            color = "blue" if rect is foil else "green"
+            fig.add_trace(
+                go.Scatter3d(
+                    x=[v.x for v in vertices],
+                    y=[v.y for v in vertices],
+                    z=[v.z for v in vertices],
+                    mode="lines",
+                    name=f"{'Foil' if rect is foil else 'Slit'} - {i_ch} CH",
+                    line=dict(color=color, width=3),
+                    hovertemplate=f"Width: {dx * 1e3:.2f} mm<br>Height: {dy * 1e3:.2f} mm",
+                )
+            )
+
+    # ------------------------------
+    # === Camera Box (Outer Box) ===
+    # ------------------------------
+    if camera._camera_geometry is not None:
+        boxes = _extract_box_primitive(camera._camera_geometry)
+        if boxes:
+            for box in boxes:
+                fig: go.Figure = _plot_box(
+                    box, transform=camera._camera_geometry.transform, fig=fig
+                )
+
+    # -----------------
+    # === Plot Rays ===
+    # -----------------
+    text_num_rays_passed = ""
+    if isinstance(num_rays, int) and num_rays > 0:
+        # Add terminating box to avoid rays escaping to infinity
+        terminate_board = Box(
+            lower=Point3D(-1e9, -1e9, -1e-3),
+            upper=Point3D(1e9, 1e9, 0),
+            parent=world,
+            name="terminating_board",
+        )
+        terminate_board.material = AbsorbingSurface()
+        terminate_board.transform = (
+            translate(*local_origin)
+            * rotate_basis(local_z_axis, local_y_axis)
+            * translate(0, 0, ray_terminate_distance)
+        )
+
+        # Generate and trace rays
+        count = 0
+        for foil, color in zip(foils_ray_triggered, cycle(qualitative.Set1), strict=False):
+            for ray in foil._generate_rays(LoggingRay(), num_rays):
+                origin = ray[0].origin.transform(foil.to_root())
+                direction = ray[0].direction.transform(foil.to_root())
+                ray = LoggingRay(origin=origin, direction=direction)
+                ray.trace(world)
+                hit_points = [origin, ray.path_vertices[-1]]
+                if ray.log[-1].primitive.name == "terminating_board":
+                    count += 1
+                fig.add_trace(
+                    go.Scatter3d(
+                        x=[p.x for p in hit_points],
+                        y=[p.y for p in hit_points],
+                        z=[p.z for p in hit_points],
+                        mode="lines+markers",
+                        marker=dict(size=1.5, color=color),
+                        line=dict(color=color, width=1),
+                        name="rays",
+                        showlegend=False,
+                        hovertemplate=(
+                            f"From: {foil.name}<br>"
+                            f"Hit Object: {ray.log[-1].primitive.name}<extra></extra>"
+                        ),
+                    )
+                )
+
+        text_num_rays_passed = f" ({count}/{num_rays * len(foils_ray_triggered)} Rays Passed)"
+
+    # -----------------------
+    # === Plot local axes ===
+    # -----------------------
+    scale = 0.01
+    axes = [
+        (local_x_axis, "X Axis", "rgb(255, 0, 0)"),
+        (local_y_axis, "Y Axis", "rgb(0, 255, 0)"),
+        (local_z_axis, "Z Axis", "rgb(0, 0, 255)"),
+    ]
+    for axis, name, color in axes:
+        point = local_origin + scale * axis
+        fig.add_trace(
+            go.Scatter3d(
+                x=[local_origin.x, point.x],
+                y=[local_origin.y, point.y],
+                z=[local_origin.z, point.z],
+                name=name,
+                marker=dict(color=color, size=2),
+                line=dict(color=color),
+                showlegend=False,
+            )
+        )
+
+    fig.update_layout(
+        title=f"Bolometer Camera: {camera.name}{text_num_rays_passed}",
+        scene=dict(
+            xaxis_title="X (m)",
+            yaxis_title="Y (m)",
+            zaxis_title="Z (m)",
+            aspectmode=aspect,
+        ),
+        showlegend=True,
+        width=700,
+        height=600,
+        margin=dict(r=10, l=10, b=10, t=35),
+    )
+
+    # restore previous parent node
+    camera.parent = prev_parent
+
+    if show:
+        fig.show()
+
+    return fig
+
+
+def _extract_box_primitive(primitive: CSGPrimitive) -> list[Box]:
+    """Recursively extract all Box primitives from CSGPrimitive.
+
+    Parameters
+    ----------
+    primitive
+        CSGPrimitive object to extract Box primitives from.
+
+    Returns
+    -------
+    `list[Box]`
+        List of Box primitives found within the CSGPrimitive.
+    """
+    boxes = []
+
+    # Check primitive_a
+    primitive_a = getattr(primitive, "primitive_a", None)
+    if primitive_a is not None:
+        if isinstance(primitive_a, Box):
+            boxes.append(primitive_a)
+        elif isinstance(primitive_a, CSGPrimitive):
+            boxes.extend(_extract_box_primitive(primitive_a))
+
+    # Check primitive_b
+    primitive_b = getattr(primitive, "primitive_b", None)
+    if primitive_b is not None:
+        if isinstance(primitive_b, Box):
+            boxes.append(primitive_b)
+        elif isinstance(primitive_b, CSGPrimitive):
+            boxes.extend(_extract_box_primitive(primitive_b))
+
+    return boxes
+
+
+def _plot_box(
+    box: Box,
+    transform: AffineMatrix3D,
+    fig,
+    color: str = "#7d7d7d",
+):
+    """Plot a box in a given figure.
+
+    Parameters
+    ----------
+    box
+        Box primitive to plot.
+    transform
+        Affine transformation to apply to the box vertices.
+    fig
+        Plotly figure to add the box plot to.
+    color
+        Color of the box, by default "#7d7d7d".
+
+    Returns
+    -------
+    `plotly.graph_objects.Figure`
+        The updated Plotly figure with the box plotted.
+    """
+    from plotly import graph_objects as go
+
+    # Get box vertices
+    _xaxis = X_AXIS.transform(transform)
+    _yaxis = Y_AXIS.transform(transform)
+    _zaxis = Z_AXIS.transform(transform)
+    lower = box.lower.transform(transform)
+    upper = box.upper.transform(transform)
+    lower_to_upper = lower.vector_to(upper)
+    box_width = abs(lower_to_upper.dot(_xaxis))
+    box_height = abs(lower_to_upper.dot(_yaxis))
+    box_depth = abs(lower_to_upper.dot(_zaxis))
+    vertices = [
+        lower,
+        lower + box_width * _xaxis,
+        lower + box_width * _xaxis + box_height * _yaxis,
+        lower + box_height * _yaxis,
+        lower + box_depth * _zaxis,
+        lower + box_depth * _zaxis + box_width * _xaxis,
+        upper,
+        upper - box_width * _xaxis,
+    ]
+    verts = np.array([[*vertex] for vertex in vertices])
+
+    # Plot box surfaces
+    fig.add_trace(
+        go.Mesh3d(
+            x=verts[:, 0],
+            y=verts[:, 1],
+            z=verts[:, 2],
+            i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+            j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+            k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+            opacity=0.2,
+            color=color,
+            flatshading=True,
+            name="Camera Box",
+            showlegend=True,
+        )
+    )
+
+    # Plot box edges
+    # Define the 12 edges of the box
+    edges = [
+        # bottom face
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (3, 0),
+        # top face
+        (4, 5),
+        (5, 6),
+        (6, 7),
+        (7, 4),
+        # vertical edges
+        (0, 4),
+        (1, 5),
+        (2, 6),
+        (3, 7),
+    ]
+
+    # Plot edges as lines
+    for edge in edges:
+        v1, v2 = vertices[edge[0]], vertices[edge[1]]
+        fig.add_trace(
+            go.Scatter3d(
+                x=[v1.x, v2.x],
+                y=[v1.y, v2.y],
+                z=[v1.z, v2.z],
+                mode="lines",
+                line=dict(color=color, width=2),
+                name="Camera Box Edge",
+                showlegend=False,
+                hoverinfo="skip",
+            )
+        )
+
+    return fig

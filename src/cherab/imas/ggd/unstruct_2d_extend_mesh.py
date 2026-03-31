@@ -220,10 +220,6 @@ class UnstructGrid2DExtended(GGDGrid):
         The subset is defined by the indices of the faces at the poloidal plane.
         Thus, the subset mesh is periodic in the toroidal direction.
 
-        See Also
-        --------
-        subset : For a method that creates a subset from the original grid cells.
-
         Parameters
         ----------
         indices
@@ -240,6 +236,10 @@ class UnstructGrid2DExtended(GGDGrid):
         ------
         ValueError
             If any of the indices of the faces is out of range.
+
+        See Also
+        --------
+        subset : For a method that creates a subset from the original grid cells.
         """
         grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
 

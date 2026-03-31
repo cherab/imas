@@ -10,7 +10,7 @@ from raysect.core.math.function.vector3d import Function3D as VectorFunction3D
 __all__ = ["UnitVector1D", "UnitVector2D", "UnitVector3D"]
 
 class UnitVector1D(VectorFunction1D):
-    """Evaluates a unit vector for the given VectorFunction1D instance."""
+    """Evaluate a unit vector for the given VectorFunction1D instance."""
 
     _vector: VectorFunction1D
     def __init__(
@@ -18,7 +18,7 @@ class UnitVector1D(VectorFunction1D):
     ) -> None: ...
 
 class UnitVector2D(VectorFunction2D):
-    """Evaluates a unit vector for the given VectorFunction2D instance."""
+    """Evaluate a unit vector for the given VectorFunction2D instance."""
 
     _vector: VectorFunction2D
     def __init__(
@@ -27,7 +27,7 @@ class UnitVector2D(VectorFunction2D):
     ) -> None: ...
 
 class UnitVector3D(VectorFunction3D):
-    """Evaluates a unit vector for the given VectorFunction3D instance."""
+    """Evaluate a unit vector for the given VectorFunction3D instance."""
 
     _vector: VectorFunction3D
     def __init__(

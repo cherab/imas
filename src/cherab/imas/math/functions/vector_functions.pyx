@@ -28,7 +28,7 @@ __all__ = ["UnitVector1D", "UnitVector2D", "UnitVector3D"]
 
 
 cdef class UnitVector1D(VectorFunction1D):
-    """Evaluates a unit vector for the given VectorFunction1D instance."""
+    """Evaluate a unit vector for the given VectorFunction1D instance."""
 
     def __init__(self, object vector):
         self._vector = autowrap_vectorfunction1d(vector)
@@ -39,7 +39,7 @@ cdef class UnitVector1D(VectorFunction1D):
 
 
 cdef class UnitVector2D(VectorFunction2D):
-    """Evaluates a unit vector for the given VectorFunction2D instance."""
+    """Evaluate a unit vector for the given VectorFunction2D instance."""
 
     def __init__(self, object vector):
         self._vector = autowrap_vectorfunction2d(vector)
@@ -50,7 +50,7 @@ cdef class UnitVector2D(VectorFunction2D):
 
 
 cdef class UnitVector3D(VectorFunction3D):
-    """Evaluates a unit vector for the given VectorFunction3D instance."""
+    """Evaluate a unit vector for the given VectorFunction3D instance."""
 
     def __init__(self, object vector):
         self._vector = autowrap_vectorfunction3d(vector)

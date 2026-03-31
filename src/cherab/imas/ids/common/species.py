@@ -17,45 +17,178 @@
 # under the Licence.
 """Module for common functions used to get IDS species information."""
 
-from cherab.core.atomic.elements import Element, lookup_isotope
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+
+import numpy as np
+from numpy.typing import NDArray
+
+from cherab.core.atomic.elements import Element, Isotope, lookup_isotope
 from imas.ids_defs import EMPTY_FLOAT, EMPTY_INT
 from imas.ids_struct_array import IDSStructArray
 from imas.ids_structure import IDSStructure
 
 __all__ = [
+    "SpeciesType",
+    "SpeciesData",
+    "ProfileData",
+    "SpeciesComposition",
+    "VelocityData",
     "get_ion_state",
     "get_neutral_state",
     "get_ion",
     "get_neutral",
-    "get_element_list",
+    "get_elements",
 ]
+
+
+class SpeciesType(Enum):
+    """Enumeration of species types in IMAS."""
+
+    ION = "ion"
+    """Single ion state, with a specific ionization state (z_min == z_max)"""
+    ION_BUNDLE = "ion_bundle"
+    """Bundle of ion states, with a range of ionization states (z_min != z_max)"""
+    NEUTRAL = "neutral"
+    """Single neutral state"""
+    NEUTRAL_BUNDLE = "neutral_bundle"
+    """Bundle of neutral states"""
+    MOLECULE = "molecule"
+    """Single molecule state"""
+    MOLECULAR_BUNDLE = "molecular_bundle"
+    """Bundle of molecular states"""
+
+
+@dataclass
+class SpeciesData:
+    """Dataclass to represent the data of a species in IMAS."""
+
+    z_min: int
+    """Minimum ionization state of the species"""
+    z_max: int
+    """Maximum ionization state of the species"""
+    element: Element | None = None
+    """Element that makes up the species, if it is a single particle"""
+    elements: tuple[Element, ...] = field(default_factory=tuple)
+    """Elements that make up the species, if it is a molecule"""
+    species_type: SpeciesType | None = None
+    """Type of species"""
+    electron_configuration: str | None = None
+    """Electron configuration of the species"""
+    vibrational_mode: str | None = None
+    """Vibrational mode of the species, if it is a molecule"""
+    vibrational_level: float | None = None
+    """Vibrational level of the species, if it is a molecule"""
+
+    def __str__(self) -> str:
+        """Return a string representation of the species data.
+
+        Returns
+        -------
+        str
+            String representation of the species data.
+        """
+        if self.species_type in {SpeciesType.ION, SpeciesType.NEUTRAL}:
+            if self.element is not None:
+                return f"{self.element.symbol} {self.species_type.value} (z=+{self.z_min})"
+            else:
+                return f"{self.species_type.value} (z=+{self.z_min})"
+        elif self.species_type in {SpeciesType.ION_BUNDLE, SpeciesType.NEUTRAL_BUNDLE}:
+            if self.element is not None:
+                return (
+                    f"{self.element.symbol} {self.species_type.value} (z={self.z_min}-{self.z_max})"
+                )
+            else:
+                return f"{self.species_type.value} (z={self.z_min}-{self.z_max})"
+        elif self.species_type == SpeciesType.MOLECULE:
+            return f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value}"
+        elif self.species_type == SpeciesType.MOLECULAR_BUNDLE:
+            return f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value} (z={self.z_min}-{self.z_max})"
+        else:
+            return "Unknown species type"
+
+
+@dataclass
+class VelocityData:
+    """Dataclass for storing the bulk velocity data of a species."""
+
+    radial: NDArray[np.float64] | None = None
+    """Radial velocity [m/s]."""
+    parallel: NDArray[np.float64] | None = None
+    """Parallel velocity [m/s]."""
+    poloidal: NDArray[np.float64] | None = None
+    """Poloidal velocity [m/s]."""
+    r: NDArray[np.float64] | None = None
+    """Radial velocity along the major radius axis [m/s]."""
+    phi: NDArray[np.float64] | None = None
+    """Toroidal velocity [m/s]."""
+    z: NDArray[np.float64] | None = None
+    """Vertical velocity along the height axis [m/s]."""
+
+
+@dataclass
+class ProfileData:
+    """Dataclass for storing the profile data of a species."""
+
+    species: SpeciesData
+    """Data of the species."""
+    density: NDArray[np.float64] | None = None
+    """Density (thermal+non-thermal) [m^-3]."""
+    density_thermal: NDArray[np.float64] | None = None
+    """Density (thermal) [m^-3]."""
+    density_fast: NDArray[np.float64] | None = None
+    """Density of fast (non-thermal) particles [m^-3]."""
+    temperature: NDArray[np.float64] | None = None
+    """Temperature [eV]."""
+    velocity: VelocityData | None = None
+    """Bulk velocity data of the species."""
+
+
+@dataclass
+class SpeciesComposition:
+    """Dataclass for storing the composition of the plasma species."""
+
+    electron: ProfileData
+    """Electron profiles."""
+    ion: list[ProfileData] = field(default_factory=list)
+    """Ion profiles."""
+    ion_bundle: list[ProfileData] = field(default_factory=list)
+    """Ion bundle profiles."""
+    neutral: list[ProfileData] = field(default_factory=list)
+    """Neutral particle profiles."""
+    neutral_bundle: list[ProfileData] = field(default_factory=list)
+    """Neutral bundle profiles."""
+    molecule: list[ProfileData] = field(default_factory=list)
+    """Molecule profiles."""
+    molecular_bundle: list[ProfileData] = field(default_factory=list)
+    """Molecular bundle profiles."""
 
 
 def get_ion_state(
     state: IDSStructure,
     state_index: int,
-    elements: list[Element],
+    elements: tuple[Element, ...],
     grid_subset_index: int | None = None,
-) -> tuple[str, frozenset]:
+) -> SpeciesData:
     """Get a unique identifier for an ion state.
 
     Parameters
     ----------
     state
-        The ion_state structure from IMAS.
+        IDSStructure representing `.../ion[i]/state`
     state_index
         Index of the state in the list of states.
     elements
-        List of elements that make up the ion state.
+        Tuple of elements that make up the ion state.
     grid_subset_index
         The grid subset index to use for 1D profiles, by default None.
 
     Returns
     -------
-    species_type : `str`
-        The type of species: 'ion', 'ion_bundle', 'molecule', or 'molecular_bundle'.
-    species_id : `frozenset`
-        A frozenset of key-value pairs that uniquely identify the species.
+    `.SpeciesData`
+        Instance of the `SpeciesData` dataclass representing the ion state.
     """
     if state.z_min == EMPTY_FLOAT or state.z_max == EMPTY_FLOAT:
         if grid_subset_index is None:  # 1D profiles
@@ -64,54 +197,57 @@ def get_ion_state(
             for s in state.z_average:
                 if s.grid_subset_index == grid_subset_index:
                     z_average = s.values
+                    break
+            else:
+                z_average = []
         if len(z_average):  # probably, a bundle
-            z_min = state.z_min.value if state.z_min != EMPTY_FLOAT else z_average.min()
-            z_max = state.z_max.value if state.z_max != EMPTY_FLOAT else z_average.max()
+            z_min = (
+                int(state.z_min) if state.z_min != EMPTY_FLOAT else int(np.floor(min(z_average)))
+            )
+            z_max = int(state.z_max) if state.z_max != EMPTY_FLOAT else int(np.ceil(max(z_average)))
         else:  # probably, a single ion
-            z_min = state.z_min.value if state.z_min != EMPTY_FLOAT else state_index + 1
-            z_max = state.z_max.value if state.z_max != EMPTY_FLOAT else z_min
+            z_min = int(state.z_min) if state.z_min != EMPTY_FLOAT else state_index + 1
+            z_max = int(state.z_max) if state.z_max != EMPTY_FLOAT else z_min
     else:
-        z_min = state.z_min.value
-        z_max = state.z_max.value
+        z_min = int(state.z_min)
+        z_max = int(state.z_max)
 
-    state_dict = {"name": state.name.strip()}
+    # Initialize the state species dataclass
+    species_data = SpeciesData(
+        z_min=z_min,
+        z_max=z_max,
+        electron_configuration=str(getattr(state, "electron_configuration", "")).strip()
+        if len(getattr(state, "electron_configuration", "")) > 0
+        else None,
+    )
 
     if len(elements) > 1:  # molecular ions and bundles
-        state_dict["elements"] = elements
-        if z_min == z_max:
-            species_type = "molecule"
-            state_dict["z"] = z_min
-            state_dict["electron_configuration"] = (
-                str(state.electron_configuration) if len(state.electron_configuration) else None
-            )
-            state_dict["vibrational_mode"] = (
+        species_data.elements = elements
+        if z_min == z_max == 0:
+            species_data.species_type = SpeciesType.NEUTRAL_BUNDLE
+        elif z_min == z_max:
+            species_data.species_type = SpeciesType.MOLECULE
+            species_data.vibrational_mode = (
                 str(state.vibrational_mode) if len(state.vibrational_mode) else None
             )
-            state_dict["vibrational_level"] = (
+            species_data.vibrational_level = (
                 state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
             )
         else:
-            species_type = "molecular_bundle"
-            state_dict["z_min"] = z_min
-            state_dict["z_max"] = z_max
+            species_data.species_type = SpeciesType.MOLECULAR_BUNDLE
     else:  # ions and bundles
-        state_dict["element"] = elements[0]
-        if z_min == z_max:
-            species_type = "ion"
-            state_dict["z"] = z_min
-            state_dict["electron_configuration"] = (
-                str(state.electron_configuration) if len(state.electron_configuration) else None
-            )
+        species_data.element = elements[0]
+        if z_min == z_max == 0:
+            species_data.species_type = SpeciesType.NEUTRAL
+        elif z_min == z_max:
+            species_data.species_type = SpeciesType.ION
         else:
-            species_type = "ion_bundle"
-            state_dict["z_min"] = z_min
-            state_dict["z_max"] = z_max
-    species_id = frozenset(state_dict.items())
+            species_data.species_type = SpeciesType.ION_BUNDLE
 
-    return species_type, species_id
+    return species_data
 
 
-def get_neutral_state(state: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]:
+def get_neutral_state(state: IDSStructure, elements: tuple[Element, ...]) -> SpeciesData:
     """Get a unique identifier for a neutral state.
 
     Parameters
@@ -119,44 +255,48 @@ def get_neutral_state(state: IDSStructure, elements: list[Element]) -> tuple[str
     state
         The neutral_state structure from IMAS.
     elements
-        List of elements that make up the neutral state.
+        Tuple of elements that make up the neutral state.
 
     Returns
     -------
-    species_type : `str`
-        The type of species: 'molecule' or 'ion'.
-    species_id : `frozenset`
-        A frozenset of key-value pairs that uniquely identify the species.
+    `.SpeciesData`
+        Instance of the `SpeciesData` dataclass representing the neutral state.
     """
-    state_dict = {"name": state.name.strip()}
+    # Initialize the state species dataclass
+    species_data = SpeciesData(
+        z_min=0,
+        z_max=0,
+        electron_configuration=str(getattr(state, "electron_configuration", "")).strip()
+        if len(getattr(state, "electron_configuration", "")) > 0
+        else None,
+    )
+    if len(elements) > 1:  # molecules and bundles
+        species_data.elements = elements
+        if (
+            getattr(state, "vibrational_mode", None)
+            and getattr(state, "vibrational_level", EMPTY_FLOAT) != EMPTY_FLOAT
+        ):
+            species_data.species_type = SpeciesType.MOLECULE
+            species_data.vibrational_mode = (
+                str(getattr(state, "vibrational_mode", "")).strip()
+                if len(getattr(state, "vibrational_mode", ""))
+                else None
+            )
+            species_data.vibrational_level = (
+                getattr(state, "vibrational_level", EMPTY_FLOAT)
+                if getattr(state, "vibrational_level", EMPTY_FLOAT) != EMPTY_FLOAT
+                else None
+            )
+        else:
+            species_data.species_type = SpeciesType.NEUTRAL_BUNDLE
+    else:  # neutrals
+        species_data.element = elements[0]
+        species_data.species_type = SpeciesType.NEUTRAL
 
-    if len(elements) > 1:  # molecules
-        species_type = "molecule"
-        state_dict["elements"] = elements
-        state_dict["z"] = 0
-        state_dict["electron_configuration"] = (
-            str(state.electron_configuration) if len(state.electron_configuration) else None
-        )
-        state_dict["vibrational_mode"] = (
-            str(state.vibrational_mode) if len(state.vibrational_mode) else None
-        )
-        state_dict["vibrational_level"] = (
-            state.vibrational_level.value if state.vibrational_level != EMPTY_FLOAT else None
-        )
-    else:  # atoms
-        species_type = "ion"
-        state_dict["element"] = elements[0]
-        state_dict["z"] = 0
-        state_dict["electron_configuration"] = (
-            str(state.electron_configuration) if len(state.electron_configuration) else None
-        )
-
-    species_id = frozenset(state_dict.items())
-
-    return species_type, species_id
+    return species_data
 
 
-def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]:
+def get_ion(ion: IDSStructure, elements: tuple[Element, ...]) -> SpeciesData:
     """Get a unique identifier for an ion or molecule.
 
     Parameters
@@ -164,41 +304,26 @@ def get_ion(ion: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]
     ion
         The ion structure from IMAS.
     elements
-        List of elements that make up the ion.
+        Tuple of elements that make up the ion.
 
     Returns
     -------
-    species_type : `str`
-        The type of species: 'molecule' or 'ion'.
-    species_id : `frozenset`
-        A frozenset of key-value pairs that uniquely identify the species.
+    `.SpeciesData`
+        Instance of the `SpeciesData` dataclass representing the ion or molecule.
     """
     z_ion = int(ion.z_ion) if ion.z_ion != EMPTY_FLOAT else elements[0].atomic_number
-    if len(elements) > 1:
-        species_id = frozenset(
-            {
-                ("name", ion.name.strip()),
-                ("elements", elements),
-                ("z", z_ion),
-                ("electron_configuration", None),
-                ("vibrational_mode", None),
-                ("vibrational_level", None),
-            }
-        )
-        return "molecule", species_id
-
-    species_id = frozenset(
-        {
-            ("name", ion.name.strip()),
-            ("element", elements[0]),
-            ("z", z_ion),
-            ("electron_configuration", None),
-        }
+    species_data = SpeciesData(
+        z_min=z_ion,
+        z_max=z_ion,
+        element=elements[0] if len(elements) == 1 else None,
+        elements=elements if len(elements) > 1 else tuple(),
+        species_type=SpeciesType.MOLECULE if len(elements) > 1 else SpeciesType.ION,
     )
-    return "ion", species_id
+
+    return species_data
 
 
-def get_neutral(neutral: IDSStructure, elements: list[Element]) -> tuple[str, frozenset]:
+def get_neutral(neutral: IDSStructure, elements: tuple[Element, ...]) -> SpeciesData:
     """Get a unique identifier for a neutral or molecule.
 
     Parameters
@@ -206,61 +331,52 @@ def get_neutral(neutral: IDSStructure, elements: list[Element]) -> tuple[str, fr
     neutral
         The neutral structure from IMAS.
     elements
-        List of elements that make up the neutral state.
+        Tuple of elements that make up the neutral state.
 
     Returns
     -------
-    species_type : `str`
-        The type of species: 'molecule' or 'ion'.
-    species_id : `frozenset`
-        A frozenset of key-value pairs that uniquely identify the species.
+    `.SpeciesData`
+        Instance of the `SpeciesData` dataclass representing the neutral or molecule.
     """
-    if len(elements) > 1:
-        species_id = frozenset(
-            {
-                ("name", neutral.name.strip()),
-                ("elements", elements),
-                ("z", 0),
-                ("electron_configuration", None),
-                ("vibrational_mode", None),
-                ("vibrational_level", None),
-            }
-        )
-        return "molecule", species_id
-
-    species_id = frozenset(
-        {
-            ("name", neutral.name.strip()),
-            ("element", elements[0]),
-            ("z", 0),
-            ("electron_configuration", None),
-        }
+    species_data = SpeciesData(
+        z_min=0,
+        z_max=0,
+        element=elements[0] if len(elements) == 1 else None,
+        elements=elements if len(elements) > 1 else tuple(),
+        species_type=SpeciesType.MOLECULE if len(elements) > 1 else SpeciesType.NEUTRAL,
     )
-    return "ion", species_id
+
+    return species_data
 
 
-def get_element_list(element_aos: IDSStructArray) -> list[Element]:
-    """Get a list of elements from an IDS element_aos structure.
+def get_elements(elements_aos: IDSStructArray) -> tuple[Element | Isotope, ...]:
+    """Get a tuple of elements from an IDS array of structures.
 
     Parameters
     ----------
-    element_aos
-        The element_aos structure from IMAS.
+    elements_aos
+        Element IDS array of structures
 
     Returns
     -------
-    list[`~cherab.core.atomic.elements.Element`]
-        List of elements extracted from the element_aos structure.
+    tuple[`~cherab.core.atomic.elements.Element` | `~cherab.core.atomic.elements.Isotope`, ...]
+        Tuple of elements that make up the species, with isotopes preferred over elements when possible.
     """
     elements = []
-    for element in element_aos:
+    for element in elements_aos:
         mass_number = int(round(element.a))
         zn = int(round(element.z_n))
         isotope = lookup_isotope(zn, number=mass_number)
         if int(round(isotope.element.atomic_weight)) == mass_number:
-            isotope = isotope.element  # prefer element over isotope
-        atoms_n = 1 if element.atoms_n == EMPTY_INT else element.atoms_n.value
+            # Prefer element over isotope
+            isotope = isotope.element
+
+        if getattr(element, "atoms_n", EMPTY_INT) == EMPTY_INT:
+            atoms_n = 1
+        else:
+            atoms_n = int(round(getattr(element, "atoms_n", EMPTY_INT)))
+
         for _ in range(atoms_n):
             elements.append(isotope)
 
-    return elements
+    return tuple(elements)
