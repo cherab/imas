@@ -647,9 +647,9 @@ def visualize(
     # -----------------------
     scale = 0.01
     axes = [
-        (local_x_axis, "X Axis", "rgb(256, 0, 0)"),
-        (local_y_axis, "Y Axis", "rgb(0, 256, 0)"),
-        (local_z_axis, "Z Axis", "rgb(0, 0, 256)"),
+        (local_x_axis, "X Axis", "rgb(255, 0, 0)"),
+        (local_y_axis, "Y Axis", "rgb(0, 255, 0)"),
+        (local_z_axis, "Z Axis", "rgb(0, 0, 255)"),
     ]
     for axis, name, color in axes:
         point = local_origin + scale * axis
