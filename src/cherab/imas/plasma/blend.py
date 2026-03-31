@@ -85,7 +85,9 @@ def load_plasma(
     The distribution of each species is defined with `~cherab.core.distribution.Maxwellian` using
     its density and temperature profiles, which are mapped to 3D using the provided `equilibrium`.
 
-    The ion bundle species are split into their constituent charge states using `.solve_coronal_equilibrium`.
+    The ion bundle species are split into their constituent charge states
+    using `.solve_coronal_equilibrium` when `.split_ion_bundles` is True and the necessary atomic
+    data is available. Otherwise, ion bundles are ignored with a warning.
 
     Parameters
     ----------

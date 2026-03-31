@@ -102,6 +102,13 @@ def load_bolometers(
     `list[BolometerCamera]`
         List of `~cherab.tools.observers.bolometry.BolometerCamera` objects.
 
+    Raises
+    ------
+    ValueError
+        If slit data is required for a pinhole camera but not provided.
+    NotImplementedError
+        If an unsupported camera type or geometry type is encountered.
+
     Examples
     --------
     >>> from raysect.optical import World
@@ -217,6 +224,9 @@ def load_bolometers(
                         )
                     case _:
                         raise NotImplementedError("Outline geometry not supported yet.")
+            else:
+                if slit is None:
+                    raise ValueError("Slit data is required for pinhole camera.")
 
             # ------------
             # === Foil ===
@@ -520,170 +530,176 @@ def visualize(
     # Create scene graph temporally
     world = World()
     prev_parent = camera.parent
-    camera.parent = world
+    try:
+        camera.parent = world
 
-    # === Local Axis ===
-    local_origin = ORIGIN + sum(
-        [ORIGIN.vector_to(foil.slit.centre_point) for foil in camera.foil_detectors],
-        Vector3D(0, 0, 0),
-    ) / len(camera.foil_detectors)
-    local_z_axis: Vector3D = sum(
-        [foil.slit.normal_vector.normalise() for foil in camera.foil_detectors], Vector3D(0, 0, 0)
-    ).normalise()
-    local_x_axis: Vector3D = sum(
-        [foil.slit.basis_x.normalise() for foil in camera.foil_detectors], Vector3D(0, 0, 0)
-    ).normalise()
+        # === Local Axis ===
+        local_origin = ORIGIN + sum(
+            [ORIGIN.vector_to(foil.slit.centre_point) for foil in camera.foil_detectors],
+            Vector3D(0, 0, 0),
+        ) / len(camera.foil_detectors)
+        local_z_axis: Vector3D = sum(
+            [foil.slit.normal_vector.normalise() for foil in camera.foil_detectors],
+            Vector3D(0, 0, 0),
+        ).normalise()
+        local_x_axis: Vector3D = sum(
+            [foil.slit.basis_x.normalise() for foil in camera.foil_detectors],
+            Vector3D(0, 0, 0),
+        ).normalise()
 
-    local_y_axis = local_z_axis.cross(local_x_axis).normalise()
+        local_y_axis = local_z_axis.cross(local_x_axis).normalise()
 
-    # --------------------------
-    # === Plot Slits & Foils ===
-    # --------------------------
-    slit_name = ""
-    for i_ch, foil in enumerate(camera.foil_detectors):
-        foil: BolometerFoil
-        for rect in [foil.slit, foil]:
-            center = rect.centre_point
+        # --------------------------
+        # === Plot Slits & Foils ===
+        # --------------------------
+        slit_name = ""
+        for i_ch, foil in enumerate(camera.foil_detectors):
+            foil: BolometerFoil
+            for rect in [foil.slit, foil]:
+                center: Point3D = rect.centre_point
 
-            if isinstance(rect, BolometerSlit):
-                if rect.name == slit_name:
-                    continue
+                if isinstance(rect, BolometerSlit):
+                    if rect.name == slit_name:
+                        continue
+                    else:
+                        slit_name = rect.name
+                        dx = rect.dx
+                        dy = rect.dy
+                elif isinstance(rect, BolometerFoil):
+                    dx = rect.x_width
+                    dy = rect.y_width
                 else:
-                    slit_name = rect.name
-                    dx = rect.dx
-                    dy = rect.dy
-            elif isinstance(rect, BolometerFoil):
-                dx = rect.x_width
-                dy = rect.y_width
-            else:
-                raise TypeError("Unknown rectangle type")
+                    raise TypeError("Unknown rectangle type")
 
-            basis_x = rect.basis_x.normalise()
-            basis_y = rect.basis_y.normalise()
+                basis_x: Vector3D = rect.basis_x.normalise()
+                basis_y: Vector3D = rect.basis_y.normalise()
 
-            # Calculate the foil edge coordinates
-            vertices = [
-                center + 0.5 * dx * basis_x + 0.5 * dy * basis_y,
-                center - 0.5 * dx * basis_x + 0.5 * dy * basis_y,
-                center - 0.5 * dx * basis_x - 0.5 * dy * basis_y,
-                center + 0.5 * dx * basis_x - 0.5 * dy * basis_y,
-                center + 0.5 * dx * basis_x + 0.5 * dy * basis_y,  # Close the loop
-            ]
-            color = "blue" if rect is foil else "green"
-            fig.add_trace(
-                go.Scatter3d(
-                    x=[v.x for v in vertices],
-                    y=[v.y for v in vertices],
-                    z=[v.z for v in vertices],
-                    mode="lines",
-                    name=f"{'Foil' if rect is foil else 'Slit'} - {i_ch} CH",
-                    line=dict(color=color, width=3),
-                    hovertemplate=f"Width: {dx * 1e3:.2f} mm<br>Height: {dy * 1e3:.2f} mm",
-                )
-            )
-
-    # ------------------------------
-    # === Camera Box (Outer Box) ===
-    # ------------------------------
-    if camera._camera_geometry is not None:
-        boxes = _extract_box_primitive(camera._camera_geometry)
-        if boxes:
-            for box in boxes:
-                fig: go.Figure = _plot_box(
-                    box, transform=camera._camera_geometry.transform, fig=fig
-                )
-
-    # -----------------
-    # === Plot Rays ===
-    # -----------------
-    text_num_rays_passed = ""
-    if isinstance(num_rays, int) and num_rays > 0:
-        # Add terminating box to avoid rays escaping to infinity
-        terminate_board = Box(
-            lower=Point3D(-1e9, -1e9, -1e-3),
-            upper=Point3D(1e9, 1e9, 0),
-            parent=world,
-            name="terminating_board",
-        )
-        terminate_board.material = AbsorbingSurface()
-        terminate_board.transform = (
-            translate(*local_origin)
-            * rotate_basis(local_z_axis, local_y_axis)
-            * translate(0, 0, ray_terminate_distance)
-        )
-
-        # Generate and trace rays
-        count = 0
-        for foil, color in zip(foils_ray_triggered, cycle(qualitative.Set1), strict=False):
-            for ray in foil._generate_rays(LoggingRay(), num_rays):
-                origin = ray[0].origin.transform(foil.to_root())
-                direction = ray[0].direction.transform(foil.to_root())
-                ray = LoggingRay(origin=origin, direction=direction)
-                ray.trace(world)
-                hit_points = [origin, ray.path_vertices[-1]]
-                if ray.log[-1].primitive.name == "terminating_board":
-                    count += 1
+                # Calculate the foil edge coordinates
+                vertices = [
+                    center + 0.5 * dx * basis_x + 0.5 * dy * basis_y,
+                    center - 0.5 * dx * basis_x + 0.5 * dy * basis_y,
+                    center - 0.5 * dx * basis_x - 0.5 * dy * basis_y,
+                    center + 0.5 * dx * basis_x - 0.5 * dy * basis_y,
+                    center + 0.5 * dx * basis_x + 0.5 * dy * basis_y,  # Close the loop
+                ]
+                color = "blue" if rect is foil else "green"
                 fig.add_trace(
                     go.Scatter3d(
-                        x=[p.x for p in hit_points],
-                        y=[p.y for p in hit_points],
-                        z=[p.z for p in hit_points],
-                        mode="lines+markers",
-                        marker=dict(size=1.5, color=color),
-                        line=dict(color=color, width=1),
-                        name="rays",
-                        showlegend=False,
-                        hovertemplate=(
-                            f"From: {foil.name}<br>"
-                            f"Hit Object: {ray.log[-1].primitive.name}<extra></extra>"
-                        ),
+                        x=[v.x for v in vertices],
+                        y=[v.y for v in vertices],
+                        z=[v.z for v in vertices],
+                        mode="lines",
+                        name=f"{'Foil' if rect is foil else 'Slit'} - {i_ch} CH",
+                        line=dict(color=color, width=3),
+                        hovertemplate=f"Width: {dx * 1e3:.2f} mm<br>Height: {dy * 1e3:.2f} mm",
                     )
                 )
 
-        text_num_rays_passed = f" ({count}/{num_rays * len(foils_ray_triggered)} Rays Passed)"
+        # ------------------------------
+        # === Camera Box (Outer Box) ===
+        # ------------------------------
+        if isinstance(camera._camera_geometry, CSGPrimitive):
+            boxes = _extract_box_primitive(camera._camera_geometry)
+            if boxes:
+                for box in boxes:
+                    fig: go.Figure = _plot_box(
+                        box, transform=camera._camera_geometry.transform, fig=fig
+                    )
 
-    # -----------------------
-    # === Plot local axes ===
-    # -----------------------
-    scale = 0.01
-    axes = [
-        (local_x_axis, "X Axis", "rgb(255, 0, 0)"),
-        (local_y_axis, "Y Axis", "rgb(0, 255, 0)"),
-        (local_z_axis, "Z Axis", "rgb(0, 0, 255)"),
-    ]
-    for axis, name, color in axes:
-        point = local_origin + scale * axis
-        fig.add_trace(
-            go.Scatter3d(
-                x=[local_origin.x, point.x],
-                y=[local_origin.y, point.y],
-                z=[local_origin.z, point.z],
-                name=name,
-                marker=dict(color=color, size=2),
-                line=dict(color=color),
-                showlegend=False,
+        # -----------------
+        # === Plot Rays ===
+        # -----------------
+        text_num_rays_passed = ""
+        if isinstance(num_rays, int) and num_rays > 0:
+            # Add terminating box to avoid rays escaping to infinity
+            terminate_board = Box(
+                lower=Point3D(-1e9, -1e9, -1e-3),
+                upper=Point3D(1e9, 1e9, 0),
+                parent=world,
+                name="terminating_board",
             )
+            terminate_board.material = AbsorbingSurface()
+            terminate_board.transform = (
+                translate(*local_origin)
+                * rotate_basis(local_z_axis, local_y_axis)
+                * translate(0, 0, ray_terminate_distance)
+            )
+
+            # Generate and trace rays
+            count = 0
+            for foil, color in zip(foils_ray_triggered, cycle(qualitative.Set1), strict=False):
+                for ray in foil._generate_rays(LoggingRay(), num_rays):
+                    origin = ray[0].origin.transform(foil.to_root())
+                    direction = ray[0].direction.transform(foil.to_root())
+                    ray = LoggingRay(origin=origin, direction=direction)
+                    ray.trace(world)
+                    hit_points = [origin, ray.path_vertices[-1]]
+                    if ray.log[-1].primitive.name == "terminating_board":
+                        count += 1
+                    fig.add_trace(
+                        go.Scatter3d(
+                            x=[p.x for p in hit_points],
+                            y=[p.y for p in hit_points],
+                            z=[p.z for p in hit_points],
+                            mode="lines+markers",
+                            marker=dict(size=1.5, color=color),
+                            line=dict(color=color, width=1),
+                            name="rays",
+                            showlegend=False,
+                            hovertemplate=(
+                                f"From: {foil.name}<br>"
+                                f"Hit Object: {ray.log[-1].primitive.name}<extra></extra>"
+                            ),
+                        )
+                    )
+
+            text_num_rays_passed = f" ({count}/{num_rays * len(foils_ray_triggered)} Rays Passed)"
+
+        # -----------------------
+        # === Plot local axes ===
+        # -----------------------
+        scale = 0.01
+        axes = [
+            (local_x_axis, "X Axis", "rgb(255, 0, 0)"),
+            (local_y_axis, "Y Axis", "rgb(0, 255, 0)"),
+            (local_z_axis, "Z Axis", "rgb(0, 0, 255)"),
+        ]
+        for axis, name, color in axes:
+            point = local_origin + scale * axis
+            fig.add_trace(
+                go.Scatter3d(
+                    x=[local_origin.x, point.x],
+                    y=[local_origin.y, point.y],
+                    z=[local_origin.z, point.z],
+                    name=name,
+                    marker=dict(color=color, size=2),
+                    line=dict(color=color),
+                    showlegend=False,
+                )
+            )
+
+        fig.update_layout(
+            title=f"Bolometer Camera: {camera.name}{text_num_rays_passed}",
+            scene=dict(
+                xaxis_title="X (m)",
+                yaxis_title="Y (m)",
+                zaxis_title="Z (m)",
+                aspectmode=aspect,
+            ),
+            showlegend=True,
+            width=700,
+            height=600,
+            margin=dict(r=10, l=10, b=10, t=35),
         )
 
-    fig.update_layout(
-        title=f"Bolometer Camera: {camera.name}{text_num_rays_passed}",
-        scene=dict(
-            xaxis_title="X (m)",
-            yaxis_title="Y (m)",
-            zaxis_title="Z (m)",
-            aspectmode=aspect,
-        ),
-        showlegend=True,
-        width=700,
-        height=600,
-        margin=dict(r=10, l=10, b=10, t=35),
-    )
+        # restore previous parent node
+        camera.parent = prev_parent
 
-    # restore previous parent node
-    camera.parent = prev_parent
+        if show:
+            fig.show()
 
-    if show:
-        fig.show()
+    finally:
+        camera.parent = prev_parent
 
     return fig
 
