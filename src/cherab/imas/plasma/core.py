@@ -56,17 +56,19 @@ def load_core_plasma(
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
-    """Load core profiles and Create a `~cherab.core.plasma.node.Plasma` object.
+    """Load core profiles and create a `~cherab.core.plasma.node.Plasma` object.
 
     Prefer ``density_thermal`` over ``density`` profile.
 
     The distribution of each species is defined with `~cherab.core.distribution.Maxwellian` using
     its density and temperature profiles, which are mapped to 3D using the provided `equilibrium`.
 
-    The plasma geometry is defined as a cylindrical annulus between the inner and outer radii of the
-    equilibrium, and between the minimum and maximum z values of the equilibrium.
+    The plasma geometry is defined as a cylindrical annulus between the inner and outer radii of
+    the equilibrium, and between the minimum and maximum z values of the equilibrium.
 
-    The ion bundle species are split into their constituent charge states using `.solve_coronal_equilibrium`.
+    The ion bundle species are split into their constituent charge states
+    using `.solve_coronal_equilibrium` when `.split_ion_bundles` is True and the necessary atomic
+    data is available. Otherwise, ion bundles are ignored with a warning.
 
     Parameters
     ----------

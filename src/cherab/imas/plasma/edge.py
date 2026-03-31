@@ -66,18 +66,20 @@ def load_edge_plasma(
     parent: _NodeBase | None = None,
     **kwargs,
 ) -> Plasma:
-    """Load edge profiles and Create a `~cherab.core.plasma.node.Plasma` object.
+    """Load edge profiles and create a `~cherab.core.plasma.node.Plasma` object.
 
     Prefer ``density_thermal`` over ``density`` profile.
 
     The distribution of each species is defined with `~cherab.core.distribution.Maxwellian` using
     its density, temperature, and bulk velocity profiles, which are mapped to GGD grid coordinates.
 
-    The plasma geometry is defined as a cylindrical annulus between the inner and outer limit of
+    The plasma geometry is defined as a cylindrical annulus between the inner and outer limits of
     the grid, and its height is defined as the difference between the maximum and minimum
-    z-coordinate of the grid.
+    z-coordinates of the grid.
 
-    The ion bundle species are split into their constituent charge states using `.solve_coronal_equilibrium`.
+    The ion bundle species are split into their constituent charge states
+    using `.solve_coronal_equilibrium` when `.split_ion_bundles` is True and the necessary atomic
+    data is available. Otherwise, ion bundles are ignored with a warning.
 
     Parameters
     ----------
