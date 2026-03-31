@@ -169,8 +169,8 @@ def solve_coronal_equilibrium(
         raise ValueError("z_min must be non-negative.")
     if z_max > element.atomic_number:
         raise ValueError("z_max cannot exceed the atomic number of the element.")
-    if z_min >= z_max:
-        raise ValueError("z_min cannot be greater than or equal to z_max.")
+    if z_min > z_max:
+        raise ValueError("z_min cannot be greater than z_max.")
 
     # Validate atomic_data
     if not isinstance(atomic_data, AtomicData):
