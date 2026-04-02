@@ -244,6 +244,9 @@ def bolometer_moc() -> str:
         raise ImportError("The 'pooch' library is required to fetch the bolometer dataset.")
 
     path = pooch.os_cache("cherab/imas") / "bolometer_moc.nc"
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+
     if not path.exists():
         # Create the mock bolometer dataset and save it to the cache path
         ids = _bolo_data()
