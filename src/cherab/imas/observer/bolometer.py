@@ -653,7 +653,9 @@ def visualize(
                         )
                     )
 
-            text_num_rays_passed = f" ({count}/{num_rays * len(foils_ray_triggered)} Rays Passed)"
+            text_num_rays_passed = (
+                f" ({count / (num_rays * len(foils_ray_triggered)):.2%} Rays Passed)"
+            )
 
         # -----------------------
         # === Plot local axes ===
