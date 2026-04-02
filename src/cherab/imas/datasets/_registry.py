@@ -12,4 +12,5 @@ method_files_map = {
     "iter_jintrac": ["iter_scenario_53298_seq1_DD4.nc", "iter_scenario_53298_seq1_DD4_mod.nc"],
     "iter_solps": ["iter_scenario_123364_1.nc"],
     "iter_jorek": ["iter_disruption_113112_1.nc"],
+    "bolometer_moc": ["bolometer_moc.nc"],
 }
