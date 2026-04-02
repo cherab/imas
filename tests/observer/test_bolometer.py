@@ -1,3 +1,5 @@
+from plotly import graph_objs as go
+
 from cherab.imas.observer.bolometer import load_bolometers, visualize
 
 
@@ -13,7 +15,7 @@ def test_load_bolometers(path_bolometer_moc: str) -> None:
         fig = visualize(
             bolo, num_rays=100, ray_from_channel=0, ray_terminate_distance=1e-2, show=False
         )
-        assert fig is not None
+        assert isinstance(fig, go.Figure)
 
     fig = visualize(
         bolometers[-1],
@@ -22,3 +24,4 @@ def test_load_bolometers(path_bolometer_moc: str) -> None:
         ray_terminate_distance=1e-2,
         show=False,
     )
+    assert isinstance(fig, go.Figure)

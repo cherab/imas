@@ -3,11 +3,16 @@
 import datetime
 
 import numpy as np
-import pooch
 from raysect.core.math import Point3D, Vector3D, rotate_z
 
 from imas import DBEntry, IDSFactory
 from imas.ids_defs import IDS_TIME_MODE_HOMOGENEOUS
+
+try:
+    import pooch
+
+except ImportError:
+    pooch = None
 
 N_CH = 5  # Number of channels per camera
 N_APERTURE = 3  # Number of apertures per channel (for collimator cameras)
@@ -22,9 +27,7 @@ FOIL_SEPARATION = 5.08e-3
 SLIT_SEPARATION = 7.5e-3
 SUBCOL_SEPARATION = 1.0e-3
 
-X_AXIS = Vector3D(1, 0, 0)
 Y_AXIS = Vector3D(0, 1, 0)
-Z_AXIS = Vector3D(0, 0, 1)
 
 
 def _bolo_data():
@@ -225,6 +228,11 @@ def bolometer_moc() -> str:
     str
         Path to the mock bolometer dataset file.
 
+    Raises
+    ------
+    ImportError
+        If the `pooch` library is not installed, which is required to fetch the dataset.
+
     Examples
     --------
     >>> from cherab.imas import datasets
@@ -232,6 +240,9 @@ def bolometer_moc() -> str:
     >>> data_path
     '.../cherab/imas/bolometer_moc.nc'
     """
+    if pooch is None:
+        raise ImportError("The 'pooch' library is required to fetch the bolometer dataset.")
+
     path = pooch.os_cache("cherab/imas") / "bolometer_moc.nc"
     if not path.exists():
         # Create the mock bolometer dataset and save it to the cache path
