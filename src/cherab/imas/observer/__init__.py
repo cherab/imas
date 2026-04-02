@@ -17,6 +17,10 @@
 # under the Licence.
 """Subpackage for creating observer objects from IMAS."""
 
+from . import bolometer
 from .bolometer import load_bolometers
 
-__all__ = ["load_bolometers"]
+__all__ = [
+    "bolometer",
+    "load_bolometers",
+]
