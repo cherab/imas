@@ -40,7 +40,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "pooch", "rich"]
+test = ["pytest", "pytest-cov", "pooch", "rich", "plotly"]
 
 [project.urls]
 Homepage = "https://github.com/cherab"
