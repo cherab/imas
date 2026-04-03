@@ -64,7 +64,7 @@ def iter_jintrac() -> str:
     >>> from cherab.imas import datasets
     >>> data_path = datasets.iter_jintrac()
     >>> data_path
-    '.../cherab/imas/iter_jintrac/iter_scenario_53298_seq1_DD4_mod.nc'
+    '.../cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'
     """
     path = fetch_data("iter_scenario_53298_seq1_DD4.nc")
 
@@ -91,7 +91,7 @@ def iter_solps() -> str:
     >>> from cherab.imas import datasets
     >>> data_path = datasets.iter_solps()
     >>> data_path
-    '.../cherab/imas/iter_solps/iter_scenario_123364_1.nc'
+    '.../cherab/imas/iter_scenario_123364_1.nc'
     """
     return fetch_data("iter_scenario_123364_1.nc")
 
@@ -109,6 +109,6 @@ def iter_jorek() -> str:
     >>> from cherab.imas import datasets
     >>> data_path = datasets.iter_jorek()
     >>> data_path
-    '.../cherab/imas/iter_jorek/iter_disruption_113112_1.nc'
+    '.../cherab/imas/iter_disruption_113112_1.nc'
     """
     return fetch_data("iter_disruption_113112_1.nc")

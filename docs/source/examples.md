@@ -14,6 +14,17 @@ Each notebook is designed to showcase specific functionalities and provide pract
     notebooks/plasma/*
 ```
 
+## Observer
+
+```{eval-rst}
+.. nbgallery::
+    :name: observer-gallery
+    :glob:
+    :reversed:
+
+    notebooks/observer/*
+```
+
 ## Miscellaneous
 
 ```{eval-rst}

@@ -1,11 +1,11 @@
-r"""Sample Dataset utilities for fetching and processing data.
+r"""Sample Dataset utilities.
 
 Usage of Datasets
 =================
 
 CHERAB-IMAS dataset methods can be simply called as follows: ``'<dataset-name>()'``
-This downloads the dataset files over the network once, and saves the cache,
-before returning the path to the downloaded data file.
+This downloads/creates the dataset files over the network once, and saves the cache,
+before returning the path to the downloaded/created data file.
 
 How dataset retrieval and storage works
 =======================================
@@ -46,7 +46,14 @@ the above mentioned cache directory to avoid fetching dataset errors without
 the internet connectivity.
 """
 
+from ._builtin import bolometer_moc
 from ._fetchers import iter_jintrac, iter_jorek, iter_solps
 from ._utils import clear_cache
 
-__all__ = ["iter_jintrac", "iter_solps", "iter_jorek", "clear_cache"]
+__all__ = [
+    "iter_jintrac",
+    "iter_solps",
+    "iter_jorek",
+    "bolometer_moc",
+    "clear_cache",
+]

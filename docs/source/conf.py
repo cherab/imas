@@ -183,6 +183,9 @@ linkcode_link_text = "Source"
 
 # -- NBSphinx configuration ---------------------------------------------------
 # nbsphinx_execute = "never"
+nbsphinx_thumbnails = {
+    "notebooks/observer/bolometer": "_static/images/bolometer.png",
+}
 nbsphinx_prolog = r"""
 {% set docname = 'docs/' + env.doc2path(env.docname, base=None)|string %}
 

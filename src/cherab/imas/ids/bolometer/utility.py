@@ -18,7 +18,6 @@
 """Module for bolometer utility functions."""
 
 from enum import Enum
-from typing import Self
 
 __all__ = ["CameraType", "GeometryType"]
 
@@ -43,7 +42,7 @@ class CameraType(Enum):
     OTHER = 0
 
     @classmethod
-    def from_value(cls, value: int) -> Self:
+    def from_value(cls, value: int) -> "CameraType":
         """Get the camera type from a value.
 
         Parameters
@@ -59,7 +58,7 @@ class CameraType(Enum):
         """
         if value in cls._value2member_map_:
             return cls(value)
-        return cls.OTHER  # pyright: ignore[reportReturnType]
+        return cls.OTHER
 
 
 class GeometryType(Enum):
@@ -82,7 +81,7 @@ class GeometryType(Enum):
     RECTANGLE = 3
 
     @classmethod
-    def from_value(cls, value: int) -> Self:
+    def from_value(cls, value: int) -> "GeometryType":
         """Get the geometry type from a value.
 
         Parameters
@@ -98,4 +97,4 @@ class GeometryType(Enum):
         """
         if value in cls._value2member_map_:
             return cls(value)
-        return cls.RECTANGLE  # pyright: ignore[reportReturnType]
+        return cls.RECTANGLE
