@@ -125,7 +125,7 @@ def load_wall_outline(
 
     Returns
     -------
-    `dict[str, (N, 2) ndarray]`
+    `dict[str, numpy.ndarray]`
        Dictionary of wall unit outlines ``(N, 2)`` array given in RZ coordinates.
 
     Examples
