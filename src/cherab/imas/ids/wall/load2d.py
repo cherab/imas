@@ -18,13 +18,14 @@
 """Module for loading 2D wall description from IMAS wall IDS."""
 
 import numpy as np
+from numpy.typing import NDArray
 
 from imas.ids_structure import IDSStructure
 
 __all__ = ["load_wall_2d"]
 
 
-def load_wall_2d(description_2d: IDSStructure) -> dict[str, np.ndarray]:
+def load_wall_2d(description_2d: IDSStructure) -> dict[str, NDArray[np.float64]]:
     """Load 2D wall outline (limiter contour only) from IMAS wall IDS.
 
     Parameters
