@@ -18,6 +18,7 @@
 """Module for loading wall components from wall IDSs."""
 
 import numpy as np
+from numpy.typing import NDArray
 from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.optical.material.material import Material
 from raysect.primitive import Mesh
@@ -73,7 +74,7 @@ def load_wall_mesh(
 
     Returns
     -------
-    dict[str, Mesh]
+    `dict[str, Mesh]`
         Dictionary with the Raysect Mesh instances.
 
     Examples
@@ -108,7 +109,7 @@ def load_wall_mesh(
 
 def load_wall_outline(
     *args, occurrence: int = 0, desc_index: int = 0, **kwargs
-) -> dict[str, np.ndarray]:
+) -> dict[str, NDArray[np.float64]]:
     """Load 2D wall outline (limiter contour only) from IMAS wall IDS.
 
     Parameters
@@ -124,7 +125,7 @@ def load_wall_outline(
 
     Returns
     -------
-    dict[str, (N, 2) ndarray]
+    `dict[str, numpy.ndarray]`
        Dictionary of wall unit outlines ``(N, 2)`` array given in RZ coordinates.
 
     Examples

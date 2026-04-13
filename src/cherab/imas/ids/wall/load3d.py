@@ -17,21 +17,33 @@
 # under the Licence.
 """Module for loading wall components from wall IDSs."""
 
+from typing import TypedDict
+
 import numpy as np
+from numpy.typing import NDArray
 from raysect.core.math.polygon import triangulate2d
 
 from imas.ids_structure import IDSStructure
 
-__all__ = ["load_wall_3d"]
+__all__ = ["load_wall_3d", "Component"]
 
 VERTEX_DIMENSION = 0
 POLYGON_DIMENSION = 2
 
 
+class Component(TypedDict):
+    """A wall component defined by its vertices and triangles."""
+
+    vertices: NDArray[np.float64]
+    """The vertices of the wall component."""
+    triangles: NDArray[np.int32]
+    """The triangles of the wall component."""
+
+
 # TODO: Check coordinate types and convert to Cartesian if required
 def load_wall_3d(
     description_ggd: IDSStructure, subsets: list[str] | None = None
-) -> dict[str, dict[str, np.ndarray]]:
+) -> dict[str, Component]:
     """Load machine wall components from IMAS wall IDS.
 
     Parameters
@@ -43,7 +55,7 @@ def load_wall_3d(
 
     Returns
     -------
-    `dict[str, dict[str, numpy.ndarray]]`
+    `dict[str, Component]`
         Dictionary of wall components defined by vertices and triangles.
         The dictionary keys for components are assigns as follows:
         ``"{grid_name}.{subset_name}.{material_name}"``.
@@ -82,7 +94,7 @@ def load_wall_3d(
         vertices[i] = space.objects_per_dimension[VERTEX_DIMENSION].object[i].geometry
 
     poly_in_subsets = set()  # the polygons in grid subsets
-    components = {}
+    components: dict[str, Component] = {}
 
     grid_name = grid.identifier.name
 
@@ -122,7 +134,7 @@ def load_wall_3d(
     return components
 
 
-def _get_materials(material_struct):
+def _get_materials(material_struct) -> dict[int, list[tuple[str, np.ndarray]]]:
     materials = {}
 
     if len(material_struct):  # check if the material structure is defined in this IDS
