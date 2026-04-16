@@ -20,20 +20,37 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Literal
+from collections.abc import Sequence
+from typing import Any, Literal, SupportsIndex, TypeAlias
 
 import matplotlib.axes
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 from raysect.core.math.function.float import Function2D, Function3D
 from raysect.core.math.function.vector3d.function2d import Function2D as VectorFunction2D
 from raysect.core.math.function.vector3d.function3d import Function3D as VectorFunction3D
 from raysect.core.math.vector import Vector3D
 
+__all__ = ["GGDGrid", "CellSelection", "as_index_array"]
+
 ZEROVECTOR = Vector3D(0, 0, 0)
+CellSelection: TypeAlias = Sequence[SupportsIndex] | NDArray[np.integer[Any]]
 
 
-__all__ = ["GGDGrid"]
+def as_index_array(indices: CellSelection) -> NDArray[np.intp]:
+    """Return cell-selection indices as a NumPy integer array.
+
+    Parameters
+    ----------
+    indices
+        Cell-selection indices as a sequence of integers or a NumPy array of integers.
+
+    Returns
+    -------
+    NDArray[np.intp]
+        Cell-selection indices as a NumPy integer array.
+    """
+    return np.asarray(indices, dtype=np.intp)
 
 
 class GGDGrid:
@@ -54,7 +71,7 @@ class GGDGrid:
         name: str = "",
         dimension: int = 1,
         coordinate_system: Literal["cylindrical", "cartesian"] = "cartesian",
-    ):
+    ) -> None:
         dimension = int(dimension)
         if dimension < 1:
             raise ValueError("Attribute dimension must be >= 1.")
@@ -82,7 +99,7 @@ class GGDGrid:
         return self._name
 
     @name.setter
-    def name(self, value: str):
+    def name(self, value: str) -> None:
         self._name = str(value)
 
     @property
@@ -124,7 +141,7 @@ class GGDGrid:
         return self._mesh_extent
 
     @abstractmethod
-    def subset(self, indices: ArrayLike, name: str | None = None) -> GGDGrid:
+    def subset(self, indices: CellSelection, name: str | None = None) -> GGDGrid:
         """Create a subset grid from this instance.
 
         Parameters
