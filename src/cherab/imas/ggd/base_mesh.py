@@ -205,8 +205,11 @@ class GGDGrid:
         raise NotImplementedError("To be defined in subclass.")
 
     def plot_mesh(
-        self, data: NDArray[np.float64] | None = None, ax: matplotlib.axes.Axes | None = None
-    ):
+        self,
+        data: NDArray[np.float64] | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        **grid_styles,
+    ) -> matplotlib.axes.Axes:
         """Plot the grid geometry to a matplotlib figure.
 
         Parameters
@@ -215,5 +218,7 @@ class GGDGrid:
             Data array defined on the grid.
         ax
             Matplotlib axes to plot on. If None, a new figure and axes are created.
+        **grid_styles
+            Styles for the grid lines and faces.
         """
         raise NotImplementedError("To be defined in subclass.")

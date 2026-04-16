@@ -25,7 +25,8 @@ from typing import Literal
 if sys.version_info >= (3, 12):
     from typing import override
 else:
-    from typing_extensions import override  # pyright: ignore[reportUnreachable]
+    from typing_extensions import override
+
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,7 +36,7 @@ from raysect.core.math.polygon import triangulate2d
 from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction2D, UnstructGridVectorFunction2D
-from .base_mesh import GGDGrid
+from .base_mesh import CellSelection, GGDGrid, as_index_array
 
 __all__ = ["UnstructGrid2D"]
 
@@ -69,7 +70,7 @@ class UnstructGrid2D(GGDGrid):
         cells: list[ArrayLike],
         name: str = "Cells",
         coordinate_system: Literal["cylindrical", "cartesian"] = "cylindrical",
-    ):
+    ) -> None:
         vertices = np.asarray_chkfinite(vertices, dtype=np.float64)
         vertices.setflags(write=False)
 
@@ -88,12 +89,15 @@ class UnstructGrid2D(GGDGrid):
         if not len(cells):
             raise ValueError("The list of cells must contain at least one element.")
 
+        normalized_cells: list[NDArray[np.intp]] = []
         for cell in cells:
-            if len(cell) < 3:
-                raise ValueError(f"Cell {np.array2string(cell)} is not a polygon.")
+            cell_array = np.asarray(cell, dtype=np.intp)
+            if len(cell_array) < 3:
+                raise ValueError(f"Cell {np.array2string(cell_array)} is not a polygon.")
+            normalized_cells.append(cell_array)
 
         self._vertices: NDArray[np.float64] = vertices
-        self._cells: tuple[ArrayLike, ...] = tuple(cells)
+        self._cells: tuple[NDArray[np.intp], ...] = tuple(normalized_cells)
 
         super().__init__(name, 2, coordinate_system)
 
@@ -173,8 +177,8 @@ class UnstructGrid2D(GGDGrid):
         return self._vertices
 
     @property
-    def cells(self) -> tuple[ArrayLike, ...]:
-        """List of ``K`` polygonal cells."""
+    def cells(self) -> tuple[NDArray[np.intp], ...]:
+        """List of ``K`` polygonal cells as 1-D integer index arrays."""
         return self._cells
 
     @property
@@ -200,7 +204,7 @@ class UnstructGrid2D(GGDGrid):
         return self._cell_to_triangle_map
 
     @override
-    def subset(self, indices: ArrayLike, name: str | None = None) -> UnstructGrid2D:
+    def subset(self, indices: CellSelection, name: str | None = None) -> UnstructGrid2D:
         """Create a subset UnstructGrid2D from this instance.
 
         Parameters
@@ -215,6 +219,8 @@ class UnstructGrid2D(GGDGrid):
         `.UnstructGrid2D`
             Subset instance.
         """
+        index_array = as_index_array(indices)
+
         grid = UnstructGrid2D.__new__(UnstructGrid2D)
 
         grid._name = name or self.name + " subset"
@@ -222,8 +228,9 @@ class UnstructGrid2D(GGDGrid):
         grid._dimension = self._dimension
         grid._interpolator = None
 
-        cells_original = tuple(
-            self.cells[i] for i in indices
+        index_list = [int(i) for i in index_array]
+        cells_original: tuple[NDArray[np.intp], ...] = tuple(
+            self.cells[i] for i in index_list
         )  # all cells in this subset but with original vertex indices
         cells_all = np.concatenate(
             cells_original
@@ -235,19 +242,20 @@ class UnstructGrid2D(GGDGrid):
         grid._vertices.setflags(write=False)
 
         # renumerating vertex indices
-        cells = []  # and split
+        cells: list[NDArray[np.intp]] = []  # and split
         i_start = 0
         for cell in cells_original:
-            cells.append(inv_index[i_start : i_start + len(cell)])
-            i_start += len(cell)
+            num_vertices = int(cell.shape[0])
+            cells.append(inv_index[i_start : i_start + num_vertices].astype(np.intp))
+            i_start += num_vertices
         grid._cells = tuple(cells)
         grid._num_cell = len(grid._cells)
         ntri_total = i_start - 2 * len(cells_original)
 
         # cell area and centres of this subset
-        grid._cell_area = np.array(self.cell_area[indices])
+        grid._cell_area = np.array(self.cell_area[index_array])
         grid._cell_area.setflags(write=False)
-        grid._cell_centre = np.array(self.cell_centre[indices])
+        grid._cell_centre = np.array(self.cell_centre[index_array])
         grid._cell_centre.setflags(write=False)
 
         # mesh extent of this subset
@@ -269,7 +277,7 @@ class UnstructGrid2D(GGDGrid):
         grid._cell_to_triangle_map = np.empty((len(cells), 2), dtype=np.int32)
         grid._triangle_to_cell_map = np.empty(ntri_total, dtype=np.int32)
 
-        c2t_map = self.cell_to_triangle_map[indices]  # map with original triangle indices
+        c2t_map = self.cell_to_triangle_map[index_array]  # map with original triangle indices
         # maps original vertices to the subset, -1 if not in the subset
         subset_vertex_map = -1 * np.ones(self.vertices.shape[0], dtype=np.int32)
         subset_vertex_map[vert_index] = np.arange(vert_index.size, dtype=np.int32)
@@ -313,14 +321,24 @@ class UnstructGrid2D(GGDGrid):
         -------
         `.UnstructGridFunction2D`
             Interpolator instance.
+
+        Raises
+        ------
+        TypeError
+            If the existing interpolator is not an instance of UnstructGridFunction2D.
         """
         if self._interpolator is None:
             self._interpolator = UnstructGridFunction2D(
                 self._vertices, self._triangles, self._triangle_to_cell_map, grid_data, fill_value
             )
             return self._interpolator
-
-        return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
+        elif not isinstance(self._interpolator, UnstructGridFunction2D):
+            raise TypeError(
+                "The existing interpolator is not an instance of UnstructGridFunction2D. "
+                "Cannot create a new UnstructGridFunction2D instance sharing the same KDtree structure."
+            )
+        else:
+            return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
 
     @override
     def vector_interpolator(
@@ -342,6 +360,11 @@ class UnstructGrid2D(GGDGrid):
         -------
         `.UnstructGridVectorFunction2D`
             Interpolator instance.
+
+        Raises
+        ------
+        TypeError
+            If the existing interpolator is not an instance of UnstructGridVectorFunction2D.
         """
         if self._interpolator is None:
             self._interpolator = UnstructGridVectorFunction2D(
@@ -352,8 +375,15 @@ class UnstructGrid2D(GGDGrid):
                 fill_vector,
             )
             return self._interpolator
-
-        return UnstructGridVectorFunction2D.instance(self._interpolator, grid_vectors, fill_vector)
+        elif not isinstance(self._interpolator, UnstructGridVectorFunction2D):
+            raise TypeError(
+                "The existing interpolator is not an instance of UnstructGridVectorFunction2D. "
+                "Cannot create a new UnstructGridVectorFunction2D instance sharing the same KDtree structure."
+            )
+        else:
+            return UnstructGridVectorFunction2D.instance(
+                self._interpolator, grid_vectors, fill_vector
+            )
 
     @override
     def __getstate__(self):
@@ -379,12 +409,15 @@ class UnstructGrid2D(GGDGrid):
         self._coordinate_system = state["coordinate_system"]
         self._vertices = state["vertices"]
         self._vertices.setflags(write=False)
-        self._cells = state["cells"]
+        self._cells = tuple(np.asarray(cell, dtype=np.intp) for cell in state["cells"])
 
         self._initial_setup()
 
     def plot_triangle_mesh(
-        self, data: ArrayLike | None = None, ax: matplotlib.axes.Axes | None = None
+        self,
+        data: ArrayLike | None = None,
+        ax: matplotlib.axes.Axes | None = None,
+        **grid_styles,
     ) -> matplotlib.axes.Axes:
         """Plot the triangle mesh grid geometry to a matplotlib figure.
 
@@ -394,6 +427,9 @@ class UnstructGrid2D(GGDGrid):
             Data array defined on the polygonal mesh.
         ax
             Matplotlib axes to plot on. If None, a new figure and axes are created.
+        **grid_styles
+            Styles for the grid lines and faces,
+            by default ``{"facecolor": "none", "edgecolor": "b", "linewidth": 0.25}``.
 
         Returns
         -------
@@ -403,14 +439,18 @@ class UnstructGrid2D(GGDGrid):
         if ax is None:
             _, ax = plt.subplots(constrained_layout=True)
 
+        # Set default grid line styles if not provided
+        grid_styles.setdefault("facecolor", "none")
+        grid_styles.setdefault("edgecolor", "b")
+        grid_styles.setdefault("linewidth", 0.25)
+
         verts = self._vertices[self._triangles]
         if data is None:
-            collection_mesh = PolyCollection(
-                [verts], facecolor="none", edgecolor="b", linewidth=0.25
-            )
+            collection_mesh = PolyCollection([verts], **grid_styles)
         else:
+            data_array = np.asarray(data)
             collection_mesh = PolyCollection([verts])
-            collection_mesh.set_array(data[self._triangle_to_cell_map])
+            collection_mesh.set_array(data_array[self._triangle_to_cell_map])
         ax.add_collection(collection_mesh)
         ax.set_aspect(1)
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])
@@ -430,7 +470,7 @@ class UnstructGrid2D(GGDGrid):
         self,
         data: ArrayLike | None = None,
         ax: matplotlib.axes.Axes | None = None,
-        **grid_styles: str | float,
+        **grid_styles,
     ) -> matplotlib.axes.Axes:
         """Plot the polygonal mesh grid geometry to a matplotlib figure.
 
@@ -440,6 +480,11 @@ class UnstructGrid2D(GGDGrid):
             Data array defined on the polygonal mesh.
         ax
             Matplotlib axes to plot on. If None, a new figure and axes are created.
+        **grid_styles
+            Styles for the grid lines and faces,
+            by default ``{"facecolor": "none", "edgecolor": "b", "linewidth": 0.25}``.
+            If data is provided, the styles are not applied to the grid lines and faces to allow
+            the data colormap to be visible.
 
         Returns
         -------
