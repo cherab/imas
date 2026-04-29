@@ -19,5 +19,14 @@
 
 from . import utility
 from ._camera import BoloCamera, BoloChannel, Geometry, load_cameras
+from ._los import get_los, get_los_interp
 
-__all__ = ["load_cameras", "utility", "BoloCamera", "BoloChannel", "Geometry"]
+__all__ = [
+    "load_cameras",
+    "utility",
+    "BoloCamera",
+    "BoloChannel",
+    "Geometry",
+    "get_los",
+    "get_los_interp",
+]
