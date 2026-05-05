@@ -116,6 +116,7 @@ class UnstructGrid2DExtended(GGDGrid):
         self._num_faces = num_faces
         self._num_poloidal = num_poloidal
         self._num_toroidal = num_toroidal
+        self._triangulation = None  # matplotlib's triangulation at the poloidal plane for plotting
 
         super().__init__(name, 3, coordinate_system)
 
@@ -366,6 +367,7 @@ class UnstructGrid2DExtended(GGDGrid):
         grid._num_faces = None
         grid._num_poloidal = None
         grid._num_toroidal = None
+        grid._triangulation = None
 
         cells_original = self._cells[
             index_array
@@ -608,11 +610,11 @@ class UnstructGrid2DExtended(GGDGrid):
         ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
 
         if self._coordinate_system == "cartesian":
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_xlabel("$X$ [m]")
+            ax.set_ylabel("$Y$ [m]")
         elif self._coordinate_system == "cylindrical":
-            ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")
+            ax.set_xlabel("$R$ [m]")
+            ax.set_ylabel("$Z$ [m]")
 
         return ax
 
@@ -660,27 +662,32 @@ class UnstructGrid2DExtended(GGDGrid):
             raise ValueError("The data array must have the same number of faces as the grid.")
         data = np.repeat(data, 2)
 
-        cells = self._cells[: self._num_faces]
-        tri = np.empty((self._num_faces * 2, 3), dtype=np.int32)
-        for i, cell in enumerate(cells):
-            tri[2 * i] = [cell[0], cell[1], cell[2]]
-            tri[2 * i + 1] = [cell[0], cell[2], cell[3]]
-        verts = self._vertices[: self._num_poloidal, ::2]
-        triangles = Triangulation(verts[:, 0], verts[:, 1], tri)
+        # Create triangulation for the first poloidal plane
+        if (
+            self._triangulation is None
+            or self._triangulation.triangles.shape[0] != self._num_faces * 2
+        ):
+            cells = self._cells[: self._num_faces]
+            tri = np.empty((self._num_faces * 2, 3), dtype=np.int32)
+            for i, cell in enumerate(cells):
+                tri[2 * i] = [cell[0], cell[1], cell[2]]
+                tri[2 * i + 1] = [cell[0], cell[2], cell[3]]
+            verts = self._vertices[: self._num_poloidal, ::2]
+            self._triangulation = Triangulation(verts[:, 0], verts[:, 1], tri)
 
         if ax is None:
             _, ax = plt.subplots(layout="constrained")
 
         ax.set_aspect(1)
-        ax.tripcolor(triangles, data, cmap=cmap, **kwargs)
+        ax.tripcolor(self._triangulation, data, cmap=cmap, **kwargs)
         ax.set_xlim(self._mesh_extent["rmin"], self._mesh_extent["rmax"])
         ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
 
         if self._coordinate_system == "cartesian":
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_xlabel("$X$ [m]")
+            ax.set_ylabel("$Y$ [m]")
         elif self._coordinate_system == "cylindrical":
-            ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")
+            ax.set_xlabel("$R$ [m]")
+            ax.set_ylabel("$Z$ [m]")
 
         return ax

@@ -457,11 +457,11 @@ class UnstructGrid2D(GGDGrid):
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
 
         if self._coordinate_system == "cartesian":
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_xlabel("$X$ [m]")
+            ax.set_ylabel("$Y$ [m]")
         elif self._coordinate_system == "cylindrical":
-            ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")
+            ax.set_xlabel("$R$ [m]")
+            ax.set_ylabel("$Z$ [m]")
 
         return ax
 
@@ -511,10 +511,10 @@ class UnstructGrid2D(GGDGrid):
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
 
         if self._coordinate_system == "cartesian":
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_xlabel("$X$ [m]")
+            ax.set_ylabel("$Y$ [m]")
         elif self._coordinate_system == "cylindrical":
-            ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")
+            ax.set_xlabel("$R$ [m]")
+            ax.set_ylabel("$Z$ [m]")
 
         return ax
