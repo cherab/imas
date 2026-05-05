@@ -269,6 +269,7 @@ class UnstructGrid2DExtended(GGDGrid):
         index_array = np.unique(index_array)
         grid._num_faces = len(index_array)
         grid._num_toroidal = self._num_toroidal
+        grid._triangulation = None  # matplotlib's triangulation at the poloidal plane for plotting
 
         index_flags: NDArray[np.bool_] = np.zeros(self._num_faces, dtype=bool)
         index_flags[index_array] = True
