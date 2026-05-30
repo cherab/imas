@@ -21,10 +21,12 @@ from . import base_mesh
 from .base_mesh import GGDGrid
 from .unstruct_2d_extend_mesh import UnstructGrid2DExtended
 from .unstruct_2d_mesh import UnstructGrid2D
+from .unstruct_3d_mesh import UnstructGrid3D
 
 __all__ = [
     "base_mesh",
     "GGDGrid",
     "UnstructGrid2D",
     "UnstructGrid2DExtended",
+    "UnstructGrid3D",
 ]

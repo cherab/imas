@@ -38,6 +38,7 @@ from raysect.core.math.vector import Vector3D
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
 from .base_mesh import CellSelection, GGDGrid, as_index_array
+from .unstruct_3d_mesh import UnstructGrid3D
 
 __all__ = ["UnstructGrid2DExtended"]
 
@@ -76,9 +77,9 @@ class UnstructGrid2DExtended(GGDGrid):
         self,
         vertices: ArrayLike,
         cells: ArrayLike,
-        num_faces: int | None = None,
-        num_poloidal: int | None = None,
-        num_toroidal: int | None = None,
+        num_faces: int,
+        num_poloidal: int,
+        num_toroidal: int,
         name: str = "Cells",
         coordinate_system: Literal["cylindrical", "cartesian"] = "cylindrical",
     ) -> None:
@@ -169,17 +170,17 @@ class UnstructGrid2DExtended(GGDGrid):
         self._cell_centre.setflags(write=False)
 
     @property
-    def num_poloidal(self) -> int | None:
+    def num_poloidal(self) -> int:
         """Number of poloidal grid points."""
         return self._num_poloidal
 
     @property
-    def num_toroidal(self) -> int | None:
+    def num_toroidal(self) -> int:
         """Number of toroidal grid points."""
         return self._num_toroidal
 
     @property
-    def num_faces(self) -> int | None:
+    def num_faces(self) -> int:
         """Number of faces at the poloidal plane."""
         return self._num_faces
 
@@ -338,8 +339,8 @@ class UnstructGrid2DExtended(GGDGrid):
         return grid
 
     @override
-    def subset(self, indices: CellSelection, name: str | None = None) -> UnstructGrid2DExtended:
-        """Create a subset UnstructGrid2DExtended from this instance.
+    def subset(self, indices: CellSelection, name: str | None = None) -> UnstructGrid3D:
+        """Create a subset UnstructGrid3D from this instance.
 
         .. warning::
             The subset loses the range of cylindrical coordinates
@@ -354,21 +355,17 @@ class UnstructGrid2DExtended(GGDGrid):
 
         Returns
         -------
-        `.UnstructGrid2DExtended`
+        `.UnstructGrid3D`
             Subset instance.
         """
         index_array = as_index_array(indices)
 
-        grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
+        grid = UnstructGrid3D.__new__(UnstructGrid3D)
 
         grid._name = name or self._name + " subset"
-        grid._coordinate_system = self._coordinate_system
+        grid._coordinate_system = "cartesian"
         grid._dimension = self._dimension
         grid._interpolator = None
-        grid._num_faces = None
-        grid._num_poloidal = None
-        grid._num_toroidal = None
-        grid._triangulation = None
 
         cells_original = self._cells[
             index_array
@@ -401,6 +398,8 @@ class UnstructGrid2DExtended(GGDGrid):
             "xmax": grid._vertices[:, 0].max(),
             "ymin": grid._vertices[:, 1].min(),
             "ymax": grid._vertices[:, 1].max(),
+            "zmin": grid._vertices[:, 2].min(),
+            "zmax": grid._vertices[:, 2].max(),
         }
 
         # Tetrahedralize cells and maps of this subset
