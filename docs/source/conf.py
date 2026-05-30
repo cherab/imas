@@ -12,6 +12,8 @@ author = "CHERAB Team"
 copyright = f"2023-{date.today().year}, {author}"
 version_obj = parse(__version__)
 release = version_obj.public
+repository_url = "https://github.com/cherab/imas"
+repository_main_branch = "master"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -100,9 +102,9 @@ myst_url_schemes = {
 html_theme = "sphinx_immaterial"
 html_title = project
 html_theme_options = {
-    "repo_url": "https://github.com/cherab/imas",
-    "repo_name": "CHERAB-IMAS",
-    "edit_uri": "blob/master/docs/source",
+    "repo_url": repository_url,
+    "repo_name": "GitHub",
+    "edit_uri": f"blob/{repository_main_branch}/docs/source",
     "icon": {
         "repo": "fontawesome/brands/github",
     },
@@ -172,28 +174,29 @@ intersphinx_mapping = {
     "rich": ("https://rich.readthedocs.io/en/stable/", None),
     "pooch": ("https://www.fatiando.org/pooch/latest/", None),
     "ultraplot": ("https://ultraplot.readthedocs.io/en/stable/", None),
+    "plotly": ("https://plotly.com/python-api-reference/", None),
 }
 
 intersphinx_timeout = 10
 
 # -- Sphinx GitHub Style configuration ----------------------------------------
-linkcode_blob = "master" if version_obj.is_devrelease else f"v{version_obj.public}"
-linkcode_url = "https://github.com/cherab/imas"
+linkcode_blob = repository_main_branch if version_obj.is_devrelease else f"v{version_obj.public}"
+linkcode_url = repository_url
 linkcode_link_text = "Source"
 
 # -- NBSphinx configuration ---------------------------------------------------
-# nbsphinx_execute = "never"
+nbsphinx_execute = "never"
 nbsphinx_thumbnails = {
     "notebooks/observer/bolometer": "_static/images/bolometer.png",
 }
-nbsphinx_prolog = r"""
+_nbsphinx_prolog_template = r"""
 {% set docname = 'docs/' + env.doc2path(env.docname, base=None)|string %}
 
 .. raw:: html
 
     <div class="admonition note">
       This page was generated from
-      <a class="reference external" href="https://github.com/cherab/imas/blob/{{ env.config.linkcode_blob|e }}/{{ docname|e }}">{{ docname|e }}</a>.
+      <a class="reference external" href="__REPOSITORY_URL__/blob/{{ env.config.linkcode_blob|e }}/{{ docname|e }}">{{ docname|e }}</a>.
       <br />
       <a href="{{ env.docname.split('/')|last|e + '.ipynb' }}" class="reference download internal" download>Download notebook</a>.
       <script>
@@ -219,3 +222,4 @@ nbsphinx_prolog = r"""
     \textcolor{gray}{The following section was generated from
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
 """
+nbsphinx_prolog = _nbsphinx_prolog_template.replace("__REPOSITORY_URL__", repository_url)

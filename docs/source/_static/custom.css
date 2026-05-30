@@ -4,3 +4,57 @@
     display: block !important;
     object-fit: contain;
 }
+
+/* Dark theme tweaking
+Apply inversion when the page is in dark mode.
+Sphinx-Immaterial sets the active scheme on body[data-md-color-scheme].
+*/
+html[color-scheme="dark"] img[src*=".png"],
+body[data-md-color-scheme="slate"] img[src*=".png"] {
+    filter: invert(0.82) brightness(0.8) contrast(1.2) !important;
+}
+
+html[color-scheme="dark"] img[src*=".svg"],
+body[data-md-color-scheme="slate"] img[src*=".svg"] {
+    filter: invert(0.82) brightness(0.8) contrast(1.2) !important;
+}
+
+/**
+ * Mathematics via MathJax.
+ *
+ * This is designed for MathJax v3
+ * ref: https://www.sphinx-doc.org/en/master/usage/extensions/math.html#module-sphinx.ext.mathjax
+ */
+
+div.math,
+span.math {
+    align-items: center;
+    display: flex;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+span.math {
+    align-items: baseline;
+    display: inline-flex;
+}
+
+div.math {
+    flex-direction: row-reverse;
+    gap: 0.5em;
+}
+
+div.math span.eqno a.headerlink {
+    font-size: 1em;
+    position: relative;
+}
+
+div.math mjx-container {
+    flex-grow: 1;
+    overflow: auto;
+    padding-bottom: 0.2rem;
+}
+
+div.math mjx-container mjx-assistive-mml {
+    height: 0;
+}
