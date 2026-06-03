@@ -1,6 +1,6 @@
 name: cherab-imas-nblink-environment
 channels:
-  - emscripten-forge
+  - https://prefix.dev/emscripten-forge-4x
   - conda-forge
 dependencies:
   - xeus-python
