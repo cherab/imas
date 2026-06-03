@@ -3,7 +3,7 @@
 import datetime
 
 import numpy as np
-from raysect.core.math import Point3D, Vector3D, rotate_z
+from raysect.core.math import Point3D, Vector3D, rotate_z, to_cylindrical
 
 from imas import DBEntry, IDSFactory
 from imas.ids_defs import IDS_TIME_MODE_HOMOGENEOUS
@@ -26,6 +26,8 @@ SLIT_SENSOR_SEPARATION = 4.0e-2
 FOIL_SEPARATION = 5.08e-3
 SLIT_SEPARATION = 7.5e-3
 SUBCOL_SEPARATION = 1.0e-3
+
+DISTANCE_LOS_SCALE = 5.0
 
 Y_AXIS = Vector3D(0, 1, 0)
 
@@ -71,9 +73,10 @@ def _bolo_data():
         # Detector
         pos_foil = origin_foil + basis_x * (i_ch - (N_CH - 1) * 0.5) * FOIL_SEPARATION
         channel.detector.geometry_type = 3
-        channel.detector.centre.r = np.hypot(pos_foil.x, pos_foil.y)
-        channel.detector.centre.z = pos_foil.z
-        channel.detector.centre.phi = np.arctan2(pos_foil.y, pos_foil.x)
+        r, z, phi = to_cylindrical(pos_foil)
+        channel.detector.centre.r = r
+        channel.detector.centre.z = z
+        channel.detector.centre.phi = np.deg2rad(phi)
         channel.detector.x1_width = FOIL_HEIGHT
         channel.detector.x2_width = FOIL_WIDTH
         for xyz in ["x", "y", "z"]:
@@ -85,15 +88,28 @@ def _bolo_data():
         channel.aperture.resize(1)
         aperture = channel.aperture[0]
         aperture.geometry_type = 3
-        aperture.centre.r = np.hypot(origin_slit.x, origin_slit.y)
-        aperture.centre.z = origin_slit.z
-        aperture.centre.phi = np.arctan2(origin_slit.y, origin_slit.x)
+        r, z, phi = to_cylindrical(origin_slit)
+        aperture.centre.r = r
+        aperture.centre.z = z
+        aperture.centre.phi = np.deg2rad(phi)
         aperture.x1_width = SLIT_HEIGHT
         aperture.x2_width = SLIT_WIDTH
         for xyz in ["x", "y", "z"]:
             setattr(aperture.x1_unit_vector, xyz, getattr(basis_y, xyz))
             setattr(aperture.x2_unit_vector, xyz, getattr(basis_x, xyz))
             setattr(aperture.x3_unit_vector, xyz, getattr(basis_z, xyz))
+
+        # Line of sight (from detector's centre to slit centre)
+        # Its length is set to DISTANCE_LOS_SCALE times the distance between the slit and the foil.
+        terminal = pos_foil + pos_foil.vector_to(origin_slit) * DISTANCE_LOS_SCALE
+
+        channel.line_of_sight.first_point.r = channel.detector.centre.r
+        channel.line_of_sight.first_point.z = channel.detector.centre.z
+        channel.line_of_sight.first_point.phi = channel.detector.centre.phi
+        r, z, phi = to_cylindrical(terminal)
+        channel.line_of_sight.second_point.r = r
+        channel.line_of_sight.second_point.z = z
+        channel.line_of_sight.second_point.phi = np.deg2rad(phi)
 
     # ---------------------------------------------
     # === Collimator camera (w/o subcollimator) ===
@@ -119,9 +135,10 @@ def _bolo_data():
         # Detector
         pos_foil = origin_foil + basis_x * (i_ch - (N_CH - 1) * 0.5) * FOIL_SEPARATION
         channel.detector.geometry_type = 3
-        channel.detector.centre.r = np.hypot(pos_foil.x, pos_foil.y)
-        channel.detector.centre.z = pos_foil.z
-        channel.detector.centre.phi = np.arctan2(pos_foil.y, pos_foil.x)
+        r, z, phi = to_cylindrical(pos_foil)
+        channel.detector.centre.r = r
+        channel.detector.centre.z = z
+        channel.detector.centre.phi = np.deg2rad(phi)
         channel.detector.x1_width = FOIL_HEIGHT
         channel.detector.x2_width = FOIL_WIDTH
         for xyz in ["x", "y", "z"]:
@@ -139,15 +156,27 @@ def _bolo_data():
 
             aperture = channel.aperture[i_ap]
             aperture.geometry_type = 3
-            aperture.centre.r = np.hypot(pos_ap.x, pos_ap.y)
-            aperture.centre.z = pos_ap.z
-            aperture.centre.phi = np.arctan2(pos_ap.y, pos_ap.x)
+            r, z, phi = to_cylindrical(pos_ap)
+            aperture.centre.r = r
+            aperture.centre.z = z
+            aperture.centre.phi = np.deg2rad(phi)
             aperture.x1_width = FOIL_HEIGHT + (SLIT_HEIGHT - FOIL_HEIGHT) * (1 - i_ap / N_APERTURE)
             aperture.x2_width = FOIL_WIDTH + (SLIT_WIDTH - FOIL_WIDTH) * (1 - i_ap / N_APERTURE)
             for xyz in ["x", "y", "z"]:
                 setattr(aperture.x1_unit_vector, xyz, getattr(basis_y, xyz))
                 setattr(aperture.x2_unit_vector, xyz, getattr(basis_x, xyz))
                 setattr(aperture.x3_unit_vector, xyz, getattr(basis_z, xyz))
+
+        # Line of sight (from detector's centre to slit centre)
+        # Its length is set to DISTANCE_LOS_SCALE times the distance between the slit and the foil.
+        terminal = pos_foil + pos_foil.vector_to(pos_slit) * DISTANCE_LOS_SCALE
+        channel.line_of_sight.first_point.r = channel.detector.centre.r
+        channel.line_of_sight.first_point.z = channel.detector.centre.z
+        channel.line_of_sight.first_point.phi = channel.detector.centre.phi
+        r, z, phi = to_cylindrical(terminal)
+        channel.line_of_sight.second_point.r = r
+        channel.line_of_sight.second_point.z = z
+        channel.line_of_sight.second_point.phi = np.deg2rad(phi)
 
     # --------------------------------------------
     # === Collimator camera (w/ subcollimator) ===
@@ -173,9 +202,10 @@ def _bolo_data():
         # Detector
         pos_foil = origin_foil + basis_x * (i_ch - (N_CH - 1) * 0.5) * FOIL_SEPARATION
         channel.detector.geometry_type = 3
-        channel.detector.centre.r = np.hypot(pos_foil.x, pos_foil.y)
-        channel.detector.centre.z = pos_foil.z
-        channel.detector.centre.phi = np.arctan2(pos_foil.y, pos_foil.x)
+        r, z, phi = to_cylindrical(pos_foil)
+        channel.detector.centre.r = r
+        channel.detector.centre.z = z
+        channel.detector.centre.phi = np.deg2rad(phi)
         channel.detector.x1_width = FOIL_HEIGHT
         channel.detector.x2_width = FOIL_WIDTH
         for xyz in ["x", "y", "z"]:
@@ -207,15 +237,27 @@ def _bolo_data():
 
                 aperture = channel.aperture[i_ap * N_SUBCOL + i_subcol]
                 aperture.geometry_type = 3
-                aperture.centre.r = np.hypot(pos_ap_subcol.x, pos_ap_subcol.y)
-                aperture.centre.z = pos_ap_subcol.z
-                aperture.centre.phi = np.arctan2(pos_ap_subcol.y, pos_ap_subcol.x)
+                r, z, phi = to_cylindrical(pos_ap_subcol)
+                aperture.centre.r = r
+                aperture.centre.z = z
+                aperture.centre.phi = np.deg2rad(phi)
                 aperture.x1_width = (height - SUBCOL_SEPARATION * (N_SUBCOL - 1.0)) / N_SUBCOL
                 aperture.x2_width = width
                 for xyz in ["x", "y", "z"]:
                     setattr(aperture.x1_unit_vector, xyz, getattr(basis_y, xyz))
                     setattr(aperture.x2_unit_vector, xyz, getattr(basis_x, xyz))
                     setattr(aperture.x3_unit_vector, xyz, getattr(basis_z, xyz))
+
+        # Line of sight (from detector's centre to slit centre)
+        # Its length is set to DISTANCE_LOS_SCALE times the distance between the slit and the foil.
+        terminal = pos_foil + pos_foil.vector_to(pos_slit) * DISTANCE_LOS_SCALE
+        channel.line_of_sight.first_point.r = channel.detector.centre.r
+        channel.line_of_sight.first_point.z = channel.detector.centre.z
+        channel.line_of_sight.first_point.phi = channel.detector.centre.phi
+        r, z, phi = to_cylindrical(terminal)
+        channel.line_of_sight.second_point.r = r
+        channel.line_of_sight.second_point.z = z
+        channel.line_of_sight.second_point.phi = np.deg2rad(phi)
 
     return ids
 

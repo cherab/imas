@@ -13,7 +13,6 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 license = "EUPL-1.1"
-license-files = ["LICEN[CS]E.*"]
 keywords = ["cherab", "IMAS", "imas", "tokamak", "fusion", "plasma"]
 classifiers = [
   "Development Status :: 4 - Beta",

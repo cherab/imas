@@ -25,7 +25,7 @@ from typing import Literal
 if sys.version_info >= (3, 12):
     from typing import override
 else:
-    from typing_extensions import override  # pyright: ignore[reportUnreachable]
+    from typing_extensions import override
 
 import matplotlib.axes
 import matplotlib.pyplot as plt
@@ -37,7 +37,8 @@ from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
-from .base_mesh import GGDGrid
+from .base_mesh import CellSelection, GGDGrid, as_index_array
+from .unstruct_3d_mesh import UnstructGrid3D
 
 __all__ = ["UnstructGrid2DExtended"]
 
@@ -81,7 +82,7 @@ class UnstructGrid2DExtended(GGDGrid):
         num_toroidal: int,
         name: str = "Cells",
         coordinate_system: Literal["cylindrical", "cartesian"] = "cylindrical",
-    ):
+    ) -> None:
         vertices = np.array(vertices, dtype=np.float64)
         vertices.setflags(write=False)
         cells = np.array(cells, dtype=np.int32)
@@ -113,14 +114,15 @@ class UnstructGrid2DExtended(GGDGrid):
 
         self._vertices: NDArray[np.float64] = vertices
         self._cells: NDArray[np.int32] = cells
-        self._num_faces: int = num_faces
-        self._num_poloidal: int = num_poloidal
-        self._num_toroidal: int = num_toroidal
+        self._num_faces = num_faces
+        self._num_poloidal = num_poloidal
+        self._num_toroidal = num_toroidal
+        self._triangulation = None  # matplotlib's triangulation at the poloidal plane for plotting
 
         super().__init__(name, 3, coordinate_system)
 
     @override
-    def _initial_setup(self):
+    def _initial_setup(self) -> None:
         self._interpolator = None
 
         self._num_cell: int = self._cells.shape[0]
@@ -145,7 +147,7 @@ class UnstructGrid2DExtended(GGDGrid):
         self._tetrahedra = cell_to_5tetra(self._cells)
         self._tetra_to_cell_map = np.repeat(np.arange(len(self._cells), dtype=np.int32), 5)
         self._cell_to_tetra_map = np.column_stack(
-            (np.arange(len(self._cells)) * 5, np.full(len(self._cells), 5))
+            (np.arange(len(self._cells), dtype=np.int32) * 5, np.full(len(self._cells), 5))
         )
 
         self._tetrahedra.setflags(write=False)
@@ -214,7 +216,9 @@ class UnstructGrid2DExtended(GGDGrid):
         """
         return self._cell_to_tetra_map
 
-    def subset_faces(self, indices: ArrayLike, name: str | None = None) -> UnstructGrid2DExtended:
+    def subset_faces(
+        self, indices: CellSelection, name: str | None = None
+    ) -> UnstructGrid2DExtended:
         """Create a subset UnstructGrid2DExtended from this instance.
 
         The subset is defined by the indices of the faces at the poloidal plane.
@@ -236,27 +240,40 @@ class UnstructGrid2DExtended(GGDGrid):
         ------
         ValueError
             If any of the indices of the faces is out of range.
+            If the number of faces at the poloidal plane, the number of poloidal points, or the
+            number of toroidal points is not defined for this grid.
+
 
         See Also
         --------
         subset : For a method that creates a subset from the original grid cells.
         """
+        if self._num_faces is None or self._num_poloidal is None or self._num_toroidal is None:
+            raise ValueError(
+                "The number of faces at the poloidal plane, the number of poloidal points, or the "
+                "number of toroidal points is not defined for this grid. "
+                f"({self._num_faces=}, {self._num_poloidal=}, {self._num_toroidal=}.)"
+            )
+
+        index_array = as_index_array(indices)
+
         grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
 
         grid._name = name or self._name + " subset"
         grid._coordinate_system = self._coordinate_system
         grid._dimension = self._dimension
         grid._interpolator = None
-        if np.amax(indices) >= self._num_faces:
+        if np.amax(index_array) >= self._num_faces:
             raise ValueError(
                 "The indices of the faces must be less than the number of faces in the grid."
             )
-        indices = np.unique(indices)
-        grid._num_faces = len(indices)
+        index_array = np.unique(index_array)
+        grid._num_faces = len(index_array)
         grid._num_toroidal = self._num_toroidal
+        grid._triangulation = None  # matplotlib's triangulation at the poloidal plane for plotting
 
         index_flags: NDArray[np.bool_] = np.zeros(self._num_faces, dtype=bool)
-        index_flags[indices] = True
+        index_flags[index_array] = True
         index_flags = np.tile(index_flags, self._num_toroidal)
         index_flags.setflags(write=False)
 
@@ -309,7 +326,10 @@ class UnstructGrid2DExtended(GGDGrid):
         grid._tetrahedra = cell_to_5tetra(grid._cells)
         grid._tetra_to_cell_map = np.repeat(np.arange(len(grid._cells), dtype=np.int32), 5)
         grid._cell_to_tetra_map = np.column_stack(
-            (np.arange(len(grid._cells)) * 5, np.full(len(grid._cells), 5))
+            (
+                np.arange(len(grid._cells), dtype=np.int32) * 5,
+                np.full(len(grid._cells), 5, dtype=np.int32),
+            )
         )
 
         grid._tetrahedra.setflags(write=False)
@@ -319,8 +339,8 @@ class UnstructGrid2DExtended(GGDGrid):
         return grid
 
     @override
-    def subset(self, indices: ArrayLike, name: str | None = None) -> UnstructGrid2DExtended:
-        """Create a subset UnstructGrid2DExtended from this instance.
+    def subset(self, indices: CellSelection, name: str | None = None) -> UnstructGrid3D:
+        """Create a subset UnstructGrid3D from this instance.
 
         .. warning::
             The subset loses the range of cylindrical coordinates
@@ -335,26 +355,25 @@ class UnstructGrid2DExtended(GGDGrid):
 
         Returns
         -------
-        `.UnstructGrid2DExtended`
+        `.UnstructGrid3D`
             Subset instance.
         """
-        grid = UnstructGrid2DExtended.__new__(UnstructGrid2DExtended)
+        index_array = as_index_array(indices)
+
+        grid = UnstructGrid3D.__new__(UnstructGrid3D)
 
         grid._name = name or self._name + " subset"
-        grid._coordinate_system = self._coordinate_system
+        grid._coordinate_system = "cartesian"
         grid._dimension = self._dimension
         grid._interpolator = None
-        grid._num_faces = None
-        grid._num_poloidal = None
-        grid._num_toroidal = None
 
-        cells_original = self.cells[
-            indices
+        cells_original = self._cells[
+            index_array
         ]  # all cells in this subset but with original vertex indices
         vert_index, inv_index = np.unique(
             cells_original, return_inverse=True
         )  # all unique vertex indices in this subset
-        grid._vertices = np.array(self.vertices[vert_index])  # vertices in this subset
+        grid._vertices = np.array(self._vertices[vert_index])  # vertices in this subset
         grid._vertices.setflags(write=False)
 
         # renumerating vertex indices
@@ -368,9 +387,9 @@ class UnstructGrid2DExtended(GGDGrid):
         grid._num_cell = len(grid._cells)
 
         # cell volume and centres of this subset
-        grid._cell_volume = np.array(self._cell_volume[indices])
+        grid._cell_volume = np.array(self._cell_volume[index_array])
         grid._cell_volume.setflags(write=False)
-        grid._cell_centre = np.array(self._cell_centre[indices])
+        grid._cell_centre = np.array(self._cell_centre[index_array])
         grid._cell_centre.setflags(write=False)
 
         # mesh extent of this subset
@@ -379,13 +398,18 @@ class UnstructGrid2DExtended(GGDGrid):
             "xmax": grid._vertices[:, 0].max(),
             "ymin": grid._vertices[:, 1].min(),
             "ymax": grid._vertices[:, 1].max(),
+            "zmin": grid._vertices[:, 2].min(),
+            "zmax": grid._vertices[:, 2].max(),
         }
 
         # Tetrahedralize cells and maps of this subset
         grid._tetrahedra = cell_to_5tetra(grid._cells)
         grid._tetra_to_cell_map = np.repeat(np.arange(len(grid._cells), dtype=np.int32), 5)
         grid._cell_to_tetra_map = np.column_stack(
-            (np.arange(len(grid._cells)) * 5, np.full(len(grid._cells), 5))
+            (
+                np.arange(len(grid._cells), dtype=np.int32) * 5,
+                np.full(len(grid._cells), 5, dtype=np.int32),
+            )
         )
 
         grid._tetrahedra.setflags(write=False)
@@ -414,18 +438,28 @@ class UnstructGrid2DExtended(GGDGrid):
         -------
         `.UnstructGridFunction3D`
             Interpolator instance.
+
+        Raises
+        ------
+        TypeError
+            If the existing interpolator is not compatible with the provided grid data.
         """
         if self._interpolator is None:
             self._interpolator = UnstructGridFunction3D(
                 self._vertices, self._tetrahedra, self._tetra_to_cell_map, grid_data, fill_value
             )
             return self._interpolator
-
-        return UnstructGridFunction3D.instance(self._interpolator, grid_data, fill_value)
+        elif not isinstance(self._interpolator, UnstructGridFunction3D):
+            raise TypeError(
+                "The existing interpolator is not compatible with the provided grid data. "
+                + "Please create a new interpolator instance with the appropriate grid data."
+            )
+        else:
+            return UnstructGridFunction3D.instance(self._interpolator, grid_data, fill_value)
 
     @override
     def vector_interpolator(
-        self, grid_vectors: ArrayLike, fill_vector: Vector3D = ZERO_VECTOR
+        self, grid_vectors: NDArray[np.float64], fill_vector: Vector3D = ZERO_VECTOR
     ) -> UnstructGridVectorFunction3D:
         """Return an `UnstructGridVectorFunction3D` interpolator instance for the vector data defined on this grid.
 
@@ -443,6 +477,11 @@ class UnstructGrid2DExtended(GGDGrid):
         -------
         `.UnstructGridVectorFunction3D`
             Interpolator instance.
+
+        Raises
+        ------
+        TypeError
+            If the existing interpolator is not compatible with the provided grid vectors.
         """
         if self._interpolator is None:
             self._interpolator = UnstructGridVectorFunction3D(
@@ -454,7 +493,15 @@ class UnstructGrid2DExtended(GGDGrid):
             )
             return self._interpolator
 
-        return UnstructGridVectorFunction3D.instance(self._interpolator, grid_vectors, fill_vector)
+        elif not isinstance(self._interpolator, UnstructGridVectorFunction3D):
+            raise TypeError(
+                "The existing interpolator is not compatible with the provided grid vectors. "
+                + "Please create a new interpolator instance with the appropriate grid vectors."
+            )
+        else:
+            return UnstructGridVectorFunction3D.instance(
+                self._interpolator, grid_vectors, fill_vector
+            )
 
     @override
     def __getstate__(self):
@@ -522,7 +569,7 @@ class UnstructGrid2DExtended(GGDGrid):
         self,
         data: ArrayLike | None = None,
         ax: matplotlib.axes.Axes | None = None,
-        **grid_styles: str | float,
+        **grid_styles,
     ) -> matplotlib.axes.Axes:
         """Plot the polygonal mesh grid geometry at the first poloidal plane to a matplotlib figure.
 
@@ -563,16 +610,20 @@ class UnstructGrid2DExtended(GGDGrid):
         ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
 
         if self._coordinate_system == "cartesian":
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_xlabel("$X$ [m]")
+            ax.set_ylabel("$Y$ [m]")
         elif self._coordinate_system == "cylindrical":
-            ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")
+            ax.set_xlabel("$R$ [m]")
+            ax.set_ylabel("$Z$ [m]")
 
         return ax
 
     def plot_tri_mesh(
-        self, data: ArrayLike, ax: matplotlib.axes.Axes | None = None, cmap: str = "viridis"
+        self,
+        data: ArrayLike,
+        ax: matplotlib.axes.Axes | None = None,
+        cmap: str = "viridis",
+        **kwargs,
     ) -> matplotlib.axes.Axes:
         """Plot the data defined on the triangular mesh at the poloidal plane to a matplotlib figure.
 
@@ -584,6 +635,8 @@ class UnstructGrid2DExtended(GGDGrid):
             Matplotlib axes to plot the mesh. If None, a new figure is created.
         cmap
             Colormap to use for the data, by default 'viridis'.
+        **kwargs
+            Additional keyword arguments passed to `~matplotlib.axes.Axes.tripcolor`.
 
         Returns
         -------
@@ -594,33 +647,47 @@ class UnstructGrid2DExtended(GGDGrid):
         ------
         ValueError
             If the data array does not have the same number of faces as the grid.
+            If the number of faces at the poloidal plane or the number of poloidal points is not
+            defined for this grid.
         """
+        if self._num_faces is None or self._num_poloidal is None:
+            raise ValueError(
+                "The number of faces at the poloidal plane"
+                " or the number of poloidal points is not defined for this grid. "
+                f"({self._num_faces=}, {self._num_poloidal=}.)"
+            )
+
         data = np.asarray_chkfinite(data)
         if data.shape[0] != self._num_faces:
             raise ValueError("The data array must have the same number of faces as the grid.")
         data = np.repeat(data, 2)
 
-        cells = self._cells[: self._num_faces]
-        tri = np.empty((self._num_faces * 2, 3), dtype=np.int32)
-        for i, cell in enumerate(cells):
-            tri[2 * i] = [cell[0], cell[1], cell[2]]
-            tri[2 * i + 1] = [cell[0], cell[2], cell[3]]
-        verts = self._vertices[: self.num_poloidal, ::2]
-        triangles = Triangulation(verts[:, 0], verts[:, 1], tri)
+        # Create triangulation for the first poloidal plane
+        if (
+            self._triangulation is None
+            or self._triangulation.triangles.shape[0] != self._num_faces * 2
+        ):
+            cells = self._cells[: self._num_faces]
+            tri = np.empty((self._num_faces * 2, 3), dtype=np.int32)
+            for i, cell in enumerate(cells):
+                tri[2 * i] = [cell[0], cell[1], cell[2]]
+                tri[2 * i + 1] = [cell[0], cell[2], cell[3]]
+            verts = self._vertices[: self._num_poloidal, ::2]
+            self._triangulation = Triangulation(verts[:, 0], verts[:, 1], tri)
 
         if ax is None:
             _, ax = plt.subplots(layout="constrained")
 
         ax.set_aspect(1)
-        ax.tripcolor(triangles, data, cmap=cmap)
+        ax.tripcolor(self._triangulation, data, cmap=cmap, **kwargs)
         ax.set_xlim(self._mesh_extent["rmin"], self._mesh_extent["rmax"])
         ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
 
         if self._coordinate_system == "cartesian":
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_xlabel("$X$ [m]")
+            ax.set_ylabel("$Y$ [m]")
         elif self._coordinate_system == "cylindrical":
-            ax.set_xlabel("R [m]")
-            ax.set_ylabel("Z [m]")
+            ax.set_xlabel("$R$ [m]")
+            ax.set_ylabel("$Z$ [m]")
 
         return ax

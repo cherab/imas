@@ -17,7 +17,8 @@
 # under the Licence.
 """Subpackage for loading wall description from IMAS wall IDS."""
 
+from . import load2d, load3d
 from .load2d import load_wall_2d
 from .load3d import load_wall_3d
 
-__all__ = ["load_wall_2d", "load_wall_3d"]
+__all__ = ["load_wall_2d", "load_wall_3d", "load2d", "load3d"]
