@@ -185,7 +185,7 @@ linkcode_url = repository_url
 linkcode_link_text = "Source"
 
 # -- NBSphinx configuration ---------------------------------------------------
-nbsphinx_execute = "never"
+# nbsphinx_execute = "never"
 nbsphinx_thumbnails = {
     "notebooks/observer/bolometer": "_static/images/bolometer.png",
 }

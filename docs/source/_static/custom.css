@@ -9,7 +9,7 @@
 Apply inversion when the page is in dark mode.
 Sphinx-Immaterial sets the active scheme on body[data-md-color-scheme].
 */
-html[color-scheme="dark"] img[src*=".png"],
+/* html[color-scheme="dark"] img[src*=".png"],
 body[data-md-color-scheme="slate"] img[src*=".png"] {
     filter: invert(0.82) brightness(0.8) contrast(1.2) !important;
 }
@@ -17,7 +17,7 @@ body[data-md-color-scheme="slate"] img[src*=".png"] {
 html[color-scheme="dark"] img[src*=".svg"],
 body[data-md-color-scheme="slate"] img[src*=".svg"] {
     filter: invert(0.82) brightness(0.8) contrast(1.2) !important;
-}
+} */
 
 /**
  * Mathematics via MathJax.
