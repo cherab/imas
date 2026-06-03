@@ -1,0 +1,6 @@
+name: cherab-imas-nblink-environment
+channels:
+  - conda-forge
+dependencies:
+  - cherab-imas
+  - ultraplot
