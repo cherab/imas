@@ -1,0 +1,8 @@
+name: cherab-imas-nblink-environment
+channels:
+  - emscripten-forge
+  - conda-forge
+dependencies:
+  - xeus-python
+  - cherab-imas
+  - ultraplot
