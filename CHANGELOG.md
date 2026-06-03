@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - Unreleased
+
+### Added
+
+- Add `UnstructGrid3D` class and integrate it into the mesh loading workflow
+- Add line-of-sight (LOS) handling utilities and related test scripts
+
+### Changed
+
+- Expose `load2d` and `load3d` modules as public APIs
+- Enhance mesh/grid utilities (`GGDGrid`, `UnstructGrid2D`, base mesh helpers) with improved plotting styles, utility functions, and type hints
+- Update bolometer LOS geometry handling to use cylindrical coordinates for detector/aperture positions
+- Improve documentation tooling and rendering configuration (MathJax/CSS and nblink environment setup)
+
+### Fixed
+
+- Ensure bolometer dataset cache directories are created before use
+- Fix total power calculation and exception handling in the emission notebook workflow
+
+### Removed
+
+- Remove `license-files` entry from `pyproject.toml`
+
 ## [0.4.1] - 2026-04-03
 
 ### Added
