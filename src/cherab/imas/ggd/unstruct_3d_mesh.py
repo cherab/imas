@@ -49,11 +49,9 @@ class UnstructGrid3D(GGDGrid):
     Parameters
     ----------
     vertices
-        Array-like of shape ``(N, 3)`` containing coordinates of the polyhedron vertices.
+        Array-like of shape ``(N, 3)`` containing vertex coordinates in (X, Y, Z).
     cells
-        List of ``(N,)``-shaped arrays containing the vertex indices in clockwise or
-        counterclockwise order for each polyhedral cell in the list (the starting vertex must not be
-        included twice).
+        Array-like of shape ``(M, 8)`` containing vertex indices for each hexahedral cell.
     name
         Name of the grid, by default ``'Cells'``.
     """
