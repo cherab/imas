@@ -42,9 +42,10 @@ ZERO_VECTOR = Vector3D(0, 0, 0)
 class UnstructGrid3D(GGDGrid):
     """Unstructured 3D grid object.
 
-    The grid cells are polyhedra. Vertices may be shared with neighbouring cells.
+    The grid cells are hexahedra (8-vertex cells). Vertices may be shared with neighbouring cells.
 
-    To use Raysect's KDtree accelerator, each polyhedral cell is tetrahedralized.
+    To use Raysect's KDtree accelerator, each hexahedral cell is tetrahedralized.
+
 
     Parameters
     ----------
