@@ -12,8 +12,9 @@ author = "CHERAB Team"
 copyright = f"2023-{date.today().year}, {author}"
 version_obj = parse(__version__)
 release = version_obj.public
-repository_url = "https://github.com/cherab/imas"
+gh_user_repo = "cherab/imas"
 repository_main_branch = "master"
+repository_url = f"https://github.com/{gh_user_repo}"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -197,7 +198,9 @@ _nbsphinx_prolog_template = r"""
     <div class="admonition note">
       This page was generated from
       <a class="reference external" href="__REPOSITORY_URL__/blob/{{ env.config.linkcode_blob|e }}/{{ docname|e }}">{{ docname|e }}</a>.
-      <br />
+      <br>
+      Interactive online version:
+      <span style="white-space: nowrap;"><a href="https://mybinder.org/v2/gh/__GH_USER_REPO__/{{ env.config.release|e }}?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>.</span>
       <a href="{{ env.docname.split('/')|last|e + '.ipynb' }}" class="reference download internal" download>Download notebook</a>.
       <script>
         if (document.location.host) {
@@ -223,3 +226,4 @@ _nbsphinx_prolog_template = r"""
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
 """
 nbsphinx_prolog = _nbsphinx_prolog_template.replace("__REPOSITORY_URL__", repository_url)
+nbsphinx_prolog = nbsphinx_prolog.replace("__GH_USER_REPO__", gh_user_repo)

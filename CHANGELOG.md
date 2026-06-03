@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `UnstructGrid3D` class and integrate it into the mesh loading workflow
 - Add line-of-sight (LOS) handling utilities and related test scripts
+- Add [binder](https://mybinder.org/) badge and configuration for interactive notebook demos
+- Add notebook.link environment configuration for interactive notebook demos for future use in documentation.
 
 ### Changed
 
