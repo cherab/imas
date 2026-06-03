@@ -200,7 +200,7 @@ _nbsphinx_prolog_template = r"""
       <a class="reference external" href="__REPOSITORY_URL__/blob/{{ env.config.linkcode_blob|e }}/{{ docname|e }}">{{ docname|e }}</a>.
       <br>
       Interactive online version:
-      <span style="white-space: nowrap;"><a href="https://mybinder.org/v2/gh/__GH_USER_REPO__/{{ env.config.release|e }}?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>.</span>
+      <span style="white-space: nowrap;"><a href="https://mybinder.org/v2/gh/__GH_USER_REPO__/{{ env.config.linkcode_blob|e }}?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>.</span>
       <a href="{{ env.docname.split('/')|last|e + '.ipynb' }}" class="reference download internal" download>Download notebook</a>.
       <script>
         if (document.location.host) {
