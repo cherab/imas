@@ -1,5 +1,5 @@
 [workspace]
-channels = ["https://prefix.dev/conda-forge"]
+channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 preview = ["pixi-build"]
 
@@ -88,11 +88,13 @@ doc-build = { cmd = [
 ], cwd = "docs", args = [
   { arg = "target", default = "html" },
 ], description = "📝 Build the docs" }
-doc-serve = { cmd = [
+doc-serve = { args = [
+  { arg = "port", default = "8000" },
+], cmd = [
   "python",
   "-m",
   "http.server",
-  "8000",
+  "{{ port }}",
   "--directory",
   "build/html",
 ], cwd = "docs", description = "🚀 Start a local server for the docs" }
