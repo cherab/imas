@@ -17,10 +17,18 @@
 # under the Licence.
 """Mathematical function utilities.
 
-This module provides vector function implementations including unit vector classes for 1D, 2D, and
-3D spaces.
+This module provides vector function implementations and Fourier-Bezier field reconstruction
+for JOREK-discretized grids.
 """
 
+from . import fourier_bezier
+from .fourier_bezier import FourierBezierConstructor
 from .vector_functions import UnitVector1D, UnitVector2D, UnitVector3D
 
-__all__ = ["UnitVector1D", "UnitVector2D", "UnitVector3D"]
+__all__ = [
+    "fourier_bezier",
+    "UnitVector1D",
+    "UnitVector2D",
+    "UnitVector3D",
+    "FourierBezierConstructor",
+]

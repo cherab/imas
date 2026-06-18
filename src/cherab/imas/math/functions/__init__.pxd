@@ -17,3 +17,4 @@
 # under the Licence.
 
 from cherab.imas.math.functions.vector_functions cimport UnitVector1D, UnitVector2D, UnitVector3D
+from cherab.imas.math.functions.fourier_bezier cimport FourierBezierConstructor
