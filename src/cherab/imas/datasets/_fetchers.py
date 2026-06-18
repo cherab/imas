@@ -2,30 +2,20 @@
 
 from pathlib import Path
 
+import pooch
+
 from ...imas import __version__
 from ._patch import fix_jintrac
 from ._registry import registry
 
-try:
-    import pooch
-
-except ImportError:
-    pooch = None
-    data_fetcher = None
-else:
-    data_fetcher = pooch.create(
-        path=pooch.os_cache("cherab/imas"),
-        base_url="doi:10.5281/zenodo.17062699",
-        registry=registry,
-    )
+data_fetcher = pooch.create(
+    path=pooch.os_cache("cherab/imas"),
+    base_url="doi:10.5281/zenodo.17062699",
+    registry=registry,
+)
 
 
 def fetch_data(dataset_name: str, data_fetcher=data_fetcher, show_progress: bool = True) -> str:
-    if data_fetcher is None or pooch is None:
-        raise ImportError(
-            "Missing optional dependency 'pooch' required for cherab.imas.datasets module. "
-            "Please use pip or conda to install 'pooch'."
-        )
     if show_progress:
         from ._progress import PoochRichProgress
 

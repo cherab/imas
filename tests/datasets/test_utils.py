@@ -137,8 +137,8 @@ class TestClearCache:
     def test_clear_cache_unknown_dataset_method(self):
         """Test _clear_cache with unknown dataset method."""
 
-        def unknown_dataset():
-            pass
+        def unknown_dataset() -> str:
+            return ""
 
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_dir = Path(temp_dir) / "test_cache"
@@ -147,17 +147,11 @@ class TestClearCache:
             with pytest.raises(ValueError, match="Dataset method unknown_dataset doesn't exist"):
                 _clear_cache(unknown_dataset, cache_dir)
 
-    def test_clear_cache_missing_platformdirs(self):
-        """Test clear_cache behavior when platformdirs is not available."""
-        with patch("cherab.imas.datasets._utils.platformdirs", None):
-            with pytest.raises(ImportError, match="Missing optional dependency 'pooch'"):
-                _clear_cache(None, None)
-
-    @patch("cherab.imas.datasets._utils.platformdirs")
-    def test_clear_cache_default_cache_dir(self, mock_platformdirs):
+    @patch("cherab.imas.datasets._utils.pooch.os_cache")
+    def test_clear_cache_default_cache_dir(self, mock_os_cache):
         """Test _clear_cache uses default cache directory when none provided."""
-        mock_cache_dir = "/mock/cache/dir"
-        mock_platformdirs.user_cache_dir.return_value = mock_cache_dir
+        mock_cache_dir = Path("/mock/cache/dir")
+        mock_os_cache.return_value = mock_cache_dir
 
         with patch("cherab.imas.datasets._utils.Path") as mock_path:
             mock_path_instance = MagicMock()
@@ -166,14 +160,14 @@ class TestClearCache:
 
             _clear_cache(None, None)
 
-            mock_platformdirs.user_cache_dir.assert_called_once_with("cherab/imas")
+            mock_os_cache.assert_called_once_with("cherab/imas")
             mock_path.assert_called_once_with(mock_cache_dir)
 
     def test_clear_cache_custom_method_map(self, capsys):
         """Test _clear_cache with custom method map."""
 
-        def custom_dataset():
-            pass
+        def custom_dataset() -> str:
+            return ""
 
         custom_method_map = {"custom_dataset": ["custom_file.nc"]}
 
