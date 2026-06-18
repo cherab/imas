@@ -18,6 +18,7 @@
 """Module for loading unstructured 3D grids from IMAS grid_ggd IDS structure."""
 
 from enum import IntEnum
+from typing import cast
 
 import numpy as np
 
@@ -82,13 +83,17 @@ def load_unstruct_grid_2d_extended(
         If the number of toroidal points is less than 1.
         If the grid is not an unstructured extended 2D grid.
     """
+    # Subsets are not implemented for this grid type; fail fast before heavy geometry work.
+    if with_subsets:
+        raise NotImplementedError("Reading grid subsets is not implemented yet.")
+
     # Validate num_toroidal
     num_toroidal = num_toroidal or NUM_TOROIDAL
     if num_toroidal < 1:
         raise ValueError("The number of toroidal points must be greater than 0.")
 
     # Get the R-Z space
-    space: IDSStructArray = grid_ggd.space[SPACE.RZ]
+    space = cast(IDSStructure, grid_ggd.space[SPACE.RZ])
 
     # Check if the grid is 2D
     if len(space.objects_per_dimension) != 3:
@@ -122,7 +127,7 @@ def load_unstruct_grid_2d_extended(
     # =========================================
     # Reading cells indices
     # =========================================
-    faces: IDSStructArray = space.objects_per_dimension[DIMENSION.FACE].object
+    faces = cast(IDSStructArray, space.objects_per_dimension[DIMENSION.FACE].object)
     num_faces = len(faces)
     cells = np.zeros((num_faces * num_toroidal, 8), dtype=np.int32)
     i_cell = 0
@@ -140,10 +145,7 @@ def load_unstruct_grid_2d_extended(
         vertices, cells, num_faces, num_poloidal, num_toroidal, name=grid_name
     )
 
-    if not with_subsets:
-        return grid
-    else:
-        raise NotImplementedError("Reading grid subsets is not implemented yet.")
+    return grid
 
 
 def load_unstruct_grid_3d(grid_ggd: IDSStructure, space_index: int = 0, with_subsets: bool = False):
