@@ -16,10 +16,13 @@ def _assert_disk_cache_file_exists(
     cache_dir: Path,
     grid: UnstructGrid2D | UnstructGrid2DExtended | UnstructGrid3D,
     namespace: str,
+    interpolator_kind: str,
 ) -> Path:
-    cache_key = grid._interpolator_cache_key(namespace=namespace)
+    cache_key = grid._interpolator_cache_key(
+        namespace=namespace, interpolator_kind=interpolator_kind
+    )
     assert cache_key is not None
-    cache_file = cache_dir / f"{cache_key}.pkl"
+    cache_file = cache_dir / f"{grid._interpolator_cache_filename(cache_key)}.pkl"
     assert cache_file.exists()
     return cache_file
 
@@ -77,17 +80,17 @@ def test_interpolator_cache_modes(
         interpolator_cache_namespace=namespace,
     )
 
-    cache_key = grid._interpolator_cache_key(namespace=namespace)
+    cache_key = grid._interpolator_cache_key(namespace=namespace, interpolator_kind="scalar")
     assert cache_key is not None
 
     if interpolator_cache == "none":
         assert cache_key not in GGDGrid._interpolator_cache_memory
-        assert not (cache_dir / f"{cache_key}.pkl").exists()
+        assert not (cache_dir / f"{grid._interpolator_cache_filename(cache_key)}.pkl").exists()
         return
 
     assert cache_key in GGDGrid._interpolator_cache_memory
     if interpolator_cache == "disk":
-        _assert_disk_cache_file_exists(cache_dir, grid, namespace)
+        _assert_disk_cache_file_exists(cache_dir, grid, namespace, "scalar")
 
     grid2 = _load_grid_by_kind(
         grid_kind,
@@ -107,7 +110,9 @@ def test_interpolator_cache_modes(
     )
 
     assert grid2._scalar_interpolator is not None
-    assert grid2._interpolator_cache_key(namespace=namespace) == cache_key
+    assert (
+        grid2._interpolator_cache_key(namespace=namespace, interpolator_kind="scalar") == cache_key
+    )
     assert cache_key in GGDGrid._interpolator_cache_memory
 
 
@@ -139,17 +144,17 @@ def test_vector_interpolator_cache_modes(
         interpolator_cache_namespace=namespace,
     )
 
-    cache_key = grid._interpolator_cache_key(namespace=namespace)
+    cache_key = grid._interpolator_cache_key(namespace=namespace, interpolator_kind="vector")
     assert cache_key is not None
 
     if interpolator_cache == "none":
         assert cache_key not in GGDGrid._interpolator_cache_memory
-        assert not (cache_dir / f"{cache_key}.pkl").exists()
+        assert not (cache_dir / f"{grid._interpolator_cache_filename(cache_key)}.pkl").exists()
         return
 
     assert cache_key in GGDGrid._interpolator_cache_memory
     if interpolator_cache == "disk":
-        _assert_disk_cache_file_exists(cache_dir, grid, namespace)
+        _assert_disk_cache_file_exists(cache_dir, grid, namespace, "vector")
 
     GGDGrid._interpolator_cache_memory.clear()
 
@@ -168,6 +173,8 @@ def test_vector_interpolator_cache_modes(
         interpolator_cache_namespace=namespace,
     )
 
-    assert grid2._interpolator_cache_key(namespace=namespace) == cache_key
+    assert (
+        grid2._interpolator_cache_key(namespace=namespace, interpolator_kind="vector") == cache_key
+    )
     assert cache_key in GGDGrid._interpolator_cache_memory
     assert grid2._vector_interpolator is not None

@@ -180,13 +180,19 @@ class GGDGrid:
         digest.update(cells_array.tobytes())
         return digest.hexdigest()
 
-    def _interpolator_cache_key(self, namespace: str = "ggd") -> str | None:
+    def _interpolator_cache_key(
+        self, namespace: str = "ggd", interpolator_kind: str | None = None
+    ) -> str | None:
         """Return a cache key derived from the grid geometry hash.
 
         Parameters
         ----------
         namespace
             Prefix used to prevent cache collisions across different interpolator types.
+        interpolator_kind
+            Kind or class name of the interpolator (e.g., 'scalar' or 'vector').
+            If provided, included in the cache key to prevent collisions between
+            different interpolator types for the same grid. If None, not included.
 
         Returns
         -------
@@ -196,7 +202,26 @@ class GGDGrid:
         geometry_hash = self._interpolator_geometry_hash()
         if geometry_hash is None:
             return None
+        if interpolator_kind is not None:
+            return f"{namespace}:{interpolator_kind}:{geometry_hash}"
         return f"{namespace}:{geometry_hash}"
+
+    def _interpolator_cache_filename(self, cache_key: str) -> str:
+        """Return a filesystem-safe filename for a cache key.
+
+        Parameters
+        ----------
+        cache_key
+            The logical cache key (may contain unsafe filesystem characters).
+
+        Returns
+        -------
+        str
+            A hashed filename safe for filesystem use.
+        """
+        digest = hashlib.blake2b(digest_size=20)
+        digest.update(cache_key.encode("utf-8"))
+        return digest.hexdigest()
 
     def _load_cached_interpolator(
         self,
@@ -204,6 +229,7 @@ class GGDGrid:
         mode: InterpolatorCacheMode = "memory",
         cache_dir: str | Path | None = None,
         namespace: str = "ggd",
+        interpolator_kind: str | None = None,
     ) -> object | None:
         """Load an interpolator cache entry for this grid geometry.
 
@@ -215,13 +241,19 @@ class GGDGrid:
             Directory used for disk cache mode.
         namespace
             Namespace prefix to avoid cache-key collisions.
+        interpolator_kind
+            Optional interpolator kind used to separate cache entries
+            for different interpolator classes sharing the same geometry.
 
         Returns
         -------
         object | None
             Cached interpolator object if found, otherwise ``None``.
         """
-        cache_key = self._interpolator_cache_key(namespace=namespace)
+        cache_key = self._interpolator_cache_key(
+            namespace=namespace,
+            interpolator_kind=interpolator_kind,
+        )
         if cache_key is None or mode == "none":
             return None
 
@@ -238,7 +270,8 @@ class GGDGrid:
             if cache_dir is not None
             else _default_interpolator_cache_root()
         )
-        path = root / f"{cache_key}.pkl"
+        filename = self._interpolator_cache_filename(cache_key)
+        path = root / f"{filename}.pkl"
         if not path.exists():
             return None
 
@@ -256,6 +289,7 @@ class GGDGrid:
         mode: InterpolatorCacheMode = "memory",
         cache_dir: str | Path | None = None,
         namespace: str = "ggd",
+        interpolator_kind: str | None = None,
     ) -> None:
         """Store an interpolator cache entry for this grid geometry.
 
@@ -269,12 +303,17 @@ class GGDGrid:
             Directory used for disk cache mode.
         namespace
             Namespace prefix to avoid cache-key collisions.
+        interpolator_kind
+            Optional interpolator kind used to separate cache entries
+            for different interpolator classes sharing the same geometry.
         """
-        geometry_hash = self._interpolator_geometry_hash()
-        if geometry_hash is None or mode == "none":
+        cache_key = self._interpolator_cache_key(
+            namespace=namespace,
+            interpolator_kind=interpolator_kind,
+        )
+        if cache_key is None or mode == "none":
             return
 
-        cache_key = f"{namespace}:{geometry_hash}"
         if mode == "memory":
             self._interpolator_cache_memory[cache_key] = interpolator
             return
@@ -288,7 +327,8 @@ class GGDGrid:
             else _default_interpolator_cache_root()
         )
         root.mkdir(parents=True, exist_ok=True)
-        path = root / f"{cache_key}.pkl"
+        filename = self._interpolator_cache_filename(cache_key)
+        path = root / f"{filename}.pkl"
         with path.open("wb") as handle:
             pickle.dump(interpolator, handle)
 
@@ -305,6 +345,7 @@ class GGDGrid:
         mode: InterpolatorCacheMode = "memory",
         cache_dir: str | Path | None = None,
         namespace: str = "ggd",
+        interpolator_kind: str | None = None,
     ) -> InterpolatorT:
         """Build and return a per-call interpolator backed by a cached geometry template.
 
@@ -334,6 +375,9 @@ class GGDGrid:
             Directory used for disk cache mode.
         namespace
             Namespace prefix to avoid cache-key collisions.
+        interpolator_kind
+            Optional interpolator kind for cache key disambiguation.
+            If ``None``, it is inferred from `cached_slot`.
 
         Returns
         -------
@@ -347,12 +391,16 @@ class GGDGrid:
         """
         itype = cast(Any, interpolator_cls)
         cached: InterpolatorT | None = getattr(self, cached_slot, None)
+        kind = interpolator_kind
+        if kind is None and cached_slot in {"_scalar_interpolator", "_vector_interpolator"}:
+            kind = cached_slot.removeprefix("_").removesuffix("_interpolator")
 
         if mode != "none" and cached is None:
             loaded = self._load_cached_interpolator(
                 mode=mode,
                 cache_dir=cache_dir,
                 namespace=namespace,
+                interpolator_kind=kind,
             )
             if isinstance(loaded, interpolator_cls):
                 cached = itype.instance(loaded, template_data, template_fill)
@@ -366,6 +414,7 @@ class GGDGrid:
                 mode=mode,
                 cache_dir=cache_dir,
                 namespace=namespace,
+                interpolator_kind=kind,
             )
 
         if not isinstance(cached, interpolator_cls):
