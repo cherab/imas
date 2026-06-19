@@ -13,22 +13,29 @@ from cherab.imas.ids.common import get_ids_time_slice
 from cherab.imas.ids.common.ggd import load_grid
 
 
+def _copy_dataset_to_tmp(path: Path, tmp_path_factory: pytest.TempPathFactory) -> str:
+    """Copy a dataset into a temporary location, handling files and directories."""
+    tmp_path = tmp_path_factory.mktemp("cherab-imas-data")
+    target = tmp_path / path.name
+    if path.is_dir():
+        shutil.copytree(path, target)
+    else:
+        shutil.copy2(path, target)
+    return str(target)
+
+
 @pytest.fixture(scope="session")
 def path_iter_jintrac(tmp_path_factory) -> str:
     """Fixture to provide the path to a sample JINTRAC IMAS dataset."""
     path = Path(iter_jintrac())
-    tmp_path = tmp_path_factory.mktemp("cherab-imas-data")
-    shutil.copytree(path, tmp_path / path.name)
-    return str(tmp_path / path.name)
+    return _copy_dataset_to_tmp(path, tmp_path_factory)
 
 
 @pytest.fixture(scope="session")
 def path_iter_jorek(tmp_path_factory) -> str:
     """Fixture to provide the path to a sample JOREK IMAS dataset."""
     path = Path(iter_jorek())
-    tmp_path = tmp_path_factory.mktemp("cherab-imas-data")
-    shutil.copytree(path, tmp_path / path.name)
-    return str(tmp_path / path.name)
+    return _copy_dataset_to_tmp(path, tmp_path_factory)
 
 
 @pytest.fixture(scope="module")
