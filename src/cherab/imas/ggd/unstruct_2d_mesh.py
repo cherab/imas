@@ -19,8 +19,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import sys
-from typing import Literal
+from pathlib import Path
+from typing import Any, Literal, cast
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -36,7 +38,7 @@ from raysect.core.math.polygon import triangulate2d
 from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction2D, UnstructGridVectorFunction2D
-from .base_mesh import CellSelection, GGDGrid, as_index_array
+from .base_mesh import CellSelection, GGDGrid, InterpolatorCacheMode, as_index_array
 
 __all__ = ["UnstructGrid2D"]
 
@@ -103,7 +105,8 @@ class UnstructGrid2D(GGDGrid):
 
     @override
     def _initial_setup(self) -> None:
-        self._interpolator = None
+        self._scalar_interpolator = None
+        self._vector_interpolator = None
 
         self._num_cell: int = len(self._cells)
 
@@ -138,7 +141,7 @@ class UnstructGrid2D(GGDGrid):
                 self._triangles[i] = cell
             else:
                 vert = self._vertices[cell]
-                tri = triangulate2d(vert)
+                tri = triangulate2d(cast(Any, vert))
                 self._triangles[itri : itri + ntri] = cell[tri]
             self._cell_to_triangle_map[i] = [itri, ntri]
             self._triangle_to_cell_map[itri : itri + ntri] = i
@@ -180,6 +183,34 @@ class UnstructGrid2D(GGDGrid):
     def cells(self) -> tuple[NDArray[np.intp], ...]:
         """List of ``K`` polygonal cells as 1-D integer index arrays."""
         return self._cells
+
+    @override
+    def _interpolator_geometry_hash(self) -> str | None:
+        """Return a stable geometry hash for polygonal 2-D grids.
+
+        This override handles ragged polygon connectivity (`tuple` of variable-length
+        arrays), which cannot be hashed robustly via a single contiguous array.
+
+        Returns
+        -------
+        str | None
+            Stable digest string for cache keys.
+        """
+        digest = hashlib.blake2b(digest_size=20)
+
+        vertices_array = np.ascontiguousarray(self._vertices)
+        digest.update(str(vertices_array.dtype).encode("ascii"))
+        digest.update(np.asarray(vertices_array.shape, dtype=np.int64).tobytes())
+        digest.update(vertices_array.tobytes())
+
+        digest.update(np.asarray(len(self._cells), dtype=np.int64).tobytes())
+        for cell in self._cells:
+            cell_array = np.ascontiguousarray(cell, dtype=np.intp)
+            digest.update(str(cell_array.dtype).encode("ascii"))
+            digest.update(np.asarray(cell_array.shape, dtype=np.int64).tobytes())
+            digest.update(cell_array.tobytes())
+
+        return digest.hexdigest()
 
     @property
     def triangles(self) -> NDArray[np.int32]:
@@ -226,7 +257,8 @@ class UnstructGrid2D(GGDGrid):
         grid._name = name or self.name + " subset"
         grid._coordinate_system = self._coordinate_system
         grid._dimension = self._dimension
-        grid._interpolator = None
+        grid._scalar_interpolator = None
+        grid._vector_interpolator = None
 
         index_list = [int(i) for i in index_array]
         cells_original: tuple[NDArray[np.intp], ...] = tuple(
@@ -303,7 +335,13 @@ class UnstructGrid2D(GGDGrid):
 
     @override
     def interpolator(
-        self, grid_data: NDArray[np.float64], fill_value: float = 0
+        self,
+        grid_data: NDArray[np.float64],
+        fill_value: float = 0,
+        *,
+        interpolator_cache: InterpolatorCacheMode = "memory",
+        interpolator_cache_dir: str | Path | None = None,
+        interpolator_cache_namespace: str = "ggd",
     ) -> UnstructGridFunction2D:
         """Return an `UnstructGridFunction2D` interpolator instance for the data defined on this grid.
 
@@ -315,34 +353,47 @@ class UnstructGrid2D(GGDGrid):
         grid_data
             Array containing data in the grid cells.
         fill_value
-            Value returned outside the grid, by default is 0.
+            Value returned outside the grid, by default 0.0.
+        interpolator_cache
+            Cache mode for the interpolator.
+        interpolator_cache_dir
+            Directory used for disk cache mode.
+        interpolator_cache_namespace
+            Namespace prefix to avoid cache-key collisions.
 
         Returns
         -------
         `.UnstructGridFunction2D`
             Interpolator instance.
-
-        Raises
-        ------
-        TypeError
-            If the existing interpolator is not an instance of UnstructGridFunction2D.
         """
-        if self._interpolator is None:
-            self._interpolator = UnstructGridFunction2D(
-                self._vertices, self._triangles, self._triangle_to_cell_map, grid_data, fill_value
-            )
-            return self._interpolator
-        elif not isinstance(self._interpolator, UnstructGridFunction2D):
-            raise TypeError(
-                "The existing interpolator is not an instance of UnstructGridFunction2D. "
-                "Cannot create a new UnstructGridFunction2D instance sharing the same KDtree structure."
-            )
-        else:
-            return UnstructGridFunction2D.instance(self._interpolator, grid_data, fill_value)
+        return self._build_cached_interpolator(
+            interpolator_cls=UnstructGridFunction2D,
+            template_builder=lambda: UnstructGridFunction2D(
+                self._vertices,
+                self._triangles,
+                self._triangle_to_cell_map,
+                np.zeros(self._num_cell, dtype=np.float64),
+                0.0,
+            ),
+            data=grid_data,
+            fill=fill_value,
+            template_data=np.zeros(self._num_cell, dtype=np.float64),
+            template_fill=0.0,
+            cached_slot="_scalar_interpolator",
+            mode=interpolator_cache,
+            cache_dir=interpolator_cache_dir,
+            namespace=interpolator_cache_namespace,
+        )
 
     @override
     def vector_interpolator(
-        self, grid_vectors: NDArray[np.float64], fill_vector: Vector3D = ZERO_VECTOR
+        self,
+        grid_vectors: NDArray[np.float64],
+        fill_vector: Vector3D = ZERO_VECTOR,
+        *,
+        interpolator_cache: InterpolatorCacheMode = "memory",
+        interpolator_cache_dir: str | Path | None = None,
+        interpolator_cache_namespace: str = "ggd",
     ) -> UnstructGridVectorFunction2D:
         """Return an `UnstructGridVectorFunction2D` interpolator instance for the vector data defined on this grid.
 
@@ -354,36 +405,37 @@ class UnstructGrid2D(GGDGrid):
         grid_vectors
             ``(3, K)`` Array containing 3D vectors in the grid cells.
         fill_vector
-            3D vector returned outside the grid.
+            3D vector returned outside the grid, by default is `Vector3D(0, 0, 0)`.
+        interpolator_cache
+            Cache mode for the interpolator.
+        interpolator_cache_dir
+            Directory used for disk cache mode.
+        interpolator_cache_namespace
+            Namespace prefix to avoid cache-key collisions.
 
         Returns
         -------
         `.UnstructGridVectorFunction2D`
             Interpolator instance.
-
-        Raises
-        ------
-        TypeError
-            If the existing interpolator is not an instance of UnstructGridVectorFunction2D.
         """
-        if self._interpolator is None:
-            self._interpolator = UnstructGridVectorFunction2D(
+        return self._build_cached_interpolator(
+            interpolator_cls=UnstructGridVectorFunction2D,
+            template_builder=lambda: UnstructGridVectorFunction2D(
                 self._vertices,
                 self._triangles,
                 self._triangle_to_cell_map,
-                grid_vectors,
-                fill_vector,
-            )
-            return self._interpolator
-        elif not isinstance(self._interpolator, UnstructGridVectorFunction2D):
-            raise TypeError(
-                "The existing interpolator is not an instance of UnstructGridVectorFunction2D. "
-                "Cannot create a new UnstructGridVectorFunction2D instance sharing the same KDtree structure."
-            )
-        else:
-            return UnstructGridVectorFunction2D.instance(
-                self._interpolator, grid_vectors, fill_vector
-            )
+                np.zeros((3, self._num_cell), dtype=np.float64),
+                ZERO_VECTOR,
+            ),
+            data=grid_vectors,
+            fill=fill_vector,
+            template_data=np.zeros((3, self._num_cell), dtype=np.float64),
+            template_fill=ZERO_VECTOR,
+            cached_slot="_vector_interpolator",
+            mode=interpolator_cache,
+            cache_dir=interpolator_cache_dir,
+            namespace=interpolator_cache_namespace,
+        )
 
     @override
     def __getstate__(self):

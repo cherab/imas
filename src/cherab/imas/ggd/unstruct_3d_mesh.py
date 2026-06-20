@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -32,7 +33,7 @@ from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
-from .base_mesh import CellSelection, GGDGrid, as_index_array
+from .base_mesh import CellSelection, GGDGrid, InterpolatorCacheMode, as_index_array
 
 __all__ = ["UnstructGrid3D"]
 
@@ -99,7 +100,8 @@ class UnstructGrid3D(GGDGrid):
 
     @override
     def _initial_setup(self) -> None:
-        self._interpolator = None
+        self._scalar_interpolator = None
+        self._vector_interpolator = None
 
         self._num_cell = len(self._cells)
 
@@ -193,7 +195,8 @@ class UnstructGrid3D(GGDGrid):
         grid._name = name or self._name + " subset"
         grid._coordinate_system = self._coordinate_system
         grid._dimension = self._dimension
-        grid._interpolator = None
+        grid._scalar_interpolator = None
+        grid._vector_interpolator = None
 
         cells_original = self._cells[
             index_array
@@ -248,7 +251,13 @@ class UnstructGrid3D(GGDGrid):
 
     @override
     def interpolator(
-        self, grid_data: NDArray[np.float64], fill_value: float = 0
+        self,
+        grid_data: NDArray[np.float64],
+        fill_value: float = 0,
+        *,
+        interpolator_cache: InterpolatorCacheMode = "memory",
+        interpolator_cache_dir: str | Path | None = None,
+        interpolator_cache_namespace: str = "ggd",
     ) -> UnstructGridFunction3D:
         """Return an UnstructGridFunction3D interpolator instance for the data defined on this grid.
 
@@ -260,34 +269,47 @@ class UnstructGrid3D(GGDGrid):
         grid_data
             Array containing data in the grid cells.
         fill_value
-            Value returned outside the grid, by default 0.
+            Value returned outside the grid, by default 0.0.
+        interpolator_cache
+            Cache mode for the interpolator.
+        interpolator_cache_dir
+            Directory used for disk cache mode.
+        interpolator_cache_namespace
+            Namespace prefix to avoid cache-key collisions.
 
         Returns
         -------
         `.UnstructGridFunction3D`
             Interpolator instance.
-
-        Raises
-        ------
-        TypeError
-            If the existing interpolator is not compatible with the provided grid data.
         """
-        if self._interpolator is None:
-            self._interpolator = UnstructGridFunction3D(
-                self._vertices, self._tetrahedra, self._tetra_to_cell_map, grid_data, fill_value
-            )
-            return self._interpolator
-        elif not isinstance(self._interpolator, UnstructGridFunction3D):
-            raise TypeError(
-                "The existing interpolator is not compatible with the provided grid data. "
-                + "Please create a new interpolator instance with the appropriate grid data."
-            )
-        else:
-            return UnstructGridFunction3D.instance(self._interpolator, grid_data, fill_value)
+        return self._build_cached_interpolator(
+            interpolator_cls=UnstructGridFunction3D,
+            template_builder=lambda: UnstructGridFunction3D(
+                self._vertices,
+                self._tetrahedra,
+                self._tetra_to_cell_map,
+                np.zeros(self._num_cell, dtype=np.float64),
+                0.0,
+            ),
+            data=grid_data,
+            fill=fill_value,
+            template_data=np.zeros(self._num_cell, dtype=np.float64),
+            template_fill=0.0,
+            cached_slot="_scalar_interpolator",
+            mode=interpolator_cache,
+            cache_dir=interpolator_cache_dir,
+            namespace=interpolator_cache_namespace,
+        )
 
     @override
     def vector_interpolator(
-        self, grid_vectors: NDArray[np.float64], fill_vector: Vector3D = ZERO_VECTOR
+        self,
+        grid_vectors: NDArray[np.float64],
+        fill_vector: Vector3D = ZERO_VECTOR,
+        *,
+        interpolator_cache: InterpolatorCacheMode = "memory",
+        interpolator_cache_dir: str | Path | None = None,
+        interpolator_cache_namespace: str = "ggd",
     ) -> UnstructGridVectorFunction3D:
         """Return an `UnstructGridVectorFunction3D` interpolator instance for the vector data defined on this grid.
 
@@ -299,37 +321,37 @@ class UnstructGrid3D(GGDGrid):
         grid_vectors
             ``(3, L)`` Array containing 3D vectors in the grid cells.
         fill_vector
-            3D vector returned outside the grid.
+            3D vector returned outside the grid, by default is `Vector3D(0, 0, 0)`.
+        interpolator_cache
+            Cache mode for the interpolator.
+        interpolator_cache_dir
+            Directory used for disk cache mode.
+        interpolator_cache_namespace
+            Namespace prefix to avoid cache-key collisions.
 
         Returns
         -------
         `.UnstructGridVectorFunction3D`
             Interpolator instance.
-
-        Raises
-        ------
-        TypeError
-            If the existing interpolator is not compatible with the provided grid vectors.
         """
-        if self._interpolator is None:
-            self._interpolator = UnstructGridVectorFunction3D(
+        return self._build_cached_interpolator(
+            interpolator_cls=UnstructGridVectorFunction3D,
+            template_builder=lambda: UnstructGridVectorFunction3D(
                 self._vertices,
                 self._tetrahedra,
                 self._tetra_to_cell_map,
-                grid_vectors,
-                fill_vector,
-            )
-            return self._interpolator
-
-        elif not isinstance(self._interpolator, UnstructGridVectorFunction3D):
-            raise TypeError(
-                "The existing interpolator is not compatible with the provided grid vectors. "
-                + "Please create a new interpolator instance with the appropriate grid vectors."
-            )
-        else:
-            return UnstructGridVectorFunction3D.instance(
-                self._interpolator, grid_vectors, fill_vector
-            )
+                np.zeros((3, self._num_cell), dtype=np.float64),
+                ZERO_VECTOR,
+            ),
+            data=grid_vectors,
+            fill=fill_vector,
+            template_data=np.zeros((3, self._num_cell), dtype=np.float64),
+            template_fill=ZERO_VECTOR,
+            cached_slot="_vector_interpolator",
+            mode=interpolator_cache,
+            cache_dir=interpolator_cache_dir,
+            namespace=interpolator_cache_namespace,
+        )
 
     @override
     def __getstate__(self):

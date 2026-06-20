@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add line-of-sight (LOS) handling utilities and related test scripts
 - Add [binder](https://mybinder.org/) badge and configuration for interactive notebook demos
 - Add notebook.link environment configuration for interactive notebook demos for future use in documentation.
+- Add Fourier-Bezier reconstruction module and integrate it into math utilities
+- Add JINTRAC/JOREK dataset fixtures and interpolator cache tests
 
 ### Changed
 
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance mesh/grid utilities (`GGDGrid`, `UnstructGrid2D`, base mesh helpers) with improved plotting styles, utility functions, and type hints
 - Update bolometer LOS geometry handling to use cylindrical coordinates for detector/aperture positions
 - Improve documentation tooling and rendering configuration (MathJax/CSS and nblink environment setup)
+- Enhance interpolator caching behavior in grid classes and add subset validation in `load_unstruct_grid_2d_extended`
+- Update pixi channels and `doc-serve` task to support normal conda-forge settings and dynamic port arguments
+- Refactor dataset handling to make `pooch` a required dependency and simplify cache directory handling
 
 ### Fixed
 

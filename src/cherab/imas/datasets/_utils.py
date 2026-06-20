@@ -4,12 +4,9 @@ import shutil
 from collections.abc import Callable, Collection
 from pathlib import Path
 
-from ._registry import method_files_map
+import pooch
 
-try:
-    import platformdirs
-except ImportError:
-    platformdirs = None
+from ._registry import method_files_map
 
 
 def _clear_cache(
@@ -22,13 +19,7 @@ def _clear_cache(
         method_map = method_files_map
     if cache_dir is None:
         # Use default cache_dir path
-        if platformdirs is None:
-            # platformdirs is pooch dependency
-            raise ImportError(
-                "Missing optional dependency 'pooch' required for cherab.imas.datasets module. "
-                + "Please use pip or conda to install 'pooch'."
-            )
-        cache_dir = platformdirs.user_cache_dir("cherab/imas")
+        cache_dir = pooch.os_cache("cherab/imas")
 
     # Ensure cache_dir is a Path object
     cache_dir = Path(cache_dir)
