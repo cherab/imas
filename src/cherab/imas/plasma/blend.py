@@ -270,11 +270,17 @@ def load_plasma(
     grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
     grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
 
-    grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
+    try:
+        grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
 
-    if np.all(subsets[grid_subset_name] != np.arange(grid.num_cell, dtype=int)):
-        # To reduce memory usage, create the sub-grid only if needed.
-        grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+        if np.all(subsets[grid_subset_name] != np.arange(grid.num_cell, dtype=int)):
+            # To reduce memory usage, create the sub-grid only if needed.
+            grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+    except ValueError:
+        print(
+            f"Warning! Grid subset with identifier '{grid_subset_id}' not found in {subset_id}.",
+        )
+        grid_subset_index = 5  # Default to 'Cells' subset index 5
 
     composition_edge = load_edge_species(
         edge_profiles_ids.ggd[0],
@@ -413,7 +419,7 @@ def load_plasma(
     # Add the blended species to the plasma composition
     for (element, charge), interp in species.items():
         try:
-            species = plasma.composition.get(element, int(charge))
+            species = plasma.composition.get(element, charge)
             print(f"Warning! Skipping {species}: already defined")
             continue
         except ValueError:
@@ -426,7 +432,7 @@ def load_plasma(
             element.atomic_weight * atomic_mass,
         )
 
-        plasma.composition.add(Species(element, int(charge), distribution))
+        plasma.composition.add(Species(element, charge, distribution))
 
     # === Ion Bundle Species ===
     # Ion bundles are split into their constituent charge states at the composition level.
