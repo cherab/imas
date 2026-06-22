@@ -194,6 +194,10 @@ cdef class FourierBezierConstructor:
             )
         if coefficients.shape[1] != 4:
             raise ValueError("Coefficients array must have 4 columns.")
+
+        if not coefficients.flags["C_CONTIGUOUS"]:
+            coefficients = np.ascontiguousarray(coefficients)
+
         self._coefficients = self._set_coefficients(coefficients)
 
     @cython.boundscheck(False)
