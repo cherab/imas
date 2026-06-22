@@ -4,3 +4,5 @@ channels:
 dependencies:
   - cherab-imas
   - ultraplot
+  - plotly
+  - trame-pyvista
