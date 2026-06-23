@@ -87,6 +87,7 @@ def load_radiation_emitter(
         This is used only when the grid is loaded by `.load_unstruct_grid_2d_extended`.
     phis
         Array of toroidal angles in degrees for emissivity reconstruction, by default None.
+        This is used only when the grid is loaded by `.load_unstruct_grid_2d_extended`.
     source
         Source for emissivity data: ``"auto"`` (tries values then coefficients), ``"values"``
         (emissivity values), or ``"coefficients"`` (reconstruct from Fourier-Bezier coefficients),
