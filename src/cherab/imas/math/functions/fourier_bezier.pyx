@@ -585,9 +585,9 @@ def py_fourier_mode(double phi, int index, int periodicity = 1) -> float:
     .. math::
         Z_l(\varphi) = \begin{cases}
             1
-                & \text{if } l = 0, \
+                & \text{if } l = 0, \\
             \sin\left(\displaystyle\frac{l}{2}n_\mathrm{p} \varphi\right)
-                & \text{if } l \text{ is even}, \
+                & \text{if } l \text{ is even}, \\
             \cos\left(\displaystyle\frac{l + 1}{2}n_\mathrm{p} \varphi\right)
                 & \text{if } l \text{ is odd}.
         \end{cases}
