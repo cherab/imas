@@ -355,11 +355,13 @@ class UnstructGrid2D(GGDGrid):
         fill_value
             Value returned outside the grid, by default 0.0.
         interpolator_cache
-            Cache mode for the interpolator.
+            Cache mode for the interpolator, by default ``"memory"``.
+            The cache mode is described in the `.InterpolatorCacheMode` type alias.
         interpolator_cache_dir
-            Directory used for disk cache mode.
+            Directory used when ``interpolator_cache="disk"``, by default None
+            (uses the system cache directory, e.g., ``~/.cache/cherab/imas/interpolators``).
         interpolator_cache_namespace
-            Namespace prefix to avoid cache-key collisions.
+            Namespace prefix to avoid cache-key collisions, by default ``"ggd"``.
 
         Returns
         -------
@@ -405,13 +407,15 @@ class UnstructGrid2D(GGDGrid):
         grid_vectors
             ``(3, K)`` Array containing 3D vectors in the grid cells.
         fill_vector
-            3D vector returned outside the grid, by default is `Vector3D(0, 0, 0)`.
+            3D vector returned outside the grid, by default `Vector3D(0, 0, 0)`.
         interpolator_cache
-            Cache mode for the interpolator.
+            Cache mode for the interpolator, by default ``"memory"``.
+            The cache mode is described in the `.InterpolatorCacheMode` type alias.
         interpolator_cache_dir
-            Directory used for disk cache mode.
+            Directory used when ``interpolator_cache="disk"``, by default None
+            (uses the system cache directory, e.g., ``~/.cache/cherab/imas/interpolators``).
         interpolator_cache_namespace
-            Namespace prefix to avoid cache-key collisions.
+            Namespace prefix to avoid cache-key collisions, by default ``"ggd"``.
 
         Returns
         -------
