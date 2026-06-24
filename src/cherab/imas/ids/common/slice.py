@@ -18,14 +18,61 @@
 """Module for common functions used to get IDS time slices."""
 
 import warnings
+from uuid import uuid4
 
 from numpy import inf
 
 from imas.db_entry import DBEntry
-from imas.ids_defs import CLOSEST_INTERP
+from imas.ids_defs import CLOSEST_INTERP, MEMORY_BACKEND
 from imas.ids_toplevel import IDSToplevel
 
 __all__ = ["get_ids_time_slice"]
+
+
+def _slice_via_memory_backend(
+    ids: IDSToplevel,
+    ids_name: str,
+    time: float,
+    occurrence: int,
+) -> IDSToplevel:
+    """Re-slice an IDS by round-tripping through the IMAS memory backend.
+
+    Parameters
+    ----------
+    ids
+        The IDS to re-slice.
+    ids_name
+        The name of the IDS.
+    time
+        The time in seconds of the requested time slice.
+    occurrence
+        The occurrence of the IDS.
+
+    Returns
+    -------
+    `~imas.ids_toplevel.IDSToplevel`
+        The re-sliced IDS.
+    """
+    token = uuid4().int
+    # Use per-call identifiers so repeated/concurrent calls do not collide.
+    temp_entry = DBEntry(
+        MEMORY_BACKEND,
+        f"cherab_tmp_{token & 0xFFFF:04x}",
+        1 + token % 2_000_000_000,
+        1 + (token >> 31) % 2_000_000_000,
+    )
+    temp_entry.create()
+    try:
+        temp_entry.put(ids, occurrence=occurrence)
+        return temp_entry.get_slice(
+            ids_name,
+            time,
+            CLOSEST_INTERP,
+            occurrence=occurrence,
+            autoconvert=False,
+        )
+    finally:
+        temp_entry.close()
 
 
 def get_ids_time_slice(
@@ -39,8 +86,9 @@ def get_ids_time_slice(
 
     .. note::
         If the `~imas.db_entry.DBEntry.get_slice` method is not implemented for the given IMAS entry
-        URI, this function will fall back to using the `~imas.db_entry.DBEntry.get` method and
-        return the entire IDS.
+        URI, this function falls back to `~imas.db_entry.DBEntry.get` and tries to re-slice the IDS
+        by round-tripping through the IMAS memory backend. If that second step fails, it returns the
+        full IDS with a warning.
 
     Parameters
     ----------
@@ -89,6 +137,8 @@ def get_ids_time_slice(
     if time_threshold < 0:
         raise ValueError(f"Argument 'time_threshold' must be >=0 ({time_threshold} s).")
 
+    is_time_sliced = True
+
     try:
         ids = entry.get_slice(
             ids_name,
@@ -98,23 +148,60 @@ def get_ids_time_slice(
             autoconvert=False,
         )
     except NotImplementedError:
-        # Fallback to `get` method to retrieve the entire IDS
-        warnings.warn(
-            f"The 'get_slice' method is not implemented for the URI '{entry.uri}'. "
-            + "Falling back to 'get' method to retrieve the entire IDS.",
-            RuntimeWarning,
-            stacklevel=2,
-        )
         ids = entry.get(ids_name, occurrence=occurrence, autoconvert=False)
+        is_time_sliced = len(ids.time) <= 1
+        get_slice_unavailable_msg = (
+            f"The 'get_slice' method is not implemented for the URI '{entry.uri}'."
+        )
+
+        if not is_time_sliced:
+            try:
+                ids = _slice_via_memory_backend(ids, ids_name, time, occurrence)
+                is_time_sliced = True
+                warnings.warn(
+                    get_slice_unavailable_msg
+                    + " "
+                    + "Falling back to 'get' and re-slicing via the IMAS memory backend.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+            except Exception as exc:
+                warnings.warn(
+                    get_slice_unavailable_msg
+                    + " "
+                    + "Fallback re-slicing via the IMAS memory backend failed. "
+                    + "Returning the full "
+                    + f"'{ids_name}' IDS without reducing to a single time slice. Error: {exc}",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+        else:
+            warnings.warn(
+                get_slice_unavailable_msg
+                + " "
+                + "Falling back to 'get' method because the returned IDS contains a single time slice.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
     if not len(ids.time):
         raise RuntimeError(f"The '{ids_name}' IDS is empty.")
 
-    if abs(ids.time[0] - time) > time_threshold:
+    nearest_time = min(ids.time, key=lambda t: abs(float(t) - time))
+
+    if abs(float(nearest_time) - time) > time_threshold:
         raise RuntimeError(
-            f"The time difference between the actual time ({ids.time[0]} s) "
+            f"The time difference between the actual time ({nearest_time} s) "
             + f"of the nearest '{ids_name}' time slice and the given time ({time} s) "
             + f"exceeds the specified threshold ({time_threshold} s)."
+        )
+
+    if not is_time_sliced:
+        warnings.warn(
+            f"Returning '{ids_name}' IDS with {len(ids.time)} time slices because a single-time "
+            + "fallback could not be constructed.",
+            RuntimeWarning,
+            stacklevel=2,
         )
 
     return ids

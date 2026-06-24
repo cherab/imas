@@ -45,6 +45,7 @@ ultraplot = ">=1.72.0"
 
 # Visualization for 3D-related stuff
 plotly = ">=6.5.2,<7"
+python-kaleido = ">=1.2.0,<2"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }

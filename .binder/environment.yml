@@ -4,3 +4,4 @@ channels:
 dependencies:
   - cherab-imas
   - ultraplot
+  - plotly

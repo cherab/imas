@@ -140,7 +140,7 @@ cdef class FourierBezierConstructor:
         self._num_faces = len(sp_rz.objects_per_dimension[DomainType.face].object)
         self._num_vertices = len(sp_rz.objects_per_dimension[DomainType.vertex].object)
         self._num_toroidal_modes = len(sp_fourier.objects_per_dimension[DomainType.vertex].object)
-        self._fourier_periodicity = sp_fourier.geometry_type.index
+        self._fourier_periodicity = int(np.asarray(sp_fourier.geometry_type.index).item())
 
         self._vertex_indices = np.empty((self._num_faces, 4), dtype=np.int32)
         self._scale_factors = np.empty((self._num_faces, 4, 4), dtype=np.double)
@@ -194,6 +194,10 @@ cdef class FourierBezierConstructor:
             )
         if coefficients.shape[1] != 4:
             raise ValueError("Coefficients array must have 4 columns.")
+
+        if not coefficients.flags["C_CONTIGUOUS"]:
+            coefficients = np.ascontiguousarray(coefficients)
+
         self._coefficients = self._set_coefficients(coefficients)
 
     @cython.boundscheck(False)
@@ -581,9 +585,9 @@ def py_fourier_mode(double phi, int index, int periodicity = 1) -> float:
     .. math::
         Z_l(\varphi) = \begin{cases}
             1
-                & \text{if } l = 0, \
+                & \text{if } l = 0, \\
             \sin\left(\displaystyle\frac{l}{2}n_\mathrm{p} \varphi\right)
-                & \text{if } l \text{ is even}, \
+                & \text{if } l \text{ is even}, \\
             \cos\left(\displaystyle\frac{l + 1}{2}n_\mathrm{p} \varphi\right)
                 & \text{if } l \text{ is odd}.
         \end{cases}

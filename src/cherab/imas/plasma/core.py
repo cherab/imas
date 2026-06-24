@@ -232,7 +232,7 @@ def load_core_plasma(
         charge = profile.species.z_min
 
         try:
-            species = plasma.composition.get(element, int(charge))
+            species = plasma.composition.get(element, charge)
             print(f"Warning! Skipping {species}: already defined")
             continue
         except ValueError:
@@ -247,7 +247,7 @@ def load_core_plasma(
             element.atomic_weight * atomic_mass,
         )
 
-        plasma.composition.add(Species(element, int(charge), distribution))
+        plasma.composition.add(Species(element, charge, distribution))
 
     # === Ion Bundles ===
     # Ion bundles are split into their constituent charge states at the composition level.

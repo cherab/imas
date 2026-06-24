@@ -41,6 +41,11 @@ ZEROVECTOR = Vector3D(0, 0, 0)
 CellSelection: TypeAlias = Sequence[SupportsIndex] | NDArray[np.integer[Any]]
 InterpolatorCacheMode: TypeAlias = Literal["none", "memory", "disk"]
 """Cache mode for interpolator templates.
+
+- ``"none"``: No caching; build a new interpolator template on each call.
+- ``"memory"``: Cache the interpolator template in memory for the current process lifetime.
+- ``"disk"``: Cache the interpolator template on disk for reuse across processes and sessions.
+  The cache directory can be specified via the `interpolator_cache_dir` argument.
 """
 InterpolatorT = TypeVar("InterpolatorT")
 
@@ -465,11 +470,13 @@ class GGDGrid:
         fill_value
             A value returned outside the grid, by default is 0.0.
         interpolator_cache
-            Cache mode for the interpolator. See `InterpolatorCacheMode`.
+            Cache mode for the interpolator, by default ``"memory"``.
+            The cache mode is described in the `.InterpolatorCacheMode` type alias.
         interpolator_cache_dir
-            Directory used for disk cache mode.
+            Directory used when ``interpolator_cache="disk"``, by default None
+            (uses the system cache directory, e.g., ``~/.cache/cherab/imas/interpolators``).
         interpolator_cache_namespace
-            Namespace prefix to avoid cache-key collisions.
+            Namespace prefix to avoid cache-key collisions, by default ``"ggd"``.
 
         Returns
         -------
@@ -500,11 +507,13 @@ class GGDGrid:
         fill_vector
             3D vector returned outside the grid, by default ``Vector3D(0, 0, 0)``.
         interpolator_cache
-            Cache mode for the interpolator. See `InterpolatorCacheMode`.
+            Cache mode for the interpolator, by default ``"memory"``.
+            The cache mode is described in the `.InterpolatorCacheMode` type alias.
         interpolator_cache_dir
-            Directory used for disk cache mode.
+            Directory used when ``interpolator_cache="disk"``, by default None
+            (uses the system cache directory, e.g., ``~/.cache/cherab/imas/interpolators``).
         interpolator_cache_namespace
-            Namespace prefix to avoid cache-key collisions.
+            Namespace prefix to avoid cache-key collisions, by default ``"ggd"``.
 
         Returns
         -------

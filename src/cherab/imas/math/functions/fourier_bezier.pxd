@@ -1,5 +1,4 @@
 from libc.math cimport cos, sin
-cimport numpy as np
 
 DEF TO_RAD = 3.14159265358979323846 / 180.0
 

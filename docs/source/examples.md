@@ -14,6 +14,17 @@ Each notebook is designed to showcase specific functionalities and provide pract
     notebooks/plasma/*
 ```
 
+## Radiation
+
+```{eval-rst}
+.. nbgallery::
+    :name: radiation-gallery
+    :glob:
+    :reversed:
+
+    notebooks/radiation/*
+```
+
 ## Observer
 
 ```{eval-rst}

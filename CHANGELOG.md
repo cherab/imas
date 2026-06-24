@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - Unreleased
+## [0.5.0] - 2026-06-24
 
 ### Added
 
@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add notebook.link environment configuration for interactive notebook demos for future use in documentation.
 - Add Fourier-Bezier reconstruction module and integrate it into math utilities
 - Add JINTRAC/JOREK dataset fixtures and interpolator cache tests
+- Add radiation data loading modules and emitter initialization
+- Add JOREK-based 3D radiation emitter visualization notebook
+- Add 3D grid visualization notebook for ITER JOREK data
+- Add unit tests for `get_ids_time_slice` function with fallback handling
 
 ### Changed
 
@@ -25,11 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance interpolator caching behavior in grid classes and add subset validation in `load_unstruct_grid_2d_extended`
 - Update pixi channels and `doc-serve` task to support normal conda-forge settings and dynamic port arguments
 - Refactor dataset handling to make `pooch` a required dependency and simplify cache directory handling
+- Implement re-slicing of IDS via IMAS memory backend with fallback handling
+- Update `environment.yml` to include additional dependencies for binder
+- Update docstrings for interpolator cache parameters in grid classes
 
 ### Fixed
 
 - Ensure bolometer dataset cache directories are created before use
 - Fix total power calculation and exception handling in the emission notebook workflow
+- Fix charge type conversion in `load_core_plasma` function
+- Fix grid subset handling in plasma loading functions
+- Ensure coefficients array is C-contiguous in `FourierBezierConstructor`
 
 ### Removed
 
