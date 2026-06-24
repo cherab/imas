@@ -1,12 +1,11 @@
 import numpy as np
 import pytest
 from imas.db_entry import DBEntry
-from imas.ids_toplevel import IDSToplevel
 
 from cherab.imas.ids.common import get_ids_time_slice
 
 
-class _FakeIDS(IDSToplevel):
+class _FakeIDS:
     def __init__(self, time):
         self.time = np.asarray(time)
 
