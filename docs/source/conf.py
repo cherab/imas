@@ -176,7 +176,6 @@ intersphinx_mapping = {
     "pooch": ("https://www.fatiando.org/pooch/latest/", None),
     "ultraplot": ("https://ultraplot.readthedocs.io/en/stable/", None),
     "plotly": ("https://plotly.com/python-api-reference/", None),
-    "pyvista": ("https://docs.pyvista.org/", None),
 }
 
 intersphinx_timeout = 10

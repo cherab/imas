@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add JOREK-based 3D radiation emitter visualization notebook
 - Add 3D grid visualization notebook for ITER JOREK data
 - Add unit tests for `get_ids_time_slice` function with fallback handling
-- Add PyVista to intersphinx mapping in documentation configuration
 
 ### Changed
 
@@ -31,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update pixi channels and `doc-serve` task to support normal conda-forge settings and dynamic port arguments
 - Refactor dataset handling to make `pooch` a required dependency and simplify cache directory handling
 - Implement re-slicing of IDS via IMAS memory backend with fallback handling
-- Add `python-kaleido` and `trame-pyvista` dependencies for 3D visualization support
 - Update `environment.yml` to include additional dependencies for binder
 - Update docstrings for interpolator cache parameters in grid classes
 
