@@ -140,7 +140,7 @@ cdef class FourierBezierConstructor:
         self._num_faces = len(sp_rz.objects_per_dimension[DomainType.face].object)
         self._num_vertices = len(sp_rz.objects_per_dimension[DomainType.vertex].object)
         self._num_toroidal_modes = len(sp_fourier.objects_per_dimension[DomainType.vertex].object)
-        self._fourier_periodicity = sp_fourier.geometry_type.index
+        self._fourier_periodicity = int(sp_fourier.geometry_type.index)
 
         self._vertex_indices = np.empty((self._num_faces, 4), dtype=np.int32)
         self._scale_factors = np.empty((self._num_faces, 4, 4), dtype=np.double)
