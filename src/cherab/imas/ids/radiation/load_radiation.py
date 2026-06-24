@@ -89,10 +89,11 @@ def load_radiation_emissivity(
     """
     if process_index is None:
         # Total emissivity from the top-level ggd AOS
-        if not len(radiation_ids.ggd):
+        ggd = getattr(radiation_ids, "ggd", None)
+        if not isinstance(ggd, IDSStructArray) or not len(ggd):
             raise RuntimeError("The 'ggd' AOS of the radiation IDS is empty.")
 
-        values = _get_emissivity(radiation_ids.ggd[0], grid_subset_index)
+        values = _get_emissivity(ggd[0], grid_subset_index)
         if values is None:
             raise RuntimeError(
                 f"Emissivity with grid_subset_index={grid_subset_index} not found "
@@ -100,19 +101,20 @@ def load_radiation_emissivity(
             )
     else:
         # Per-process emissivity
-        if not len(radiation_ids.process):
+        processes = getattr(radiation_ids, "process", None)
+        if not isinstance(processes, IDSStructArray) or not len(processes):
             raise RuntimeError("The 'process' AOS of the radiation IDS is empty.")
-        if process_index >= len(radiation_ids.process):
+        if process_index < 0 or process_index >= len(processes):
             raise RuntimeError(
-                f"process_index={process_index} is out of range "
-                f"[0, {len(radiation_ids.process) - 1}]."
+                f"process_index={process_index} is out of range [0, {len(processes) - 1}]."
             )
 
-        process = radiation_ids.process[process_index]
-        if not len(process.ggd):
+        process = processes[process_index]
+        ggd = getattr(process, "ggd", None)
+        if not isinstance(ggd, IDSStructArray) or not len(ggd):
             raise RuntimeError(f"The 'ggd' AOS of radiation.process[{process_index}] is empty.")
 
-        values = _get_emissivity(process.ggd[0], grid_subset_index)
+        values = _get_emissivity(ggd[0], grid_subset_index)
         if values is None:
             raise RuntimeError(
                 f"Emissivity with grid_subset_index={grid_subset_index} not found "
@@ -158,18 +160,20 @@ def load_radiation_coefficients(
     RuntimeError
         If the requested process/ion/emissivity structure is missing or empty.
     """
-    if not len(radiation_ids.process):
+    processes = getattr(radiation_ids, "process", None)
+    if not isinstance(processes, IDSStructArray) or not len(processes):
         raise RuntimeError("The 'process' AOS of the radiation IDS is empty.")
-    if process_index < 0 or process_index >= len(radiation_ids.process):
+    if process_index < 0 or process_index >= len(processes):
         raise RuntimeError(
-            f"process_index={process_index} is out of range [0, {len(radiation_ids.process) - 1}]."
+            f"process_index={process_index} is out of range [0, {len(processes) - 1}]."
         )
 
-    process = radiation_ids.process[process_index]
-    if not len(process.ggd):
+    process = processes[process_index]
+    ggd_arr = getattr(process, "ggd", None)
+    if not isinstance(ggd_arr, IDSStructArray) or not len(ggd_arr):
         raise RuntimeError(f"The 'ggd' AOS of radiation.process[{process_index}] is empty.")
 
-    ggd = process.ggd[0]
+    ggd = ggd_arr[0]
     ions = getattr(ggd, "ion", None)
     if not isinstance(ions, IDSStructArray) or not len(ions):
         raise RuntimeError(

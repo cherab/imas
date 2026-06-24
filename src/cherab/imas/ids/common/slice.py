@@ -18,6 +18,7 @@
 """Module for common functions used to get IDS time slices."""
 
 import warnings
+from uuid import uuid4
 
 from numpy import inf
 
@@ -52,7 +53,14 @@ def _slice_via_memory_backend(
     `~imas.ids_toplevel.IDSToplevel`
         The re-sliced IDS.
     """
-    temp_entry = DBEntry(MEMORY_BACKEND, "cherab_tmp", 999999, 1)
+    token = uuid4().int
+    # Use per-call identifiers so repeated/concurrent calls do not collide.
+    temp_entry = DBEntry(
+        MEMORY_BACKEND,
+        f"cherab_tmp_{token & 0xFFFF:04x}",
+        1 + token % 2_000_000_000,
+        1 + (token >> 31) % 2_000_000_000,
+    )
     temp_entry.create()
     try:
         temp_entry.put(ids, occurrence=occurrence)

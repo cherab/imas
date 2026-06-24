@@ -132,7 +132,7 @@ def test_load_radiation_emitter_values_raises_for_jorek(
     path_iter_jorek: str,
     radiation_interpolator_cache: tuple[Literal["memory", "disk"], Path | None],
 ):
-    with pytest.raises(AttributeError, match="has no attribute 'ggd'"):
+    with pytest.raises(RuntimeError, match="The 'ggd' AOS of the radiation IDS is empty"):
         load_radiation_emitter(
             path_iter_jorek,
             "r",
