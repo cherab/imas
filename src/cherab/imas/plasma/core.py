@@ -89,9 +89,6 @@ def load_core_plasma(
         Alternative ``psi_norm(rho_tor_norm)`` interpolator.
         Used only if ``psi`` is missing in the core grid. By default None.
         Obtained from the ``equilibrium`` IDS.
-    mask
-        Mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
-        By default, uses `~cherab.tools.equilibrium.efit.EFITEquilibrium`'s `inside_lcfs`.
     time_threshold
         Maximum allowed difference between the requested time and the nearest
         available time, by default `numpy.inf`.
