@@ -9,7 +9,6 @@ Each notebook is designed to showcase specific functionalities and provide pract
 .. nbgallery::
     :name: plasma-gallery
     :glob:
-    :reversed:
 
     notebooks/plasma/*
 ```
@@ -20,7 +19,6 @@ Each notebook is designed to showcase specific functionalities and provide pract
 .. nbgallery::
     :name: radiation-gallery
     :glob:
-    :reversed:
 
     notebooks/radiation/*
 ```
@@ -31,7 +29,6 @@ Each notebook is designed to showcase specific functionalities and provide pract
 .. nbgallery::
     :name: observer-gallery
     :glob:
-    :reversed:
 
     notebooks/observer/*
 ```
@@ -42,7 +39,6 @@ Each notebook is designed to showcase specific functionalities and provide pract
 .. nbgallery::
     :name: misc-gallery
     :glob:
-    :reversed:
 
     notebooks/misc/*
 ```
