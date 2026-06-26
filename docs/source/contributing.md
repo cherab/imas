@@ -1,4 +1,6 @@
-# Contributing
+(contributing)=
+
+# 🤝 Contributing
 
 We welcome contributions to `cherab-imas`! Whether you're fixing bugs, adding new features, or improving documentation, your help is appreciated.
 
@@ -17,7 +19,7 @@ If you encounter any issues or have suggestions for improvements, please open an
 
 ### Prerequisites
 
-Development tasks are managed using `pixi`. If you don't have `pixi` installed, please refer to the https://pixi.sh documentation for installation instructions.
+Development tasks are managed using `pixi`. If you don't have `pixi` installed, please refer to the <https://pixi.sh> documentation for installation instructions.
 Other tools like `git` can be installed globally via `pixi`:
 
 ```bash
@@ -74,7 +76,7 @@ If you want to host the documentation locally, you can do so with:
 pixi run doc-serve
 ```
 
-The documentation will be served at http://localhost:8000.
+The documentation will be served at <http://localhost:8000>.
 
 :::
 :::{md-tab-item} lint/format
