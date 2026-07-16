@@ -22,17 +22,14 @@ from dataclasses import fields
 
 import numpy as np
 from raysect.core.math import translate
-from raysect.core.math.function.float import Blend2D, Blend3D, Function2D, Function3D
-from raysect.core.math.function.vector3d import Blend2D as VectorBlend2D
-from raysect.core.math.function.vector3d import Blend3D as VectorBlend3D
+from raysect.core.math.function.float import Function2D, Function3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
-from raysect.core.math.function.vector3d import Function3D as VectorFunction3D
 from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 from scipy.constants import atomic_mass, electron_mass
 
 from cherab.core import AtomicData, Maxwellian, Plasma, Species
-from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
+from cherab.core.math import VectorAxisymmetricMapper
 from cherab.tools.equilibrium import EFITEquilibrium
 from imas import DBEntry
 from imas.ids_structure import IDSStructure
@@ -41,6 +38,7 @@ from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
 from ..ids.core_profiles import load_core_grid, load_core_species
 from ..ids.edge_profiles import load_edge_species
+from ..math.blend import blend_core_edge_functions
 from .core import get_core_interpolators, get_psi_norm, load_core_plasma
 from .edge import get_edge_interpolators, load_edge_plasma
 from .equilibrium import load_equilibrium, load_magnetic_field
@@ -483,116 +481,7 @@ def blend_core_edge_interpolators(
         setattr(
             interpolators,
             field.name,
-            _blend_core_edge_functions(core_func, edge_func, mask, return3d),
+            blend_core_edge_functions(core_func, edge_func, mask, return3d),
         )
 
     return interpolators
-
-
-def _blend_core_edge_functions(
-    core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
-    edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
-    mask: Function2D | Function3D,
-    return3d: bool,
-) -> Function2D | Function3D | VectorFunction2D | VectorFunction3D | None:
-    """Blend together the core and edge interpolating functions using the modulating mask function.
-
-    Parameters
-    ----------
-    core_func
-        A 2D or 3D core interpolator.
-    edge_func
-        A 2D or 3D edge interpolator.
-    mask
-        The 2D or 3D mask function used for blending: ``(1 - mask) * f_edge + mask * f_core``.
-    return3d
-        If True, return the 3D functions for 2D interpolators assuming
-        rotational symmetry, by default False.
-
-    Returns
-    -------
-    Function2D | Function3D | VectorFunction2D | VectorFunction3D | None
-        The blended function, or None if both input functions are None.
-
-    Raises
-    ------
-    TypeError
-        If the input functions are not 2D or 3D scalar/vector functions.
-    RuntimeError
-        If the core and edge functions have incompatible dimensions or types for blending.
-    """
-    if core_func is None and edge_func is None:
-        return None
-
-    # === Validation ===
-    if core_func is not None and not isinstance(
-        core_func, Function2D | Function3D | VectorFunction2D | VectorFunction3D
-    ):
-        raise TypeError("The core_func must be a 2D or 3D function.")
-
-    if edge_func is not None and not isinstance(
-        edge_func, Function2D | Function3D | VectorFunction2D | VectorFunction3D
-    ):
-        raise TypeError("The edge_func must be a 2D or 3D function.")
-
-    if not isinstance(mask, Function2D | Function3D):
-        raise TypeError("The mask must be a 2D or 3D function.")
-
-    # === Only one of the two functions is available ===
-    if core_func is None:
-        if isinstance(edge_func, Function2D) and return3d:
-            return AxisymmetricMapper(edge_func)
-        elif isinstance(edge_func, VectorFunction2D) and return3d:
-            return VectorAxisymmetricMapper(edge_func)
-        else:
-            return edge_func
-
-    if edge_func is None:
-        if isinstance(core_func, Function2D) and return3d:
-            return AxisymmetricMapper(core_func)
-        elif isinstance(core_func, VectorFunction2D) and return3d:
-            return VectorAxisymmetricMapper(core_func)
-        else:
-            return core_func
-
-    # === Both functions are available: blend them together ===
-    if (
-        isinstance(core_func, Function2D)
-        and isinstance(edge_func, Function2D)
-        and isinstance(mask, Function2D)
-    ):
-        blended_func = Blend2D(edge_func, core_func, mask)
-        return AxisymmetricMapper(blended_func) if return3d else blended_func
-
-    if (
-        isinstance(core_func, VectorFunction2D)
-        and isinstance(edge_func, VectorFunction2D)
-        and isinstance(mask, Function2D)
-    ):
-        blended_func = VectorBlend2D(edge_func, core_func, mask)
-        return VectorAxisymmetricMapper(blended_func) if return3d else blended_func
-
-    # unable to return 2D, convert to 3D
-
-    if isinstance(core_func, Function2D):
-        core_func = AxisymmetricMapper(core_func)
-
-    if isinstance(core_func, VectorFunction2D):
-        core_func = VectorAxisymmetricMapper(core_func)
-
-    if isinstance(edge_func, Function2D):
-        edge_func = AxisymmetricMapper(edge_func)
-
-    if isinstance(edge_func, VectorFunction2D):
-        edge_func = VectorAxisymmetricMapper(edge_func)
-
-    if isinstance(mask, Function2D):
-        mask = AxisymmetricMapper(mask)
-
-    if isinstance(core_func, Function3D) and isinstance(edge_func, Function3D):
-        return Blend3D(edge_func, core_func, mask)
-
-    if isinstance(core_func, VectorFunction3D) and isinstance(edge_func, VectorFunction3D):
-        return VectorBlend3D(edge_func, core_func, mask)
-
-    raise RuntimeError("Cannot blend scalar and vector functions.")

@@ -17,5 +17,6 @@
 # under the Licence.
 """Subpackage for mathematical utilities."""
 
+from .blend import blend_core_edge_functions as blend_core_edge_functions
 from .functions import *  # noqa: F403
 from .interpolators import *  # noqa: F403
