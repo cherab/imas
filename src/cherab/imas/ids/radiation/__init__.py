@@ -17,6 +17,14 @@
 # under the Licence.
 """Subpackage for loading radiation data from IMAS IDS structures."""
 
-from .load_radiation import load_radiation_coefficients, load_radiation_emissivity
+from .load_radiation import (
+    EmissivityData,
+    load_core_emissivity,
+    load_ggd_emissivity,
+)
 
-__all__ = ["load_radiation_emissivity", "load_radiation_coefficients"]
+__all__ = [
+    "EmissivityData",
+    "load_core_emissivity",
+    "load_ggd_emissivity",
+]
