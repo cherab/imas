@@ -17,81 +17,233 @@
 # under the Licence.
 """Module for loading radiation emissivity from IMAS-like IDS objects and creating emitter objects."""
 
+from collections.abc import Callable, Collection
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
+from numpy.typing import NDArray
 from raysect.core.math import translate
-from raysect.core.math.function.float import Function2D
+from raysect.core.math.function.float import (
+    Function2D,
+    Function3D,
+    Interpolator1DArray,
+)
 from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.primitive import Cylinder, Subtract
 
 from cherab.core.math import AxisymmetricMapper
 from cherab.tools.emitters import RadiationFunction
+from cherab.tools.equilibrium import EFITEquilibrium
 from imas import DBEntry
+from imas.ids_struct_array import IDSStructArray
 from imas.ids_structure import IDSStructure
 
+from ..ggd import UnstructGrid2DExtended
 from ..ggd.base_mesh import InterpolatorCacheMode
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
-from ..ids.radiation import load_radiation_coefficients, load_radiation_emissivity
+from ..ids.common.grid_radial import GridData, get_psi_norm, load_core_grid
+from ..ids.radiation import load_core_emissivity, load_ggd_emissivity
 from ..math import FourierBezierConstructor
+from ..math.blend import blend_core_edge_functions
+from ..plasma.equilibrium import load_equilibrium
 from ..plasma.utility import get_subset_name_index
 
 __all__ = ["load_radiation_emitter"]
+
+
+def _load_emissivity_values(
+    processes: IDSStructArray,
+    process_indices: Collection[int] | None,
+    grid_subset_id: int,
+) -> tuple[NDArray[np.float64] | None, NDArray[np.float64] | None]:
+    values_core = None
+    values_ggd = None
+
+    for process in processes:
+        # Validate process
+        if process_indices is not None and int(process.identifier.index) not in process_indices:
+            continue
+
+        # Values (profiles_1d)
+        _values = load_core_emissivity(process).sum()
+
+        if _values is not None:
+            if values_core is None:
+                values_core = _values
+            else:
+                values_core += _values
+
+        # Values (GGD)
+        _values = load_ggd_emissivity(
+            process,
+            grid_subset_index=grid_subset_id,
+            field="values",
+        ).sum()
+
+        if _values is not None:
+            if values_ggd is None:
+                values_ggd = _values
+            else:
+                values_ggd += _values
+
+    return values_core, values_ggd
+
+
+def _create_rad_func_core(
+    grid: GridData,
+    data: NDArray[np.float64],
+    equilibrium: EFITEquilibrium | None,
+    psi_interpolator: Callable[[float], float] | None,
+    db_args: tuple | None,
+    db_kwargs: dict[str, Any] | None,
+    time: float,
+    occurrence: int,
+) -> tuple[AxisymmetricMapper, EFITEquilibrium]:
+    if equilibrium is None:
+        equilibrium, psi_interp = load_equilibrium(
+            *(db_args or ()),
+            time=time,
+            occurrence=occurrence,
+            with_psi_interpolator=True,
+            **(db_kwargs or {}),
+        )
+        psi_interpolator = psi_interpolator or psi_interp
+    else:
+        if not isinstance(equilibrium, EFITEquilibrium):
+            raise ValueError("Argument equilibrium must be a EFITEquilibrium instance.")
+
+    # Create core grid
+    psi_norm = get_psi_norm(
+        grid.psi,
+        equilibrium.psi_axis,
+        equilibrium.psi_lcfs,
+        grid.rho_tor_norm,
+        psi_interpolator,
+    )
+    psi_norm, index = np.unique(psi_norm, return_index=True)
+    extrapolation_range = max(0.0, psi_norm[0], 1.0 - psi_norm[-1])
+    rad_func = equilibrium.map3d(
+        Interpolator1DArray(psi_norm, data[index], "cubic", "nearest", extrapolation_range)
+    )
+
+    return rad_func, equilibrium
+
+
+def _create_rad_func_ggd(
+    grid_ggd: IDSStructure,
+    data: NDArray[np.float64],
+    grid_subset_id: int,
+    **interp_kwargs,
+) -> tuple[AxisymmetricMapper, dict[str, float]]:
+    grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
+    grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
+
+    if not np.array_equal(subsets[grid_subset_name], np.arange(grid.num_cell, dtype=int)):
+        grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+
+    rad_func = AxisymmetricMapper(grid.interpolator(data, **interp_kwargs))
+
+    return rad_func, grid.mesh_extent
 
 
 def load_radiation_emitter(
     *args,
     time: float = 0,
     occurrence: int = 0,
-    process_index: int | None = None,
-    ion_index: int = 0,
-    emissivity_index: int = 0,
+    args2: tuple | None = None,
+    kwargs2: dict[str, Any] | None = None,
+    time2: float | None = None,
+    occurrence2: int = 0,
+    process_index: int | Collection[int] | None = None,
     grid_ggd: IDSStructure | None = None,
-    grid_subset_id: int | str = 5,
-    num_toroidal: int | None = None,
-    phis: np.ndarray | None = None,
+    grid_subset_id: int = 5,
+    equilibrium: EFITEquilibrium | None = None,
+    psi_interpolator: Callable[[float], float] | None = None,
+    mask: Function2D | Function3D | None = None,
+    num_toroidal: int = 64,
+    phis: NDArray[np.float64] | None = None,
     source: Literal["auto", "values", "coefficients"] = "auto",
+    time_threshold: float = np.inf,
     step: float = 0.01,
     parent: _NodeBase | None = None,
-    time_threshold: float = np.inf,
     interpolator_cache: InterpolatorCacheMode = "memory",
     interpolator_cache_dir: str | Path | None = None,
     **kwargs,
 ) -> Subtract | Cylinder:
     """Load radiation emissivity and create a single radiation emitter primitive.
 
-    The grid interpolator handles cache lookup and persistence internally.
+    There are two sources of emissivity data in the IMAS radiation IDS:
+        1. core-region emissivity and/or edge-region emissivity (GGD-based) (``values``)
+        2. emissivity coefficients (JOREK GGD-based)  (``coefficients``)
+
+    In the case of (1), one tries to load both core and edge (GGD-based) emissivity values from one
+    IMAS query. If both are available, they are blended using a mask function.
+    If the second IMAS query is provided, (``args2``, ``kwargs2``, etc.), it is used to load the
+    missing emissivity values if one of them is not available in the first query.
+
+    In the case of (2), one tries to load emissivity coefficients from the GGD structure and
+    reconstructs the emissivity based on the Fourier-Bezier method, which is tied to the JOREK
+    specifications.
+
+    If ``source="auto"``, the function first tries to load emissivity values (1), and if they are
+    not available, it falls back to emissivity coefficients (2). If neither is available, a
+    ``RuntimeError`` is raised.
+
+    For GGD-based emissivity, the grid interpolator handles cache lookup and persistence internally.
 
     Parameters
     ----------
     *args
         Positional arguments passed to `imas.DBEntry`.
     time
-        Time slice to load from the IDS, by default 0.
+        Time slice to load from the IDS, by default 0.0.
     occurrence
-        Occurrence of the radiation IDS to load, by default 0.
+        Occurrence of the radiation IDS, by default 0.
+    args2
+        Arguments passed to `imas.DBEntry` for the second emissivity. If None, the second emissivity
+        is not loaded, by default None.
+    kwargs2
+        Keyword arguments passed to `imas.DBEntry` for the second emissivity. If None, the second
+        emissivity is not loaded, by default None.
+    time2
+        Time slice to load for the second emissivity. By default, uses the same time as the first
+        emissivity.
+    occurrence2
+        Occurrence of the radiation IDS to load for the second emissivity, by default 0.
     process_index
-        Index of the radiation process to load, by default None (loads the first process).
-    ion_index
-        Index of the ion species to load, by default 0.
-    emissivity_index
-        Index of the emissivity data to load, by default 0.
+        Radiation process identifier index (or indices) to load.
+        By default, all available processes are summed together.
+        Reference: https://imas-data-dictionary.readthedocs.io/en/latest/generated/identifier/radiation_identifier.html
+        .. note::
+            The emissivity value array is assumed to follow the same x-axis as the grid subset.
     grid_ggd
-        Alternative grid GGD structure to use if the radiation IDS grid is empty, by default None.
+        Specific grid GGD structure alternative to the one in the IDS.
     grid_subset_id
-        ID or name of the grid subset to use, by default 5 (``"Cells"``).
+        ID of the grid subset to use, by default 5 (= "cells") subset.
+        Reference: https://imas-data-dictionary.readthedocs.io/en/latest/generated/identifier/ggd_subset_identifier.html
+    equilibrium
+        Alternative `~cherab.tools.equilibrium.efit.EFITEquilibrium` used to map core profiles.
+        By default None: the equilibrium is read from the same IMAS query as the core profiles.
+        Ignored if the core radiation is not available.
+    psi_interpolator
+        Alternative ``psi_norm(rho_tor_norm)`` interpolator.
+        Used only if ``psi`` is missing in the core grid, by default None.
+        Obtained from the ``equilibrium`` IDS in the same IMAS query as the core profiles.
+    mask
+        Mask function used for blending: ``(1 - mask) * f_gdd + mask * f_core``.
+        By default, uses `~cherab.tools.equilibrium.efit.EFITEquilibrium`'s `inside_lcfs`.
     num_toroidal
-        Number of toroidal subdivisions for 3D grid extension, by default None.
+        Number of toroidal subdivisions for 3D grid extension, by default 64.
         This is used only when the grid is loaded by `.load_unstruct_grid_2d_extended`.
     phis
         Array of toroidal angles in degrees for emissivity reconstruction, by default None.
         This is used only when the grid is loaded by `.load_unstruct_grid_2d_extended`.
     source
         Source for emissivity data: ``"auto"`` (tries values then coefficients), ``"values"``
-        (emissivity values), or ``"coefficients"`` (reconstruct from Fourier-Bezier coefficients),
-        by default ``"auto"``.
+        (blended emissivity from core profiles + (edge) GGD values), or ``"coefficients"``
+        (reconstruct from Fourier-Bezier coefficients), by default ``"auto"``.
     step
         Step size for the radiation function interpolator, by default 0.01 m.
     parent
@@ -115,107 +267,244 @@ def load_radiation_emitter(
 
     Raises
     ------
+    ValueError
+        If ``source`` is not one of ``"auto"``, ``"values"``, or ``"coefficients"``.
     RuntimeError
-        If the radiation IDS or its emissivity data cannot be loaded.
+        If no emissivity data is available in either core or GGD radiation data.
     """
-    with DBEntry(*args, **kwargs) as entry:
-        radiation_ids = get_ids_time_slice(
-            entry,
-            "radiation",
-            time=time,
-            occurrence=occurrence,
-            time_threshold=time_threshold,
+    if source not in {"auto", "values", "coefficients"}:
+        raise ValueError(
+            f"Invalid source '{source}'. Expected one of: 'auto', 'values', 'coefficients'."
         )
 
-    if not len(radiation_ids.grid_ggd) and grid_ggd is None:
-        raise RuntimeError(
-            "The 'grid_ggd' AOS of the radiation IDS is empty"
-            " and an alternative grid_ggd structure is not provided."
-        )
+    if process_index is None:
+        process_indices = None
+    elif isinstance(process_index, int):
+        process_indices = {process_index}
+    else:
+        process_indices = set(process_index)
 
-    grid_ggd_struct = grid_ggd or radiation_ids.grid_ggd[0]
+    # Common variables
+    ids = None
+    ids2 = None
+    uri: str | None = None
+    uri2: str | None = None
+    emitter = None
+    grid = None
+    primitive_name: str | None = None
+    radius_outer: float = 0.0
+    radius_inner: float = 0.0
+    height: float = 0.0
+    zmin: float = 0.0
 
     try:
-        grid, subsets, subset_id = load_grid(
-            grid_ggd_struct,
-            with_subsets=True,
-            num_toroidal=num_toroidal,
-        )
-        try:
-            grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
-            if not np.array_equal(subsets[grid_subset_name], np.arange(grid.num_cell, dtype=int)):
-                grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
-            subset_enabled = True
-        except ValueError:
-            subset_enabled = False
-            grid_subset_index = None
-    except NotImplementedError:
-        subset_enabled = False
-        grid = load_grid(grid_ggd_struct, with_subsets=False, num_toroidal=num_toroidal)
-        grid_subset_index = None
+        with DBEntry(*args, **kwargs) as entry:
+            ids = get_ids_time_slice(
+                entry,
+                "radiation",
+                time=time,
+                occurrence=occurrence,
+                time_threshold=time_threshold,
+            )
+            uri: str | None = entry.uri
+    except RuntimeError as err:
+        raise RuntimeError("Unable to load radiation IDS.") from err
 
-    emissivity = None
-    values_error: Exception | None = None
+    if args2 is not None and source != "coefficients":
+        try:
+            with DBEntry(*args2, **(kwargs2 or {})) as entry:
+                ids2 = get_ids_time_slice(
+                    entry,
+                    "radiation",
+                    time=time2 or time,
+                    occurrence=occurrence2,
+                    time_threshold=time_threshold,
+                )
+                uri2: str | None = entry.uri
+        except RuntimeError as err:
+            raise RuntimeError("Unable to load second radiation IDS.") from err
+
+    # ------------------------------
+    # === Load emissivity values ===
+    # ------------------------------
+    # temporary variables
+    eq_args = args
+    eq_kwargs = kwargs
+    eq_time = time
+    eq_occurrence = occurrence
+    rad_func = None
+    rad_func_core = None
+    rad_func_ggd = None
 
     if source in {"auto", "values"}:
-        try:
-            if grid_subset_index is None and subset_enabled:
-                raise RuntimeError("Unable to determine grid subset index for emissivity.values.")
-            emissivity = load_radiation_emissivity(
-                radiation_ids,
-                process_index=process_index,
-                grid_subset_index=5 if grid_subset_index is None else grid_subset_index,
-            )
-        except Exception as err:
-            values_error = err
-            if source == "values":
-                raise
-
-    if emissivity is None and source in {"auto", "coefficients"}:
-        coeff = load_radiation_coefficients(
-            radiation_ids,
-            process_index=0 if process_index is None else process_index,
-            ion_index=ion_index,
-            emissivity_index=emissivity_index,
-            grid_subset_index=grid_subset_index,
+        # ------------------------------
+        # === Load emissivity values ===
+        # ------------------------------
+        values_core, values_ggd = _load_emissivity_values(
+            ids.process, process_indices, grid_subset_id
         )
 
-        constructor = FourierBezierConstructor(grid_ggd_struct, coefficients=coeff)
+        # Load emissivity values from the second IDS if available and needed
+        if values_core is None and values_ggd is None:
+            pass
+
+        elif values_ggd is None or values_core is None:
+            if ids2 is not None:
+                values_core2, values_ggd2 = _load_emissivity_values(
+                    ids2.process, process_indices, grid_subset_id
+                )
+                if values_core is None:
+                    values_core = values_core2
+                    eq_args = args2
+                    eq_kwargs = kwargs2
+                    eq_time = time2 or time
+                    eq_occurrence = occurrence2
+                if values_ggd is None:
+                    values_ggd = values_ggd2
+                uri = f"{uri} + {uri2}"
+
+        if values_core is None and values_ggd is None and source == "values":
+            raise RuntimeError(
+                "No emissivity values are available in either core or GGD radiation data."
+            )
+
+        # ----------------------------------
+        # === Create radiation functions ===
+        # ----------------------------------
+        if values_core is not None:
+            # TODO: Should load grid data at the same time as emissivity?
+            if len(ids.process[0].profiles_1d[0]):
+                grid_struct = ids.process[0].profiles_1d[0].grid
+            elif ids2 is not None and len(ids2.process[0].profiles_1d[0]):
+                grid_struct = ids2.process[0].profiles_1d[0].grid
+            else:
+                raise RuntimeError("No core grid is available in either radiation IDS.")
+
+            grid_data = load_core_grid(grid_struct)
+            rad_func_core, equilibrium = _create_rad_func_core(
+                grid_data,
+                values_core,
+                equilibrium,
+                psi_interpolator,
+                eq_args,
+                eq_kwargs,
+                eq_time,
+                eq_occurrence,
+            )
+            mask = mask or equilibrium.inside_lcfs
+            radius_inner, radius_outer = equilibrium.r_range
+            zmin, zmax = equilibrium.z_range
+            height = zmax - zmin
+
+        if values_ggd is not None:
+            grid_ggd = grid_ggd or ids.grid_ggd[0]
+            rad_func_ggd, extent = _create_rad_func_ggd(
+                grid_ggd,
+                values_ggd,
+                grid_subset_id,
+                interpolator_cache=interpolator_cache,
+                interpolator_cache_dir=interpolator_cache_dir,
+            )
+            radius_outer = extent["rmax"]
+            radius_inner = extent["rmin"]
+            height = extent["zmax"] - extent["zmin"]
+            zmin = extent["zmin"]
+
+        if (
+            rad_func_core is not None
+            and rad_func_ggd is not None
+            and isinstance(mask, Function2D | Function3D)
+        ):
+            rad_func = blend_core_edge_functions(
+                rad_func_core,
+                rad_func_ggd,
+                mask,
+                return3d=True,
+            )
+        elif rad_func_core is not None:
+            rad_func = rad_func_core
+        elif rad_func_ggd is not None:
+            rad_func = rad_func_ggd
+        else:
+            pass
+
+        if isinstance(rad_func, Function3D):
+            emitter = RadiationFunction(rad_func, step=step)
+
+    # ------------------------------------
+    # === Load emissivity coefficients ===
+    # ------------------------------------
+
+    if emitter is None and source in {"auto", "coefficients"}:
+        # Load GGD Grid
+        grid = load_grid(
+            ids.grid_ggd[0],
+            with_subsets=False,
+            num_toroidal=num_toroidal,
+        )
+
+        if not isinstance(grid, UnstructGrid2DExtended):
+            raise RuntimeError(
+                "Coefficient-based emissivity reconstruction requires a 2D-extended grid."
+            )
+        coeff = None
+
+        # Load emissivity coefficients
+        for process in ids.process:
+            # Validate process
+            if process_indices is not None and process.identifier.index not in process_indices:
+                continue
+
+            _coeff = load_ggd_emissivity(
+                process,
+                1,  # NOTE: JOREK-specific: emissivity coefficients are always associated with nodes
+                field="coefficients",
+            ).sum()
+
+            if _coeff is not None:
+                if coeff is None:
+                    coeff = _coeff
+                else:
+                    coeff += _coeff
+
+        if coeff is None:
+            if source == "coefficients":
+                raise RuntimeError("No emissivity coefficients are available in radiation data.")
+            raise RuntimeError(
+                "Unable to load emissivity from radiation IDS:"
+                " no values or coefficients are available."
+            )
+
+        constructor = FourierBezierConstructor(ids.grid_ggd[0], coefficients=coeff)
 
         if phis is None:
-            if not hasattr(grid, "num_toroidal"):
-                raise RuntimeError(
-                    "Coefficient-based emissivity reconstruction requires a 2D-extended grid with a num_toroidal attribute."
-                )
             d_phi = 360.0 / grid.num_toroidal
             phis_array = np.arange(d_phi * 0.5, 360.0, d_phi, dtype=np.float64)
         else:
             phis_array = np.asarray(phis, dtype=np.float64)
 
         emissivity = constructor.average_gaussian_faces_per_toroidal(phis_array).ravel()
+        primitive_name = f"RadiationEmitter_{ids.time[0]}s, uri {uri}"
 
-    if emissivity is None:
-        if values_error is not None:
-            raise RuntimeError(
-                "Unable to load emissivity from radiation IDS using either values or coefficients."
-            ) from values_error
-        raise RuntimeError("Unable to load emissivity from radiation IDS.")
+        rad_func = grid.interpolator(
+            emissivity,
+            interpolator_cache=interpolator_cache,
+            interpolator_cache_dir=interpolator_cache_dir,
+        )
+        # Create RadiationFunction material
+        emitter = RadiationFunction(rad_func, step=step)
 
-    rad_func = grid.interpolator(
-        emissivity,
-        interpolator_cache=interpolator_cache,
-        interpolator_cache_dir=interpolator_cache_dir,
-    )
+        # Determine primitive dimensions
+        radius_outer = grid.mesh_extent["rmax"]
+        radius_inner = grid.mesh_extent["rmin"]
+        height = grid.mesh_extent["zmax"] - grid.mesh_extent["zmin"]
+        zmin = grid.mesh_extent["zmin"]
 
-    if isinstance(rad_func, Function2D):
-        rad_func = AxisymmetricMapper(rad_func)
-
-    emitter = RadiationFunction(rad_func, step=step)
-
-    radius_outer = grid.mesh_extent["rmax"]
-    radius_inner = grid.mesh_extent["rmin"]
-    height = grid.mesh_extent["zmax"] - grid.mesh_extent["zmin"]
-    zmin = grid.mesh_extent["zmin"]
+    # -------------------------------
+    # === Create Primitive object ===
+    # -------------------------------
+    if emitter is None:
+        raise RuntimeError("Emitter material cannot be constructed.")
 
     if radius_inner > 0:
         primitive = Subtract(
@@ -226,6 +515,6 @@ def load_radiation_emitter(
 
     primitive.transform = translate(0, 0, zmin)
     primitive.material = emitter
-    primitive.name = f"RadiationEmitter_{radiation_ids.time[0]}s, uri {entry.uri}"
+    primitive.name = primitive_name or "RadiationEmitter"
 
     return primitive
