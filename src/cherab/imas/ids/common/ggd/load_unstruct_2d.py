@@ -150,13 +150,13 @@ def load_unstruct_grid_2d(
         return grid
 
     # Reading grid subsets (2D only)
-    cell_subset_ids = (5, 22, 23, 24, 25, 38, 39, 40)
+    CELL_SUBSET_IDS = {5, 22, 23, 24, 25, 38, 39, 40}
     subsets = {}
     subset_id = {}
     for subset in grid_ggd.grid_subset:
         dimension_is_2d = subset.dimension == DIMENSION.FACE + 1  # C to Fortran indexing
         known_subset_id = (
-            subset.dimension != EMPTY_INT and subset.identifier.index in cell_subset_ids
+            subset.dimension != EMPTY_INT and int(subset.identifier.index) in CELL_SUBSET_IDS
         )
         if (dimension_is_2d or known_subset_id) and len(subset.element):
             name = str(subset.identifier.name)
@@ -168,8 +168,8 @@ def load_unstruct_grid_2d(
                         + "because it includes cells not present in the original grid."
                     )
                     break
-                indices[i] = element.object[0].index.value
+                indices[i] = int(element.object[0].index)
             subsets[name] = indices - 1  # Fortran to C indexing
-            subset_id[name] = subset.identifier.index.value
+            subset_id[name] = int(subset.identifier.index)
 
     return grid, subsets, subset_id
