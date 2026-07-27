@@ -17,6 +17,10 @@
 # under the Licence.
 """Utilities for blending core and edge profile functions."""
 
+from __future__ import annotations
+
+from typing import Literal, overload
+
 from raysect.core.math.function.float import Blend2D, Blend3D, Function2D, Function3D
 from raysect.core.math.function.vector3d import Blend2D as VectorBlend2D
 from raysect.core.math.function.vector3d import Blend3D as VectorBlend3D
@@ -28,11 +32,29 @@ from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
 __all__ = ["blend_core_edge_functions"]
 
 
+@overload
 def blend_core_edge_functions(
     core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     mask: Function2D | Function3D,
-    return3d: bool,
+    return3d: Literal[False] = False,
+) -> Function2D | VectorFunction2D | None: ...
+
+
+@overload
+def blend_core_edge_functions(
+    core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
+    edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
+    mask: Function2D | Function3D,
+    return3d: Literal[True],
+) -> Function3D | VectorFunction3D | None: ...
+
+
+def blend_core_edge_functions(
+    core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
+    edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
+    mask: Function2D | Function3D,
+    return3d: bool = True,
 ) -> Function2D | Function3D | VectorFunction2D | VectorFunction3D | None:
     """Blend core and edge functions using ``(1 - mask) * edge + mask * core``.
 
@@ -45,7 +67,7 @@ def blend_core_edge_functions(
     mask
         A 2D or 3D scalar mask function.
     return3d
-        If True, map 2D outputs to 3D assuming axisymmetry.
+        If True, map 2D outputs to 3D assuming axisymmetry, by default True.
 
     Returns
     -------
