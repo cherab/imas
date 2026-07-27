@@ -367,14 +367,14 @@ def get_elements(elements_aos: IDSStructArray) -> tuple[Element | Isotope, ...]:
         mass_number = int(round(element.a))
         zn = int(round(element.z_n))
         isotope = lookup_isotope(zn, number=mass_number)
-        if int(round(isotope.element.atomic_weight)) == mass_number:
+        if round(isotope.element.atomic_weight) == mass_number:
             # Prefer element over isotope
             isotope = isotope.element
 
         if getattr(element, "atoms_n", EMPTY_INT) == EMPTY_INT:
             atoms_n = 1
         else:
-            atoms_n = int(round(getattr(element, "atoms_n", EMPTY_INT)))
+            atoms_n = round(getattr(element, "atoms_n", EMPTY_INT))
 
         for _ in range(atoms_n):
             elements.append(isotope)
