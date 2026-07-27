@@ -17,10 +17,9 @@
 # under the Licence.
 """Module for loading core-profile-related data from IMAS IDS structures."""
 
-from dataclasses import astuple, dataclass, fields
+from dataclasses import astuple, fields
 
 import numpy as np
-from numpy.typing import NDArray
 
 from cherab.core.atomic import AtomicData
 from imas.ids_primitive import IDSNumericArray
@@ -41,27 +40,9 @@ from ..common.species import (
 )
 
 __all__ = [
-    "GridData",
-    "load_core_grid",
     "load_core_profiles",
     "load_core_species",
 ]
-
-
-@dataclass
-class GridData:
-    """Dataclass for storing grid properties of the core profiles."""
-
-    rho_tor_norm: NDArray[np.float64] | None = None
-    """Normalized toroidal flux coordinate."""
-    psi: NDArray[np.float64] | None = None
-    """Toroidal flux [Wb]."""
-    volume: NDArray[np.float64] | None = None
-    """Volume enclosed by the flux surface [m^3]."""
-    area: NDArray[np.float64] | None = None
-    """Area of the flux surface [m^2]."""
-    surface: NDArray[np.float64] | None = None
-    """Surface-averaged value of the profile on the flux surface."""
 
 
 def _get_profile(ids_struct: IDSStructure, name: str, name2: str | None = None):
@@ -76,28 +57,6 @@ def _get_profile(ids_struct: IDSStructure, name: str, name2: str | None = None):
         return _get_profile(data, name2) if name2 is not None else None
     else:
         return None
-
-
-def load_core_grid(grid_struct: IDSStructure) -> GridData:
-    """Load grid properties of the core profiles.
-
-    The returned dictionary values for missing data are None.
-
-    Parameters
-    ----------
-    grid_struct
-        The IDS structure containing the grid data for 1D profiles.
-
-    Returns
-    -------
-    `.GridData`
-        Instance of the `.GridData` dataclass containing the grid properties for the core profiles.
-    """
-    grid = GridData()
-    for field in fields(grid):
-        setattr(grid, field.name, _get_profile(grid_struct, field.name))
-
-    return grid
 
 
 def load_core_profiles(
