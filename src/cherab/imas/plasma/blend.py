@@ -36,10 +36,11 @@ from imas.ids_structure import IDSStructure
 
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
-from ..ids.core_profiles import load_core_grid, load_core_species
+from ..ids.common.grid_radial import get_psi_norm, load_core_grid
+from ..ids.core_profiles import load_core_species
 from ..ids.edge_profiles import load_edge_species
 from ..math.blend import blend_core_edge_functions
-from .core import get_core_interpolators, get_psi_norm, load_core_plasma
+from .core import get_core_interpolators, load_core_plasma
 from .edge import get_edge_interpolators, load_edge_plasma
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import (
@@ -110,6 +111,8 @@ def load_plasma(
         Alternative ``grid_ggd`` structure describing the grid. By default None.
     grid_subset_id
         Identifier of the grid subset (index or name). By default 5 (``"Cells"``).
+        The list of grid subset identifiers can be seen at
+        https://imas-data-dictionary.readthedocs.io/en/latest/generated/identifier/ggd_subset_identifier.html
     equilibrium
         Alternative `~cherab.tools.equilibrium.efit.EFITEquilibrium` used to map core
         profiles. By default None: the equilibrium is read from the same IMAS query as the
