@@ -15,8 +15,9 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
-"""Subpackage for loading GGD grids from IMAS IDS structures."""
+"""Subpackage for loading GGD-related data."""
 
+from .load_data import get_ggd_subset_data
 from .load_grid import load_grid
 from .load_unstruct_2d import load_unstruct_grid_2d
 from .load_unstruct_3d import load_unstruct_grid_2d_extended, load_unstruct_grid_3d
@@ -26,4 +27,5 @@ __all__ = [
     "load_unstruct_grid_2d",
     "load_unstruct_grid_2d_extended",
     "load_unstruct_grid_3d",
+    "get_ggd_subset_data",
 ]
