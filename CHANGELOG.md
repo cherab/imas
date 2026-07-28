@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-07-28
+
+### Added
+
+- Add synthetic JINTRAC radiation values dataset support and related regression tests
+- Extend radiation emitter loading to support dual emissivity sources with improved validation
+
+### Changed
+
+- Improve radiation emitter loading checks for duplicate emissivity values and core-profile grid data
+
+### Fixed
+
+- Fix grid data loading checks for radiation core profiles
+- Improve error handling in radiation emitter loading workflows
+
 ## [0.5.0] - 2026-06-24
 
 ### Added
