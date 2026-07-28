@@ -4,7 +4,12 @@ from pathlib import Path
 import pytest
 
 from cherab.core.atomic.elements import neon
-from cherab.imas.datasets import iter_jintrac, iter_jorek, iter_solps
+from cherab.imas.datasets import (
+    iter_jintrac,
+    iter_jintrac_radiation_values,
+    iter_jorek,
+    iter_solps,
+)
 from cherab.openadas import OpenADAS
 from cherab.openadas.repository import populate
 
@@ -49,4 +54,11 @@ def path_iter_solps(tmp_path_factory: pytest.TempPathFactory) -> str:
 def path_iter_jorek(tmp_path_factory: pytest.TempPathFactory) -> str:
     """Fixture to provide the path to a sample JOREK IMAS dataset."""
     path = Path(iter_jorek())
+    return _copy_dataset_to_tmp(path, tmp_path_factory)
+
+
+@pytest.fixture(scope="session")
+def path_iter_jintrac_radiation_values(tmp_path_factory: pytest.TempPathFactory) -> str:
+    """Fixture to provide the path to a synthetic JINTRAC radiation values dataset."""
+    path = Path(iter_jintrac_radiation_values())
     return _copy_dataset_to_tmp(path, tmp_path_factory)
