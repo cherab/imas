@@ -353,6 +353,16 @@ def load_radiation_emitter(
                 values_core2, values_ggd2 = _load_emissivity_values(
                     ids2.process, process_indices, grid_subset_id
                 )
+
+                if values_core is not None and values_core2 is not None:
+                    raise RuntimeError(
+                        "Duplicate core emissivity values are available in both radiation IDSs."
+                    )
+                if values_ggd is not None and values_ggd2 is not None:
+                    raise RuntimeError(
+                        "Duplicate GGD emissivity values are available in both radiation IDSs."
+                    )
+
                 if values_core is None:
                     values_core = values_core2
                     eq_args = args2
