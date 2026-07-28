@@ -373,9 +373,9 @@ def load_radiation_emitter(
         # ----------------------------------
         if values_core is not None:
             # TODO: Should load grid data at the same time as emissivity?
-            if len(ids.process[0].profiles_1d[0]):
+            if len(ids.process) and len(ids.process[0].profiles_1d):
                 grid_struct = ids.process[0].profiles_1d[0].grid
-            elif ids2 is not None and len(ids2.process[0].profiles_1d[0]):
+            elif ids2 is not None and len(ids2.process) and len(ids2.process[0].profiles_1d):
                 grid_struct = ids2.process[0].profiles_1d[0].grid
             else:
                 raise RuntimeError("No core grid is available in either radiation IDS.")
