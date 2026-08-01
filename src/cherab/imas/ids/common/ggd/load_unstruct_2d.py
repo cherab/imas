@@ -154,10 +154,9 @@ def load_unstruct_grid_2d(
     subsets = {}
     subset_id = {}
     for subset in grid_ggd.grid_subset:
+        subset_index = subset.identifier.index.value
         dimension_is_2d = subset.dimension == DIMENSION.FACE + 1  # C to Fortran indexing
-        known_subset_id = (
-            subset.dimension != EMPTY_INT and int(subset.identifier.index) in CELL_SUBSET_IDS
-        )
+        known_subset_id = subset.dimension != EMPTY_INT and subset_index in CELL_SUBSET_IDS
         if (dimension_is_2d or known_subset_id) and len(subset.element):
             name = str(subset.identifier.name)
             indices = np.empty(len(subset.element), dtype=np.int32)
@@ -170,6 +169,6 @@ def load_unstruct_grid_2d(
                     break
                 indices[i] = int(element.object[0].index)
             subsets[name] = indices - 1  # Fortran to C indexing
-            subset_id[name] = int(subset.identifier.index)
+            subset_id[name] = subset_index
 
     return grid, subsets, subset_id
