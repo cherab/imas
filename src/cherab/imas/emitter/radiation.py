@@ -440,6 +440,7 @@ def load_radiation_emitter(
 
         if isinstance(rad_func, Function3D):
             emitter = RadiationFunction(rad_func, step=step)
+            primitive_name = f"RadiationEmitter_{ids.time[0]}s, uri {uri}"
 
     # ------------------------------------
     # === Load emissivity coefficients ===
