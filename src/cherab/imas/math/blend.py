@@ -37,8 +37,8 @@ def blend_core_edge_functions(
     core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     mask: Function2D | Function3D,
-    return3d: Literal[False] = False,
-) -> Function2D | VectorFunction2D | None: ...
+    return3d: Literal[True] = True,
+) -> Function3D | VectorFunction3D | None: ...
 
 
 @overload
@@ -46,8 +46,8 @@ def blend_core_edge_functions(
     core_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     edge_func: Function2D | Function3D | VectorFunction2D | VectorFunction3D | None,
     mask: Function2D | Function3D,
-    return3d: Literal[True],
-) -> Function3D | VectorFunction3D | None: ...
+    return3d: Literal[False],
+) -> Function2D | VectorFunction2D | None: ...
 
 
 def blend_core_edge_functions(
