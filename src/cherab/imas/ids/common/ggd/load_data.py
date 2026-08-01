@@ -64,7 +64,7 @@ def get_ggd_subset_data(
 
     for sub_struct in struct_arr:
         index = getattr(sub_struct, "grid_subset_index", EMPTY_INT)
-        if int(index) == grid_subset_index:
+        if index == grid_subset_index:
             data = getattr(sub_struct, field, None)
             if isinstance(data, IDSNumericArray) and len(data):
                 return np.asarray(data, dtype=np.float64)
