@@ -462,7 +462,7 @@ def load_radiation_emitter(
         # Load emissivity coefficients
         for process in ids.process:
             # Validate process
-            if process_indices is not None and process.identifier.index not in process_indices:
+            if process_indices is not None and int(process.identifier.index) not in process_indices:
                 continue
 
             _coeff = load_ggd_emissivity(
