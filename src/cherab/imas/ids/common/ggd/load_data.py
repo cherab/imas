@@ -53,7 +53,7 @@ def get_ggd_subset_data(
     --------
     >>> get_ggd_subset_data(ids.ggd[0].electrons, "density", 5)
 
-    >>> get_ggd_subset_data(ids.ggd[0].ion[0]., "temperature", 5, field="coefficients")
+    >>> get_ggd_subset_data(ids.ggd[0].ion[0], "temperature", 5, field="coefficients")
     """
     if field not in {"values", "coefficients"}:
         raise ValueError(f"Invalid field '{field}', must be 'values' or 'coefficients'")
@@ -64,7 +64,7 @@ def get_ggd_subset_data(
 
     for sub_struct in struct_arr:
         index = getattr(sub_struct, "grid_subset_index", EMPTY_INT)
-        if index == grid_subset_index:
+        if int(index) == grid_subset_index:
             data = getattr(sub_struct, field, None)
             if isinstance(data, IDSNumericArray) and len(data):
                 return np.asarray(data, dtype=np.float64)
