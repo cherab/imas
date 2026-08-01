@@ -167,7 +167,7 @@ def load_unstruct_grid_2d(
                         + "because it includes cells not present in the original grid."
                     )
                     break
-                indices[i] = int(element.object[0].index)
+                indices[i] = element.object[0].index.value
             subsets[name] = indices - 1  # Fortran to C indexing
             subset_id[name] = subset_index
 
