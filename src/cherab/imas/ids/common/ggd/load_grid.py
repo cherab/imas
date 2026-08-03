@@ -17,15 +17,21 @@
 # under the Licence.
 """Module for loading GGD grids from IMAS grid_ggd IDS structures."""
 
-from typing import Literal, overload
+from __future__ import annotations
+
+from typing import Literal, cast, overload
 
 from numpy import int32
 from numpy.typing import NDArray
 
+from imas.db_entry import DBEntry
+from imas.ids_struct_array import IDSStructArray
 from imas.ids_structure import IDSStructure
+from imas.ids_toplevel import IDSToplevel
 
 from ....ggd.unstruct_2d_extend_mesh import UnstructGrid2DExtended
 from ....ggd.unstruct_2d_mesh import UnstructGrid2D
+from ..path import load_ids_path_reference, resolve_ids_path_reference
 from .load_unstruct_2d import load_unstruct_grid_2d
 from .load_unstruct_3d import load_unstruct_grid_2d_extended
 
@@ -34,18 +40,30 @@ __all__ = ["load_grid"]
 
 @overload
 def load_grid(
-    grid_ggd: IDSStructure, with_subsets: Literal[False] = False, num_toroidal: int | None = None
+    grid_ggd: IDSStructure,
+    with_subsets: Literal[False] = False,
+    num_toroidal: int | None = None,
+    *,
+    entry: DBEntry | None = None,
 ) -> UnstructGrid2D | UnstructGrid2DExtended: ...
 
 
 @overload
 def load_grid(
-    grid_ggd: IDSStructure, with_subsets: Literal[True], num_toroidal: int | None = None
+    grid_ggd: IDSStructure,
+    with_subsets: Literal[True],
+    num_toroidal: int | None = None,
+    *,
+    entry: DBEntry | None = None,
 ) -> tuple[UnstructGrid2D, dict[str, NDArray[int32]], dict[str, int]]: ...
 
 
 def load_grid(
-    grid_ggd: IDSStructure, with_subsets: bool = False, num_toroidal: int | None = None
+    grid_ggd: IDSStructure,
+    with_subsets: bool = False,
+    num_toroidal: int | None = None,
+    *,
+    entry: DBEntry | None = None,
 ) -> (
     UnstructGrid2D
     | tuple[UnstructGrid2D, dict[str, NDArray[int32]], dict[str, int]]
@@ -69,6 +87,8 @@ def load_grid(
         Read grid subset data, by default is False.
     num_toroidal
         Number of toroidal points, by default None.
+    entry
+        Open IMAS data entry used to resolve ``grid_ggd.path`` references to external IDSs.
 
     Returns
     -------
@@ -100,14 +120,15 @@ def load_grid(
 
         grid, subsets, subset_id = load_grid(ids.grid_ggd[0], with_subsets=True)
     """
-    spaces = get_standard_spaces(grid_ggd)
+    grid_source = _resolve_grid_source(grid_ggd, entry=entry)
+    spaces = get_standard_spaces(grid_source)
 
     if not len(spaces):
         raise RuntimeError("GGD grid contain no spaces.")
 
     if len(spaces) == 1:  # simple unstructured grids
         if len(spaces[0].objects_per_dimension) == 3:  # 2D case
-            return load_unstruct_grid_2d(grid_ggd, 0, with_subsets=with_subsets)
+            return load_unstruct_grid_2d(grid_source, 0, with_subsets=with_subsets)
         if len(spaces[0].objects_per_dimension) == 4:  # 3D case
             raise NotImplementedError(
                 "Loading unstructured 3D grids will be implemented in the future."
@@ -118,7 +139,7 @@ def load_grid(
     if len(spaces) == 2:  # 2D structured grid or 2D unstructured grid extended in 3D
         if len(spaces[0].objects_per_dimension) == 3 and len(spaces[1].objects_per_dimension) < 3:
             return load_unstruct_grid_2d_extended(
-                grid_ggd, with_subsets=with_subsets, num_toroidal=num_toroidal
+                grid_source, with_subsets=with_subsets, num_toroidal=num_toroidal
             )
         if len(spaces[0].objects_per_dimension) < 3 and len(spaces[1].objects_per_dimension) < 3:
             raise NotImplementedError(
@@ -142,6 +163,62 @@ def load_grid(
     raise RuntimeError("Unsupported grid type.")
 
 
+def _resolve_grid_source(grid_ggd: IDSStructure, entry: DBEntry | None = None) -> IDSStructure:
+    if len(grid_ggd.space):
+        return grid_ggd
+
+    if not len(grid_ggd.path):
+        return grid_ggd
+
+    path = str(grid_ggd.path).strip()
+    if not path:
+        return grid_ggd
+
+    resolved: IDSToplevel | IDSStructure | IDSStructArray
+
+    if "#" in path:
+        if entry is None:
+            raise RuntimeError(
+                "Unable to resolve grid_ggd.path without a DBEntry. "
+                + "Pass an open entry via load_grid(..., entry=entry)."
+            )
+        resolved = load_ids_path_reference(entry, path)
+    else:
+        root = _find_toplevel(grid_ggd)
+        ids_name = root.metadata.name
+        if path.startswith("/"):
+            resolved = resolve_ids_path_reference(root, f"#{ids_name}{path}")
+        else:
+            resolved = resolve_ids_path_reference(root, path)
+
+    if isinstance(resolved, IDSStructArray):
+        if not len(resolved):
+            raise RuntimeError(f"Resolved grid reference '{path}' points to an empty array.")
+        resolved = resolved[0]
+
+    if not hasattr(resolved, "space"):
+        raise RuntimeError(
+            f"Resolved grid reference '{path}' does not point to a grid_ggd structure."
+        )
+
+    return cast(IDSStructure, resolved)
+
+
+def _find_toplevel(node: IDSStructure) -> IDSToplevel:
+    current = node
+    while hasattr(current, "_parent"):
+        parent = current._parent
+        if isinstance(parent, IDSToplevel):
+            return parent
+        if not hasattr(parent, "_parent"):
+            break
+        current = parent
+
+    raise RuntimeError(
+        "Unable to resolve local grid_ggd.path: cannot find the parent IDS toplevel object."
+    )
+
+
 def get_standard_spaces(grid_ggd: IDSStructure) -> list[IDSStructure]:
     """Get a list of standard non-empty spaces from the grid_ggd structure.
 
@@ -157,14 +234,11 @@ def get_standard_spaces(grid_ggd: IDSStructure) -> list[IDSStructure]:
 
     Raises
     ------
-    ValueError
+    RuntimeError
         If no spaces are defined in the grid_ggd structure.
     """
     if not len(grid_ggd.space):
-        error_massage = "Unable to read the grid. Grid space is not defined."
-        if len(grid_ggd.path):
-            error_massage += f" The grid is defined in {grid_ggd.path}."
-        raise ValueError(error_massage)
+        raise RuntimeError("Unable to read the grid. Grid space is not defined.")
 
     # Get list of standard spaces:
     spaces = []

@@ -22,6 +22,12 @@ from __future__ import annotations
 from . import ggd, grid_radial, species
 from ._ids_numeric import get_ids_numeric_field
 from ._model import solve_coronal_equilibrium
+from .path import (
+    IDSPathReference,
+    load_ids_path_reference,
+    parse_ids_path_fragment,
+    resolve_ids_path_reference,
+)
 from .slice import get_ids_time_slice
 
 __all__ = [
@@ -31,4 +37,8 @@ __all__ = [
     "solve_coronal_equilibrium",
     "get_ids_time_slice",
     "get_ids_numeric_field",
+    "IDSPathReference",
+    "parse_ids_path_fragment",
+    "resolve_ids_path_reference",
+    "load_ids_path_reference",
 ]
