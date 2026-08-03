@@ -46,6 +46,7 @@ from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import (
     ZERO_VELOCITY,
     ProfileInterpolator,
+    get_entry_reference,
     get_subset_name_index,
     warn_unsupported_species,
 )
@@ -130,15 +131,20 @@ def load_edge_plasma(
         edge_profiles_ids = get_ids_time_slice(
             entry, "edge_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
+        entry_reference = get_entry_reference(entry)
 
-    if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
-        raise RuntimeError(
-            "The 'grid_ggd' AOS of the edge_profiles IDS is empty "
-            + "and an alternative grid_ggd structure is not provided."
-        )
+        if not len(edge_profiles_ids.grid_ggd) and grid_ggd is None:
+            raise RuntimeError(
+                "The 'grid_ggd' AOS of the edge_profiles IDS is empty "
+                + "and an alternative grid_ggd structure is not provided."
+            )
 
-    if not len(edge_profiles_ids.ggd):
-        raise RuntimeError("The 'ggd' AOS of the edge_profiles IDS is empty.")
+        if not len(edge_profiles_ids.ggd):
+            raise RuntimeError("The 'ggd' AOS of the edge_profiles IDS is empty.")
+
+        # Resolve path-based grid references while the original entry is still open.
+        grid_ggd_local = grid_ggd or edge_profiles_ids.grid_ggd[0]
+        grid, subsets, subset_id = load_grid(grid_ggd_local, with_subsets=True, entry=entry)
 
     # Load magnetic field data. If not provided, try to load from the equilibrium IDS.
     if b_field is None:
@@ -151,10 +157,6 @@ def load_edge_plasma(
                 ).b_field
             except RuntimeError:
                 print("Warning! No magnetic field data available in the equilibrium IDS.")
-
-    # Create edge grid
-    grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
-    grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
 
     try:
         grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
@@ -178,7 +180,7 @@ def load_edge_plasma(
     # ----------------------------
     # === Create Plasma object ===
     # ----------------------------
-    name = f"IMAS edge plasma: time {edge_profiles_ids.time[0]}, uri {entry.uri}."
+    name = f"IMAS edge plasma: time {edge_profiles_ids.time[0]}, uri {entry_reference}."
     plasma = Plasma(parent=parent, name=name)
 
     # Create plasma geometry

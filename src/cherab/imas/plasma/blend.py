@@ -46,6 +46,7 @@ from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import (
     ZERO_VELOCITY,
     ProfileInterpolator,
+    get_entry_reference,
     get_subset_name_index,
     warn_unsupported_species,
 )
@@ -179,6 +180,7 @@ def load_plasma(
                 occurrence=occurrence_core,
                 time_threshold=time_threshold,
             )
+            core_entry_reference = get_entry_reference(entry_core)
     except RuntimeError:
         return load_edge_plasma(
             *edge_args,
@@ -204,6 +206,7 @@ def load_plasma(
                 occurrence=occurrence_edge,
                 time_threshold=time_threshold,
             )
+            edge_entry_reference = get_entry_reference(entry_edge)
     except RuntimeError:
         return load_core_plasma(
             *args,
@@ -269,7 +272,14 @@ def load_plasma(
 
     # === Edge grid and composition ===
     grid_ggd = grid_ggd or edge_profiles_ids.grid_ggd[0]
-    grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
+    needs_external_grid_reference = (
+        not len(grid_ggd.space) and len(grid_ggd.path) and "#" in str(grid_ggd.path)
+    )
+    if needs_external_grid_reference:
+        with DBEntry(*edge_args, **edge_kwargs) as entry:
+            grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True, entry=entry)
+    else:
+        grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
 
     try:
         grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
@@ -297,7 +307,7 @@ def load_plasma(
     time_edge = edge_profiles_ids.time[0]
     name = (
         f"IMAS core + edge plasma: core/edge time {time_core}/{time_edge}, "
-        f"uri {entry_core.uri} / {entry_edge.uri}."
+        f"uri {core_entry_reference} / {edge_entry_reference}."
     )
     plasma = Plasma(parent=parent, name=name)
 

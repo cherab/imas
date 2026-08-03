@@ -39,7 +39,12 @@ from ..ids.common import get_ids_time_slice
 from ..ids.common.grid_radial import get_psi_norm, load_core_grid
 from ..ids.core_profiles import load_core_species
 from .equilibrium import load_equilibrium, load_magnetic_field
-from .utility import ZERO_VELOCITY, ProfileInterpolator, warn_unsupported_species
+from .utility import (
+    ZERO_VELOCITY,
+    ProfileInterpolator,
+    get_entry_reference,
+    warn_unsupported_species,
+)
 
 __all__ = ["load_core_plasma"]
 
@@ -127,6 +132,7 @@ def load_core_plasma(
         core_profiles_ids = get_ids_time_slice(
             entry, "core_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
+        entry_reference = get_entry_reference(entry)
 
     if not len(core_profiles_ids.profiles_1d):
         raise RuntimeError("The profiles_1d AOS in core_profiles IDS is empty.")
@@ -168,7 +174,7 @@ def load_core_plasma(
     # ----------------------------
     # === Create Plasma object ===
     # ----------------------------
-    name = f"IMAS core plasma: time {core_profiles_ids.time[0]}, uri {entry.uri}."
+    name = f"IMAS core plasma: time {core_profiles_ids.time[0]}, uri {entry_reference}."
     plasma = Plasma(parent=parent, name=name)
     radius_inner, radius_outer = equilibrium.r_range
     zmin, zmax = equilibrium.z_range

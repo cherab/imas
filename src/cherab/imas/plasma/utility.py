@@ -30,12 +30,43 @@ from ..ids.common.species import SpeciesComposition
 
 __all__ = [
     "ProfileInterpolator",
+    "get_entry_reference",
     "warn_unsupported_species",
     "get_subset_name_index",
 ]
 
 
 ZERO_VELOCITY = ConstantVector3D(Vector3D(0, 0, 0))
+
+
+def get_entry_reference(entry: object) -> str:
+    """Return a human-readable DBEntry reference.
+
+    Parameters
+    ----------
+    entry
+        DBEntry-like object.
+
+    Returns
+    -------
+    str
+        URI if available, otherwise a fallback string using legacy DBEntry attributes
+        in ``key=value`` format.
+    """
+    uri = getattr(entry, "uri", None)
+    if uri:
+        return str(uri)
+
+    legacy_attr_names = ("backend_id", "db_name", "pulse", "run", "user_name", "data_version")
+    parts = []
+    for name in legacy_attr_names:
+        if hasattr(entry, name):
+            parts.append(f"{name}={getattr(entry, name)!r}")
+
+    if not parts:
+        return "<unknown DBEntry>"
+
+    return ", ".join(parts)
 
 
 @dataclass

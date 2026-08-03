@@ -41,14 +41,14 @@ from imas.ids_structure import IDSStructure
 
 from ..ggd import UnstructGrid2DExtended
 from ..ggd.base_mesh import InterpolatorCacheMode
-from ..ids.common import get_ids_time_slice
+from ..ids.common import get_ids_time_slice, load_ids_path_reference, resolve_ids_path_reference
 from ..ids.common.ggd import load_grid
 from ..ids.common.grid_radial import GridData, get_psi_norm, load_core_grid
 from ..ids.radiation import load_core_emissivity, load_ggd_emissivity
 from ..math import FourierBezierConstructor
 from ..math.blend import blend_core_edge_functions
 from ..plasma.equilibrium import load_equilibrium
-from ..plasma.utility import get_subset_name_index
+from ..plasma.utility import get_entry_reference, get_subset_name_index
 
 __all__ = ["load_radiation_emitter"]
 
@@ -135,8 +135,12 @@ def _create_rad_func_ggd(
     grid_ggd: IDSStructure,
     data: NDArray[np.float64],
     grid_subset_id: int,
+    ids_root: IDSStructure,
+    db_args: tuple[Any, ...] | None,
+    db_kwargs: dict[str, Any] | None,
     **interp_kwargs,
 ) -> tuple[AxisymmetricMapper, dict[str, float]]:
+    grid_ggd = _resolve_grid_ggd_reference(grid_ggd, ids_root, db_args, db_kwargs)
     grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
     grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
 
@@ -146,6 +150,49 @@ def _create_rad_func_ggd(
     rad_func = AxisymmetricMapper(grid.interpolator(data, **interp_kwargs))
 
     return rad_func, grid.mesh_extent
+
+
+def _resolve_grid_ggd_reference(
+    grid_ggd: IDSStructure,
+    ids_root: IDSStructure,
+    db_args: tuple[Any, ...] | None,
+    db_kwargs: dict[str, Any] | None,
+) -> IDSStructure:
+    if len(grid_ggd.space):
+        return grid_ggd
+
+    if not len(grid_ggd.path):
+        return grid_ggd
+
+    path = str(grid_ggd.path).strip()
+    if not path:
+        return grid_ggd
+
+    if "#" in path:
+        if db_args is None:
+            raise RuntimeError(
+                "Unable to resolve external grid_ggd.path without DBEntry arguments."
+            )
+        with DBEntry(*db_args, **(db_kwargs or {})) as entry:
+            resolved = load_ids_path_reference(entry, path)
+    else:
+        ids_name = ids_root.metadata.name
+        if path.startswith("/"):
+            resolved = resolve_ids_path_reference(ids_root, f"#{ids_name}{path}")
+        else:
+            resolved = resolve_ids_path_reference(ids_root, path)
+
+    if isinstance(resolved, IDSStructArray):
+        if not len(resolved):
+            raise RuntimeError(f"Resolved grid reference '{path}' points to an empty array.")
+        resolved = resolved[0]
+
+    if not isinstance(resolved, IDSStructure) or not hasattr(resolved, "space"):
+        raise RuntimeError(
+            f"Resolved grid reference '{path}' does not point to a grid_ggd structure."
+        )
+
+    return resolved
 
 
 def load_radiation_emitter(
@@ -287,8 +334,8 @@ def load_radiation_emitter(
     # Common variables
     ids = None
     ids2 = None
-    uri: str | None = None
-    uri2: str | None = None
+    entry_reference: str | None = None
+    entry_reference2: str | None = None
     emitter = None
     grid = None
     primitive_name: str | None = None
@@ -306,7 +353,7 @@ def load_radiation_emitter(
                 occurrence=occurrence,
                 time_threshold=time_threshold,
             )
-            uri: str | None = entry.uri
+            entry_reference = get_entry_reference(entry)
     except RuntimeError as err:
         raise RuntimeError("Unable to load radiation IDS.") from err
 
@@ -320,7 +367,7 @@ def load_radiation_emitter(
                     occurrence=occurrence2,
                     time_threshold=time_threshold,
                 )
-                uri2: str | None = entry.uri
+                entry_reference2 = get_entry_reference(entry)
         except RuntimeError as err:
             raise RuntimeError("Unable to load second radiation IDS.") from err
 
@@ -335,6 +382,9 @@ def load_radiation_emitter(
     rad_func = None
     rad_func_core = None
     rad_func_ggd = None
+    ggd_args: tuple[Any, ...] | None = args
+    ggd_kwargs: dict[str, Any] | None = kwargs
+    ggd_ids = ids
 
     if source in {"auto", "values"}:
         # ------------------------------
@@ -371,7 +421,11 @@ def load_radiation_emitter(
                     eq_occurrence = occurrence2
                 if values_ggd is None:
                     values_ggd = values_ggd2
-                uri = f"{uri} + {uri2}"
+                    ggd_args = args2
+                    ggd_kwargs = kwargs2
+                    if ids2 is not None:
+                        ggd_ids = ids2
+                entry_reference = f"{entry_reference} + {entry_reference2}"
 
         if values_core is None and values_ggd is None and source == "values":
             raise RuntimeError(
@@ -407,11 +461,14 @@ def load_radiation_emitter(
             height = zmax - zmin
 
         if values_ggd is not None:
-            grid_ggd = grid_ggd or ids.grid_ggd[0]
+            grid_ggd = grid_ggd or ggd_ids.grid_ggd[0]
             rad_func_ggd, extent = _create_rad_func_ggd(
                 grid_ggd,
                 values_ggd,
                 grid_subset_id,
+                ids_root=ggd_ids,
+                db_args=ggd_args,
+                db_kwargs=ggd_kwargs,
                 interpolator_cache=interpolator_cache,
                 interpolator_cache_dir=interpolator_cache_dir,
             )
@@ -440,16 +497,18 @@ def load_radiation_emitter(
 
         if isinstance(rad_func, Function3D):
             emitter = RadiationFunction(rad_func, step=step)
-            primitive_name = f"RadiationEmitter_{ids.time[0]}s, uri {uri}"
+            primitive_name = f"RadiationEmitter_{ids.time[0]}s, entry {entry_reference}"
 
     # ------------------------------------
     # === Load emissivity coefficients ===
     # ------------------------------------
 
     if emitter is None and source in {"auto", "coefficients"}:
+        grid_ggd = _resolve_grid_ggd_reference(ids.grid_ggd[0], ids, args, kwargs)
+
         # Load GGD Grid
         grid = load_grid(
-            ids.grid_ggd[0],
+            grid_ggd,
             with_subsets=False,
             num_toroidal=num_toroidal,
         )
@@ -489,7 +548,7 @@ def load_radiation_emitter(
                 " no values or coefficients are available."
             )
 
-        constructor = FourierBezierConstructor(ids.grid_ggd[0], coefficients=coeff)
+        constructor = FourierBezierConstructor(grid_ggd, coefficients=coeff)
 
         if phis is None:
             d_phi = 360.0 / grid.num_toroidal
@@ -498,7 +557,7 @@ def load_radiation_emitter(
             phis_array = np.asarray(phis, dtype=np.float64)
 
         emissivity = constructor.average_gaussian_faces_per_toroidal(phis_array).ravel()
-        primitive_name = f"RadiationEmitter_{ids.time[0]}s, uri {uri}"
+        primitive_name = f"RadiationEmitter_{ids.time[0]}s, entry {entry_reference}"
 
         rad_func = grid.interpolator(
             emissivity,
