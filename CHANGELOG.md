@@ -5,16 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.1] - 2026-07-28
+## [0.5.1]
 
 ### Added
 
 - Add synthetic JINTRAC radiation values dataset support and related regression tests
 - Extend radiation emitter loading to support dual emissivity sources with improved validation
+- Add IDS path utility helpers and `get_entry_reference` for resolving entry references
+- Add unit tests for IDS path handling, grid loading via path references, and plasma utility entry-reference workflows
 
 ### Changed
 
 - Improve radiation emitter loading checks for duplicate emissivity values and core-profile grid data
+- Refactor `load_grid` to support explicit `entry` selection and improve referenced-grid source resolution
+- Enhance plasma and emitter loading paths to use entry-reference aware grid resolution
 
 ### Fixed
 
