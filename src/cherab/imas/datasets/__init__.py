@@ -46,7 +46,7 @@ the above mentioned cache directory to avoid fetching dataset errors without
 the internet connectivity.
 """
 
-from ._builtin import bolometer_moc
+from ._builtin import bolometer_moc, iter_jintrac_radiation_values
 from ._fetchers import iter_jintrac, iter_jorek, iter_solps
 from ._utils import clear_cache
 
@@ -54,6 +54,7 @@ __all__ = [
     "iter_jintrac",
     "iter_solps",
     "iter_jorek",
+    "iter_jintrac_radiation_values",
     "bolometer_moc",
     "clear_cache",
 ]

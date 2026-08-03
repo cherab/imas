@@ -36,7 +36,8 @@ from cherab.tools.equilibrium import EFITEquilibrium
 from imas import DBEntry
 
 from ..ids.common import get_ids_time_slice
-from ..ids.core_profiles import load_core_grid, load_core_species
+from ..ids.common.grid_radial import get_psi_norm, load_core_grid
+from ..ids.core_profiles import load_core_species
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import ZERO_VELOCITY, ProfileInterpolator, warn_unsupported_species
 
@@ -301,7 +302,7 @@ def get_core_interpolators(
             continue
         data_1d = getattr(profile, field.name, None)
         if isinstance(data_1d, np.ndarray) and data_1d.size > 0:
-            extrapolation_range = max(0, psi_norm[0], 1.0 - psi_norm[-1])
+            extrapolation_range = max(0.0, psi_norm[0], 1.0 - psi_norm[-1])
             func = Interpolator1DArray(
                 psi_norm, data_1d[index], "cubic", "nearest", extrapolation_range
             )
@@ -315,53 +316,3 @@ def get_core_interpolators(
         pass  # TODO: handle velocity profile
 
     return interpolators
-
-
-def get_psi_norm(
-    psi: NDArray[np.float64] | None,
-    psi_axis: float,
-    psi_lcfs: float,
-    rho_tor_norm: NDArray[np.float64] | None,
-    psi_interpolator: Callable[[float], float] | None,
-) -> NDArray[np.float64]:
-    """Calculate normalized poloidal flux.
-
-    Parameters
-    ----------
-    psi
-        Poloidal flux values from the core grid.
-    psi_axis
-        Poloidal flux at the magnetic axis.
-    psi_lcfs
-        Poloidal flux at the last closed flux surface.
-    rho_tor_norm
-        Normalized toroidal flux values.
-    psi_interpolator
-        Interpolator function to map `rho_tor_norm` to `psi_norm`.
-        Used only if ``psi`` is None.
-
-    Returns
-    -------
-    `NDArray[np.float64]`
-        Normalized poloidal flux values.
-
-    Raises
-    ------
-    RuntimeError
-        If both ``psi`` and ``rho_tor_norm`` are None, or if ``psi_interpolator`` is None when
-        ``psi`` is None.
-    """
-    if psi is None:
-        if psi_interpolator is None:
-            raise RuntimeError(
-                "Unable to map rho_tor_norm to psi_norm grid: psi_interpolator is not provided."
-            )
-
-        if rho_tor_norm is None:
-            raise RuntimeError(
-                "No rho_tor_norm values are available in the core grid: unable to interpolate to psi_norm."
-            )
-
-        return np.array([psi_interpolator(rho) for rho in rho_tor_norm])
-
-    return (-psi / (2 * np.pi) - psi_axis) / (psi_lcfs - psi_axis)

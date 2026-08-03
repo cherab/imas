@@ -53,7 +53,7 @@ def load_equilibrium(
     time_threshold: float = np.inf,
     with_psi_interpolator: Literal[True],
     **kwargs,
-) -> tuple[EFITEquilibrium, Interpolator1DArray | None]: ...
+) -> tuple[EFITEquilibrium, Interpolator1DArray]: ...
 
 
 def load_equilibrium(
@@ -63,7 +63,7 @@ def load_equilibrium(
     time_threshold: float = np.inf,
     with_psi_interpolator: bool = False,
     **kwargs,
-) -> tuple[EFITEquilibrium, Interpolator1DArray | None] | EFITEquilibrium:
+) -> tuple[EFITEquilibrium, Interpolator1DArray] | EFITEquilibrium:
     """Load plasma equilibrium from the equilibrium IDS and create an `EFITEquilibrium` object.
 
     Parameters
@@ -87,11 +87,16 @@ def load_equilibrium(
     -------
     equilibrium : `~cherab.tools.equilibrium.efit.EFITEquilibrium`
         The plasma equilibrium object.
-    psi_interpolator : `~raysect.core.math.function.float.function1d.interpolate.Interpolator1DArray` | None
+    psi_interpolator : `~raysect.core.math.function.float.function1d.interpolate.Interpolator1DArray`
         If ``with_psi_interpolator`` is True and ``rho_tor_norm`` is available, returns the
         ``psi_norm(rho_tor_norm)`` interpolator.
-        If rho_tor_norm is not available, returns None.
-        Otherwise, returns only the equilibrium object.
+        If rho_tor_norm is not available, raise a `RuntimeError`.
+
+    Raises
+    ------
+    RuntimeError
+        If the equilibrium IDS does not have a time slice or if ``rho_tor_norm`` is not available
+        when ``with_psi_interpolator`` is True.
     """
     with DBEntry(*args, **kwargs) as entry:
         equilibrium_ids = get_ids_time_slice(
@@ -127,19 +132,19 @@ def load_equilibrium(
 
     if not with_psi_interpolator:
         return equilibrium
+    else:
+        if eq_data.rho_tor_norm is None:
+            raise RuntimeError("rho_tor_norm is not available in the equilibrium IDS.")
 
-    if eq_data.rho_tor_norm is None:
-        return equilibrium, None
+        psi_interpolator = Interpolator1DArray(
+            eq_data.rho_tor_norm,
+            eq_data.psi_norm,
+            "cubic",
+            "none",
+            0,
+        )
 
-    psi_interpolator = Interpolator1DArray(
-        eq_data.rho_tor_norm,
-        eq_data.psi_norm,
-        "cubic",
-        "none",
-        0,
-    )
-
-    return equilibrium, psi_interpolator
+        return equilibrium, psi_interpolator
 
 
 def load_magnetic_field(

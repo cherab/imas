@@ -66,7 +66,7 @@ examples.md
 ```
 
 ```{toctree}
-:caption: Reference 📖
+:caption: Reference
 :hidden:
 :maxdepth: 1
 

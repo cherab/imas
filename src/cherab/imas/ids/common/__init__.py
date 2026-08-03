@@ -17,8 +17,18 @@
 # under the Licence.
 """Subpackage for common utilities for loading data from IMAS IDS structures."""
 
-from . import ggd, species
+from __future__ import annotations
+
+from . import ggd, grid_radial, species
+from ._ids_numeric import get_ids_numeric_field
 from ._model import solve_coronal_equilibrium
 from .slice import get_ids_time_slice
 
-__all__ = ["species", "get_ids_time_slice", "ggd", "solve_coronal_equilibrium"]
+__all__ = [
+    "ggd",
+    "grid_radial",
+    "species",
+    "solve_coronal_equilibrium",
+    "get_ids_time_slice",
+    "get_ids_numeric_field",
+]

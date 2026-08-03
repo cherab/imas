@@ -200,14 +200,25 @@ def get_ion_state(
                     break
             else:
                 z_average = []
-        if len(z_average):  # probably, a bundle
+        if len(z_average):
+            warning_msg = (
+                f"Warning: z_min or z_max is EMPTY_FLOAT for state index {state_index}. "
+                f"Using z_average to determine z_min and z_max."
+            )
             z_min = (
                 int(state.z_min) if state.z_min != EMPTY_FLOAT else int(np.floor(min(z_average)))
             )
             z_max = int(state.z_max) if state.z_max != EMPTY_FLOAT else int(np.ceil(max(z_average)))
-        else:  # probably, a single ion
+        else:
+            warning_msg = (
+                f"Warning: z_min or z_max is EMPTY_FLOAT for state index {state_index}. "
+                f"z_average is also empty. Using state_index + 1 as z_min and z_max."
+            )
             z_min = int(state.z_min) if state.z_min != EMPTY_FLOAT else state_index + 1
             z_max = int(state.z_max) if state.z_max != EMPTY_FLOAT else z_min
+
+        print(warning_msg)
+
     else:
         z_min = int(state.z_min)
         z_max = int(state.z_max)
@@ -367,14 +378,14 @@ def get_elements(elements_aos: IDSStructArray) -> tuple[Element | Isotope, ...]:
         mass_number = int(round(element.a))
         zn = int(round(element.z_n))
         isotope = lookup_isotope(zn, number=mass_number)
-        if int(round(isotope.element.atomic_weight)) == mass_number:
+        if round(isotope.element.atomic_weight) == mass_number:
             # Prefer element over isotope
             isotope = isotope.element
 
         if getattr(element, "atoms_n", EMPTY_INT) == EMPTY_INT:
             atoms_n = 1
         else:
-            atoms_n = int(round(getattr(element, "atoms_n", EMPTY_INT)))
+            atoms_n = round(getattr(element, "atoms_n", EMPTY_INT), ndigits=None)
 
         for _ in range(atoms_n):
             elements.append(isotope)
