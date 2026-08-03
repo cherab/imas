@@ -241,6 +241,7 @@ def test_load_radiation_emitter_values_with_core_and_ggd(
     assert primitive.material is not None
 
 
+@pytest.mark.requires_imas_memory_backend
 def test_load_radiation_emitter_values_completes_from_second_ids_core_then_ggd(
     path_iter_jintrac_radiation_values: str,
     monkeypatch: pytest.MonkeyPatch,
@@ -285,6 +286,7 @@ def test_load_radiation_emitter_values_completes_from_second_ids_core_then_ggd(
         entry2.close()
 
 
+@pytest.mark.requires_imas_memory_backend
 def test_load_radiation_emitter_values_completes_from_second_ids_ggd_then_core(
     path_iter_jintrac_radiation_values: str,
     monkeypatch: pytest.MonkeyPatch,
@@ -329,6 +331,7 @@ def test_load_radiation_emitter_values_completes_from_second_ids_ggd_then_core(
         entry2.close()
 
 
+@pytest.mark.requires_imas_memory_backend
 def test_load_radiation_emitter_values_raises_for_duplicate_core_in_args2(
     path_iter_jintrac_radiation_values: str,
     monkeypatch: pytest.MonkeyPatch,
@@ -374,6 +377,7 @@ def test_load_radiation_emitter_values_raises_for_duplicate_core_in_args2(
         entry2.close()
 
 
+@pytest.mark.requires_imas_memory_backend
 def test_load_radiation_emitter_values_raises_for_duplicate_ggd_in_args2(
     path_iter_jintrac_radiation_values: str,
     monkeypatch: pytest.MonkeyPatch,
