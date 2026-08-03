@@ -140,7 +140,7 @@ def load_ids_path_reference(
         The resolved IDS object.
     """
     ref = parse_ids_path_fragment(reference) if isinstance(reference, str) else reference
-    ids = entry.get(ref.ids_name, occurrence=ref.occurrence or 0, autoconvert=False, lazy=True)
+    ids = entry.get(ref.ids_name, occurrence=ref.occurrence or 0, autoconvert=False)
     if not ref.idspath:
         return ids
 

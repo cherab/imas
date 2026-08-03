@@ -174,6 +174,8 @@ def _resolve_grid_source(grid_ggd: IDSStructure, entry: DBEntry | None = None) -
     if not path:
         return grid_ggd
 
+    print(f"Info: resolving GGD grid from grid_ggd.path '{path}'.")
+
     resolved: IDSToplevel | IDSStructure | IDSStructArray
 
     if "#" in path:
