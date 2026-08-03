@@ -49,7 +49,8 @@ pip install cherab-imas
 mamba install -c conda-forge cherab-imas
 ```
 
-> Note: some IMAS features that rely on the memory backend require a working `imas_core` runtime. On platforms where that backend is unavailable (for example, some macOS Intel environments), a subset of tests that exercise those features may be skipped automatically, while the core package functionality remains available.
+> [!NOTE]
+> Some IMAS features that rely on the memory backend require a working `imas_core` runtime. On platforms where that backend is unavailable (for example, some macOS Intel environments), a subset of tests that exercise those features may be skipped automatically, while the core package functionality remains available.
 
 ## 📝 Documentation
 
