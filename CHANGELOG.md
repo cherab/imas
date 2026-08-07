@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve radiation emitter loading checks for duplicate emissivity values and core-profile grid data
 - Refactor `load_grid` to support explicit `entry` selection and improve referenced-grid source resolution
 - Enhance plasma and emitter loading paths to use entry-reference aware grid resolution
+- Promote `rich` from a test-only dependency to a runtime dependency
 
 ### Fixed
 

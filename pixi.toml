@@ -28,6 +28,7 @@ cherab = "1.5.*"
 
 [package.run-dependencies]
 imas-python = "*"
+rich = "*"
 pooch = "*"
 typing-extensions = ">=4.5"
 
@@ -37,7 +38,6 @@ typing-extensions = ">=4.5"
 [dependencies]
 cherab-imas = { path = "." }
 ipython = "*"
-rich = "*"
 
 # Publication-quality plot
 ultraplot = ">=1.72.0"

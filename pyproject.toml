@@ -34,13 +34,14 @@ classifiers = [
 dependencies = [
   "cherab==1.5.*",
   "imas-python[netcdf]",
+  "rich",
   "pooch",
   "typing-extensions; python_version < '3.12'",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "rich", "plotly"]
+test = ["pytest", "pytest-cov", "plotly"]
 
 [project.urls]
 Homepage = "https://github.com/cherab"
