@@ -76,7 +76,8 @@ src = "cherab"
 include_numpy = true
 compile_py = false
 parallel = true
-compile_args = ["-O3"]
+compile_args = ["-O3", { arg = "-Xclang=-fopenmp", platforms = ["darwin"] }]
+extra_link_args = [{ arg = "-lomp", platforms = ["darwin"] }]
 env = [
   { env = "LDFLAGS", arg = "-headerpad_max_install_names", platforms = [
     "darwin",
