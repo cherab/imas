@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Select read mode automatically when CHERAB object loaders receive an IMAS URI or netCDF path;
+  explicit `"r"` arguments remain temporarily supported but are deprecated
+- Reject data-creating DBEntry modes in CHERAB object loader APIs
+- Update API docstrings, examples, demos, and notebooks to use mode-free loader calls
 - Improve radiation emitter loading checks for duplicate emissivity values and core-profile grid data
 - Refactor `load_grid` to support explicit `entry` selection and improve referenced-grid source resolution
 - Enhance plasma and emitter loading paths to use entry-reference aware grid resolution
