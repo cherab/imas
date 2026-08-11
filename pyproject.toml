@@ -91,7 +91,7 @@ define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
 targets = ["**/*.pyx"]
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-* cp314t-*" # TODO: add cp313/314 when cherab supports it
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*" # TODO: Suppport latest CPython after cherab supports it
 build-frontend = "build[uv]"
 test-extras = ["test"]
 test-command = "pytest {project}/tests"
