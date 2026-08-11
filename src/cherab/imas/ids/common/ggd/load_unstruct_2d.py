@@ -18,17 +18,23 @@
 """Module for loading unstructured 2D grids from IMAS grid_ggd IDS structure."""
 
 from enum import IntEnum
-from typing import Literal, overload
+from typing import Final, Literal, cast, overload
 
 import numpy as np
 from numpy.typing import NDArray
 
-from imas.ids_defs import EMPTY_INT
-from imas.ids_structure import IDSStructure
+from imas.ids_structure import IDSStructArray, IDSStructure
 
 from ....ggd.unstruct_2d_mesh import UnstructGrid2D
 
 __all__ = ["load_unstruct_grid_2d"]
+
+_KNOWN_2D_SUBSET_IDS: Final[frozenset[int]] = frozenset({5, 22, 23, 24, 25, 38, 39, 40})
+"""Set of known 2D grid subset indices in IMAS grid_ggd structure.
+
+The detailed description of each subset can be found in the IMAS data dictionary:
+https://imas-data-dictionary.readthedocs.io/en/latest/generated/identifier/ggd_subset_identifier.html
+"""
 
 
 class DIMENSION(IntEnum):
@@ -51,12 +57,17 @@ def load_unstruct_grid_2d(
     space_index: int = 0,
     *,
     with_subsets: Literal[True],
-) -> tuple[UnstructGrid2D, dict[str, NDArray[np.int32]], dict[str, int]]: ...
+) -> tuple[
+    UnstructGrid2D, dict[str, tuple[NDArray[np.int32], NDArray[np.bool_]]], dict[str, int]
+]: ...
 
 
 def load_unstruct_grid_2d(
     grid_ggd: IDSStructure, space_index: int = 0, with_subsets: bool = False
-) -> UnstructGrid2D | tuple[UnstructGrid2D, dict[str, NDArray[np.int32]], dict[str, int]]:
+) -> (
+    UnstructGrid2D
+    | tuple[UnstructGrid2D, dict[str, tuple[NDArray[np.int32], NDArray[np.bool_]]], dict[str, int]]
+):
     """Load unstructured 2D grid from the grid_ggd structure.
 
     Parameters
@@ -72,9 +83,10 @@ def load_unstruct_grid_2d(
     -------
     grid : `.UnstructGrid2D`
         Unstructured 2D grid object.
-    subsets : `dict[str, NDArray[numpy.int32]]`
-        Dictionary with grid subsets for each subset name containing the indices of the cells from
-        that subset. Note that 'Cells' subset is included only if cell indices are specified.
+    subsets : `dict[str, tuple[NDArray[np.int32], NDArray[np.bool_]]]`
+        Dictionary with grid subsets for each subset name containing a tuple with the indices of the
+        cells from that subset and a boolean array indicating the validity of each index.
+        Note that 'Cells' subset is included only if cell indices are specified.
     subset_id : `dict[str, int]`
         Dictionary with grid subset indices.
 
@@ -98,15 +110,32 @@ def load_unstruct_grid_2d(
         vertices[i] = space.objects_per_dimension[DIMENSION.VERTEX].object[i].geometry[:2]
 
     # Reading polygonal cells
+    faces = cast(IDSStructArray, space.objects_per_dimension[DIMENSION.FACE].object)
+    num_faces = len(faces)
     cells = []
+    # ``cells`` is compact (invalid faces are omitted), while GGD subset
+    # references are expressed in the original face numbering.
+    face_to_cell = np.full(num_faces, -1, dtype=np.int32)
+    valid_face = np.ones(num_faces, dtype=bool)
     winding_ok = True
-    for object in space.objects_per_dimension[DIMENSION.FACE].object:
-        # getting cell from nodes
-        cell = np.asarray_chkfinite(object.nodes, dtype=np.int32) - 1  # Fortran to C indexing
+
+    for i_face in range(num_faces):
+        face = faces[i_face]
+
+        if not face.has_value or not face.nodes.has_value:
+            valid_face[i_face] = False
+            continue
+        # Convert every face from Fortran to C indexing. Triangular faces are already ordered.
+        # Only polygons need their winding reconstructed below.
+        cell = np.asarray_chkfinite(face.nodes, dtype=np.int32) - 1
+        if cell.size < 3:
+            valid_face[i_face] = False
+            continue
+
         if cell.size > 3:
             # trying to get the nodes in winding order by parsing the edges
-            edge_dict = {}
-            for boundary in object.boundary:
+            edge_dict: dict[int, list[int]] = {}
+            for boundary in face.boundary:
                 n1, n2 = (
                     space.objects_per_dimension[DIMENSION.EDGE].object[boundary.index - 1].nodes - 1
                 )  # Fortran to C indexing
@@ -127,6 +156,7 @@ def load_unstruct_grid_2d(
                     edge_dict[n2][1] = n1
                 else:
                     edge_dict[n2] = [n1, -1]
+
             if len(edge_dict) == cell.size:  # success, getting the cell nodes in winding order
                 cell1 = np.empty(len(edge_dict), dtype=np.int32)
                 cell1[0] = cell[0]
@@ -139,36 +169,46 @@ def load_unstruct_grid_2d(
             else:
                 winding_ok = False
 
-            cells.append(cell)
+        face_to_cell[i_face] = len(cells)
+        cells.append(cell)
 
     if not winding_ok:
         print("Warning! Unable to verify that the cell nodes are in the winding order.")
 
-    grid = UnstructGrid2D(vertices, cells, name=grid_name)
+    grid = UnstructGrid2D(vertices, cells, valid_face, name=grid_name)
 
     if not with_subsets:
         return grid
 
     # Reading grid subsets (2D only)
-    CELL_SUBSET_IDS = {5, 22, 23, 24, 25, 38, 39, 40}
-    subsets = {}
-    subset_id = {}
+    subsets: dict[str, tuple[NDArray[np.int32], NDArray[np.bool_]]] = {}
+    subset_id: dict[str, int] = {}
     for subset in grid_ggd.grid_subset:
-        subset_index = subset.identifier.index.value
-        dimension_is_2d = subset.dimension == DIMENSION.FACE + 1  # C to Fortran indexing
-        known_subset_id = subset.dimension != EMPTY_INT and subset_index in CELL_SUBSET_IDS
+        subset_index: int = subset.identifier.index.value
+        dimension_is_2d: bool = subset.dimension == DIMENSION.FACE + 1  # C to Fortran indexing
+        known_subset_id: bool = subset_index in _KNOWN_2D_SUBSET_IDS
         if (dimension_is_2d or known_subset_id) and len(subset.element):
             name = str(subset.identifier.name)
-            indices = np.empty(len(subset.element), dtype=np.int32)
-            for i, element in enumerate(subset.element):
+            num_elm = len(subset.element)
+            indices = np.empty(num_elm, dtype=np.int32)
+            valid_subset = np.ones_like(indices, dtype=bool)
+            for i_elm, element in enumerate(subset.element):
                 if len(element.object) > 1:
                     print(
                         f"Warning! Skipping grid subset {name}, "
                         + "because it includes cells not present in the original grid."
                     )
                     break
-                indices[i] = element.object[0].index.value
-            subsets[name] = indices - 1  # Fortran to C indexing
-            subset_id[name] = subset_index
+                face_index = element.object[0].index.value - 1  # Fortran to C indexing
+                if face_index < 0 or face_index >= num_faces:
+                    valid_subset[i_elm] = False
+                    indices[i_elm] = -1
+                    continue
+                indices[i_elm] = face_to_cell[face_index]
+                if indices[i_elm] < 0:
+                    valid_subset[i_elm] = False
+            else:
+                subsets[name] = (indices[valid_subset], valid_subset)
+                subset_id[name] = subset_index
 
     return grid, subsets, subset_id
