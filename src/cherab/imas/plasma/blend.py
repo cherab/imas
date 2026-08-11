@@ -37,11 +37,12 @@ from imas.ids_structure import IDSStructure
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
 from ..ids.common.grid_radial import get_psi_norm, load_core_grid
+from ..ids.common.species import select_profile_data
 from ..ids.core_profiles import load_core_species
 from ..ids.edge_profiles import load_edge_species
 from ..math.blend import blend_core_edge_functions
 from .core import get_core_interpolators, load_core_plasma
-from .edge import get_edge_interpolators, load_edge_plasma
+from .edge import _get_profile_indices, get_edge_interpolators, load_edge_plasma
 from .equilibrium import load_equilibrium, load_magnetic_field
 from .utility import (
     ZERO_VELOCITY,
@@ -284,9 +285,10 @@ def load_plasma(
     try:
         grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
 
-        if not np.array_equal(subsets[grid_subset_name], np.arange(grid.num_cell, dtype=int)):
+        subset_indices, subset_mask = subsets[grid_subset_name]
+        if not np.array_equal(subset_indices, np.arange(grid.num_cell, dtype=int)):
             # To reduce memory usage, create the sub-grid only if needed.
-            grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+            grid = grid.subset(subset_indices, name=grid_subset_name, valid_data_mask=subset_mask)
     except ValueError:
         print(
             f"Warning! Grid subset with identifier '{grid_subset_id}' not found in {subset_id}.",
@@ -299,6 +301,9 @@ def load_plasma(
         split_ion_bundles=split_ion_bundles,
         atomic_data=atomic_data,
     )
+    profile_indices, source_size = _get_profile_indices(grid_ggd, grid_subset_index)
+    if profile_indices is not None:
+        select_profile_data(composition_edge, profile_indices, source_size)
 
     # ----------------------------
     # === Create Plasma object ===

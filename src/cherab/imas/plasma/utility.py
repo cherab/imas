@@ -85,6 +85,10 @@ class ProfileInterpolator:
     """Interpolating function for the velocity profile."""
 
 
+# TODO: Add molecular species to Cherab Plasma when molecular models are available:
+# - represent neutral and charged molecules in Plasma.composition;
+# - construct distributions using molecular masses;
+# - integrate molecular collision and radiative models.
 def warn_unsupported_species(
     composition: SpeciesComposition,
     species_type: Literal["ion_bundle", "molecule", "molecular_bundle"],
@@ -100,21 +104,7 @@ def warn_unsupported_species(
     """
     profiles = getattr(composition, species_type, None)
     if profiles is not None and len(profiles) > 0:
-        names: list[str] = []
-        for profile_data in profiles:
-            name: str | None = getattr(profile_data.species, "name", None)
-            if name is None:
-                element = getattr(profile_data.species, "element", None)
-                if element is None:
-                    elements = getattr(profile_data.species, "elements", None)
-                    if elements is None or len(elements) == 0:
-                        name = "Unknown"
-                    else:
-                        name = "".join([e.name for e in elements])
-                else:
-                    name = element.name
-
-            names.append(name)
+        names = [str(profile_data.species) for profile_data in profiles]
 
         print(
             f"Warning! Species of type '{species_type}' are currently not supported.\n"

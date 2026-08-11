@@ -39,7 +39,11 @@ from imas.ids_structure import IDSStructure
 from ..ggd.base_mesh import GGDGrid
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
-from ..ids.common.species import ProfileData, VelocityData
+from ..ids.common.species import (
+    ProfileData,
+    VelocityData,
+    select_profile_data,
+)
 from ..ids.edge_profiles import load_edge_species
 from ..math import UnitVector2D
 from .equilibrium import load_equilibrium, load_magnetic_field
@@ -160,9 +164,10 @@ def load_edge_plasma(
 
     try:
         grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
-        if not np.array_equal(subsets[grid_subset_name], np.arange(grid.num_cell, dtype=int)):
+        subset_indices, subset_mask = subsets[grid_subset_name]
+        if not np.array_equal(subset_indices, np.arange(grid.num_cell, dtype=int)):
             # To reduce memory usage, create the sub-grid only if needed.
-            grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+            grid = grid.subset(subset_indices, name=grid_subset_name, valid_data_mask=subset_mask)
     except ValueError:
         print(
             f"Warning! Grid subset with identifier '{grid_subset_id}' not found in {subset_id}.",
@@ -176,6 +181,9 @@ def load_edge_plasma(
         split_ion_bundles=split_ion_bundles,
         atomic_data=atomic_data,
     )
+    profile_indices, source_size = _get_profile_indices(grid_ggd_local, grid_subset_index)
+    if profile_indices is not None:
+        select_profile_data(composition, profile_indices, source_size)
 
     # ----------------------------
     # === Create Plasma object ===
@@ -274,6 +282,41 @@ def load_edge_plasma(
     warn_unsupported_species(composition, "molecular_bundle")
 
     return plasma
+
+
+def _get_profile_indices(
+    grid_ggd: IDSStructure, grid_subset_index: int
+) -> tuple[NDArray[np.intp] | None, int]:
+    """Return valid source positions for a selected GGD face subset.
+
+    Returns
+    -------
+    indices
+        Positions of valid face entries, or None when no GGD space is available.
+    source_size
+        Number of entries in the selected subset before filtering.
+    """
+    if not len(grid_ggd.space) or len(grid_ggd.space[0].objects_per_dimension) < 3:
+        return None, 0
+
+    faces = grid_ggd.space[0].objects_per_dimension[2].object
+    valid_faces = {
+        index
+        for index, face in enumerate(faces)
+        if face.has_value and face.nodes.has_value and len(face.nodes) >= 3
+    }
+    for subset in grid_ggd.grid_subset:
+        if subset.identifier.index.value != grid_subset_index:
+            continue
+        source_size = len(subset.element)
+        indices = [
+            position
+            for position, element in enumerate(subset.element)
+            if len(element.object) == 1 and element.object[0].index.value - 1 in valid_faces
+        ]
+        return np.asarray(indices, dtype=np.intp), source_size
+
+    return None, 0
 
 
 def get_edge_interpolators(
