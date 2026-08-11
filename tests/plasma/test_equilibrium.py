@@ -9,7 +9,7 @@ plt.rcParams["backend"] = "Agg"  # Use non-interactive backend for testing
 
 def test_load_equilibrium(path_iter_jintrac: str):
     """Test loading of equilibrium data from an IMAS file."""
-    equilibrium = load_equilibrium(path_iter_jintrac, "r")
+    equilibrium = load_equilibrium(path_iter_jintrac)
 
     # Test that equilibrium object is returned
     assert isinstance(equilibrium, EFITEquilibrium)
@@ -20,7 +20,7 @@ def test_load_equilibrium(path_iter_jintrac: str):
 
 def test_load_magnetic_field(path_iter_jintrac: str):
     """Test loading of magnetic field data from an IMAS file."""
-    magnetic_field = load_magnetic_field(path_iter_jintrac, "r")
+    magnetic_field = load_magnetic_field(path_iter_jintrac)
 
     # Test that Vector3DFunction2D object is returned
     assert isinstance(magnetic_field, Vector3DFunction2D)

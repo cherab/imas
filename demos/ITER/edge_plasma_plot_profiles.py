@@ -79,18 +79,22 @@ extent = [xl, xu, zl, zu]
 
 # Load and plot equilibrium
 try:
-    equilibrium = load_equilibrium(iter_jintrac(), "r")
+    equilibrium = load_equilibrium(iter_jintrac())
     plot_equilibrium(equilibrium)
     plt.gcf().savefig(plots_path / "equilibrium.png", dpi=200)
     b_field = equilibrium.b_field
 except RuntimeError:
     try:
-        b_field = load_magnetic_field(iter_jintrac(), "r")
+        b_field = load_magnetic_field(iter_jintrac())
     except RuntimeError:
         b_field = None
 
 # Sample and plot magnetic field
 plot_velocity = False
+b = None
+b_length = None
+radial_vector = None
+poloidal_vector = None
 if b_field is not None:
     try:
         xsamp, zsamp, b = samplevector2d(b_field, (xl, xu, nx), (zl, zu, nz))
@@ -116,7 +120,7 @@ if b_field is not None:
         )
 
 # Load edge plasma
-plasma = load_edge_plasma(iter_jintrac(), "r", b_field=b_field)
+plasma = load_edge_plasma(iter_jintrac(), b_field=b_field)
 
 # Sample and plot electron profiles
 xsamp, _, zsamp, ne_plasma = sample3d(
@@ -132,7 +136,7 @@ te_plasma = sample3d_grid(
 fig = plot_quantity(te_plasma, extent, title="Te [eV]", logscale=True)
 fig.savefig(plots_path / "edge_te.png", dpi=200)
 
-if plot_velocity:
+if plot_velocity and b is not None and b_length is not None:
     electron_velocity = samplevector3d_grid(
         plasma.electron_distribution.bulk_velocity, xsamp, [0], zsamp
     ).squeeze()
@@ -174,7 +178,13 @@ for species in plasma.composition:
             dpi=200,
         )
 
-        if plot_velocity:
+        if (
+            plot_velocity
+            and b is not None
+            and b_length is not None
+            and radial_vector is not None
+            and poloidal_vector is not None
+        ):
             velocity = samplevector3d_grid(
                 species.distribution.bulk_velocity, xsamp, [0], zsamp
             ).squeeze()

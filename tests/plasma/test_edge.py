@@ -19,7 +19,7 @@ plt.rcParams["backend"] = "Agg"  # Use non-interactive backend for testing
 
 def test_load_edge_plasma(path_iter_jintrac: str):
     """Test loading of edge plasma data from an IMAS file."""
-    plasma = load_edge_plasma(path_iter_jintrac, "r")
+    plasma = load_edge_plasma(path_iter_jintrac)
 
     # Test that a Plasma object is returned
     assert isinstance(plasma, Plasma)

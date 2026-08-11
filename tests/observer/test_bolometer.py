@@ -10,7 +10,7 @@ from cherab.imas.observer.bolometer import load_bolometers, visualize
 
 def test_load_bolometers(path_bolometer_moc: str) -> None:
     """Test loading bolometer data from an IDS dataset."""
-    bolometers = load_bolometers(path_bolometer_moc, "r")
+    bolometers = load_bolometers(path_bolometer_moc)
 
     # Check that the bolometer cameras are loaded correctly
     assert len(bolometers) == 3

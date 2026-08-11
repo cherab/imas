@@ -10,6 +10,7 @@ from imas.ids_defs import MEMORY_BACKEND
 from raysect.primitive import Cylinder, Subtract
 
 import cherab.imas.emitter.radiation as radiation_module
+from cherab.imas import _dbentry as dbentry_module
 from cherab.imas.emitter import load_radiation_emitter
 from cherab.imas.plasma.equilibrium import load_equilibrium
 
@@ -63,14 +64,14 @@ def _patch_dbentry_for_open_entries(
     monkeypatch: pytest.MonkeyPatch,
     entries: dict[tuple, DBEntry],
 ) -> None:
-    original_dbentry = radiation_module.DBEntry
+    original_dbentry = dbentry_module.DBEntry
 
     def _dbentry_router(*args, **kwargs):
         if not kwargs and args in entries:
             return _OpenEntryContext(entries[args])
         return original_dbentry(*args, **kwargs)
 
-    monkeypatch.setattr(radiation_module, "DBEntry", _dbentry_router)
+    monkeypatch.setattr(dbentry_module, "DBEntry", _dbentry_router)
 
 
 def _write_split_radiation_to_memory(
@@ -146,7 +147,6 @@ def test_load_radiation_emitter_coefficients_uses_default_phis(
 
     primitive = load_radiation_emitter(
         path_iter_jorek,
-        "r",
         source="coefficients",
         **_cache_kwargs(radiation_interpolator_cache),
     )
