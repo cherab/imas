@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import Literal, cast, overload
 
+import numpy as np
 from numpy import int32
 from numpy.typing import NDArray
 
@@ -55,7 +56,7 @@ def load_grid(
     num_toroidal: int | None = None,
     *,
     entry: DBEntry | None = None,
-) -> tuple[UnstructGrid2D, dict[str, NDArray[int32]], dict[str, int]]: ...
+) -> tuple[UnstructGrid2D, dict[str, tuple[NDArray[int32], NDArray[np.bool_]]], dict[str, int]]: ...
 
 
 def load_grid(
@@ -66,7 +67,7 @@ def load_grid(
     entry: DBEntry | None = None,
 ) -> (
     UnstructGrid2D
-    | tuple[UnstructGrid2D, dict[str, NDArray[int32]], dict[str, int]]
+    | tuple[UnstructGrid2D, dict[str, tuple[NDArray[int32], NDArray[np.bool_]]], dict[str, int]]
     | UnstructGrid2DExtended
 ):
     """Load grid from the ``grid_ggd`` structure.
