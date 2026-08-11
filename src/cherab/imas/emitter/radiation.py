@@ -211,7 +211,6 @@ def load_radiation_emitter(
     psi_interpolator: Callable[[float], float] | None = None,
     mask: Function2D | Function3D | None = None,
     num_toroidal: int = 64,
-    phis: NDArray[np.float64] | None = None,
     source: Literal["auto", "values", "coefficients"] = "auto",
     time_threshold: float = np.inf,
     step: float = 0.01,
@@ -266,8 +265,7 @@ def load_radiation_emitter(
         Radiation process identifier index (or indices) to load.
         By default, all available processes are summed together.
         Reference: https://imas-data-dictionary.readthedocs.io/en/latest/generated/identifier/radiation_identifier.html
-        .. note::
-            The emissivity value array is assumed to follow the same x-axis as the grid subset.
+        The emissivity value array is assumed to follow the same x-axis as the grid subset.
     grid_ggd
         Specific grid GGD structure alternative to the one in the IDS.
     grid_subset_id
@@ -286,9 +284,6 @@ def load_radiation_emitter(
         By default, uses `~cherab.tools.equilibrium.efit.EFITEquilibrium`'s `inside_lcfs`.
     num_toroidal
         Number of toroidal subdivisions for 3D grid extension, by default 64.
-        This is used only when the grid is loaded by `.load_unstruct_grid_2d_extended`.
-    phis
-        Array of toroidal angles in degrees for emissivity reconstruction, by default None.
         This is used only when the grid is loaded by `.load_unstruct_grid_2d_extended`.
     source
         Source for emissivity data: ``"auto"`` (tries values then coefficients), ``"values"``
@@ -553,13 +548,10 @@ def load_radiation_emitter(
 
         constructor = FourierBezierConstructor(grid_ggd, coefficients=coeff)
 
-        if phis is None:
-            d_phi = 360.0 / grid.num_toroidal
-            phis_array = np.arange(d_phi * 0.5, 360.0, d_phi, dtype=np.float64)
-        else:
-            phis_array = np.asarray(phis, dtype=np.float64)
+        d_phi = 360.0 / grid.num_toroidal
+        phis = np.arange(d_phi * 0.5, 360.0, d_phi, dtype=np.float64)
 
-        emissivity = constructor.average_gaussian_faces_per_toroidal(phis_array).ravel()
+        emissivity = constructor.average_gaussian_faces_per_toroidal(phis).ravel()
         primitive_name = f"RadiationEmitter_{ids.time[0]}s, entry {entry_reference}"
 
         rad_func = grid.interpolator(

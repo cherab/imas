@@ -161,6 +161,8 @@ def test_load_radiation_emitter_coefficients_uses_default_phis(
     assert np.all(np.diff(phis_used) > 0)
     assert 0.0 < phis_used[0] < 360.0
     assert 0.0 < phis_used[-1] < 360.0
+    d_phi = 360.0 / phis_used.size
+    np.testing.assert_allclose(phis_used, np.arange(0.5 * d_phi, 360.0, d_phi, dtype=np.float64))
 
 
 def test_load_radiation_emitter_auto_falls_back_to_coefficients(
@@ -176,38 +178,6 @@ def test_load_radiation_emitter_auto_falls_back_to_coefficients(
 
     assert isinstance(primitive, (Subtract, Cylinder))
     assert primitive.material is not None
-
-
-def test_load_radiation_emitter_coefficients_uses_given_phis(
-    path_iter_jorek: str,
-    monkeypatch: pytest.MonkeyPatch,
-    radiation_interpolator_cache: tuple[Literal["memory", "disk"], Path | None],
-):
-    captured: dict[str, np.ndarray] = {}
-    original_constructor = radiation_module.FourierBezierConstructor
-
-    class _SpyFourierBezierConstructor:
-        def __init__(self, *args, **kwargs):
-            self._inner = original_constructor(*args, **kwargs)
-
-        def average_gaussian_faces_per_toroidal(self, phis):
-            captured["phis"] = np.asarray(phis, dtype=np.float64).copy()
-            return self._inner.average_gaussian_faces_per_toroidal(phis)
-
-    monkeypatch.setattr(radiation_module, "FourierBezierConstructor", _SpyFourierBezierConstructor)
-
-    expected_phis = np.array([15.0, 105.0, 195.0, 285.0], dtype=np.float64)
-    primitive = load_radiation_emitter(
-        path_iter_jorek,
-        "r",
-        source="coefficients",
-        phis=expected_phis,
-        **_cache_kwargs(radiation_interpolator_cache),
-    )
-
-    assert isinstance(primitive, (Subtract, Cylinder))
-    assert primitive.material is not None
-    np.testing.assert_allclose(captured["phis"], expected_phis)
 
 
 def test_load_radiation_emitter_values_raises_for_jorek(
@@ -430,7 +400,7 @@ def test_load_radiation_emitter_invalid_source_raises_early(
         def __init__(self, *args, **kwargs):
             raise AssertionError("DBEntry must not be instantiated for invalid source.")
 
-    monkeypatch.setattr(radiation_module, "DBEntry", _UnexpectedDBEntry)
+    monkeypatch.setattr(dbentry_module, "DBEntry", _UnexpectedDBEntry)
 
     with pytest.raises(
         ValueError,
