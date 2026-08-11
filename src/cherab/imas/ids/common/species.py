@@ -19,11 +19,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from colorsys import hsv_to_rgb
+from dataclasses import dataclass, field, fields, is_dataclass
 from enum import Enum
+from typing import get_args, get_origin, get_type_hints
+from zlib import crc32
 
 import numpy as np
 from numpy.typing import NDArray
+from rich.text import Text
+from rich.tree import Tree
 
 from cherab.core.atomic.elements import Element, Isotope, lookup_isotope
 from imas.ids_defs import EMPTY_FLOAT, EMPTY_INT
@@ -36,12 +41,29 @@ __all__ = [
     "ProfileData",
     "SpeciesComposition",
     "VelocityData",
+    "select_profile_data",
     "get_ion_state",
     "get_neutral_state",
     "get_ion",
     "get_neutral",
     "get_elements",
 ]
+
+
+def _element_style(symbol: str) -> str:
+    """Return a stable bright style derived directly from an element symbol.
+
+    The hue excludes the red sector and does not depend on the size or ordering of a palette.
+
+    Returns
+    -------
+    str
+        Rich style containing a deterministic true-color foreground.
+    """
+    hash_fraction = (crc32(symbol.encode()) >> 20) / 0xFFF
+    hue = (35.0 + 290.0 * hash_fraction) / 360.0
+    rgb = tuple(round(channel * 255) for channel in hsv_to_rgb(hue, 0.6, 1.0))
+    return f"bold #{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
 
 
 class SpeciesType(Enum):
@@ -56,9 +78,9 @@ class SpeciesType(Enum):
     NEUTRAL_BUNDLE = "neutral_bundle"
     """Bundle of neutral states"""
     MOLECULE = "molecule"
-    """Single molecule state"""
+    """Single molecular state; neutral or charged according to ``z_min`` and ``z_max``"""
     MOLECULAR_BUNDLE = "molecular_bundle"
-    """Bundle of molecular states"""
+    """Bundle of molecular states or charge states"""
 
 
 @dataclass
@@ -69,9 +91,9 @@ class SpeciesData:
     """Minimum ionization state of the species"""
     z_max: int
     """Maximum ionization state of the species"""
-    element: Element | None = None
+    element: Element | Isotope | None = None
     """Element that makes up the species, if it is a single particle"""
-    elements: tuple[Element, ...] = field(default_factory=tuple)
+    elements: tuple[Element | Isotope, ...] = field(default_factory=tuple)
     """Elements that make up the species, if it is a molecule"""
     species_type: SpeciesType | None = None
     """Type of species"""
@@ -103,11 +125,92 @@ class SpeciesData:
             else:
                 return f"{self.species_type.value} (z={self.z_min}-{self.z_max})"
         elif self.species_type == SpeciesType.MOLECULE:
-            return f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value}"
+            molecule = f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value}"
+            return f"{molecule} (z=+{self.z_min})" if self.z_min else molecule
         elif self.species_type == SpeciesType.MOLECULAR_BUNDLE:
             return f"{'-'.join(el.symbol for el in self.elements)} {self.species_type.value} (z={self.z_min}-{self.z_max})"
         else:
             return "Unknown species type"
+
+    def compact_label(self) -> str:
+        """Return a compact label for display beneath a species-type group.
+
+        Returns
+        -------
+        str
+            Elemental or molecular symbol followed by charge information when non-zero.
+        """
+        symbol = self._symbol_label()
+        if symbol is None:
+            return "Unknown"
+
+        if self.z_min != self.z_max:
+            minimum = self._charge_label(self.z_min, omit_unit=False)
+            maximum = self._charge_label(self.z_max, omit_unit=False)
+            return f"{symbol} {minimum}–{maximum}"
+        if self.z_min:
+            return f"{symbol} {self._charge_label(self.z_min)}"
+        return symbol
+
+    def _symbol_label(self) -> str | None:
+        """Return the elemental or molecular symbol used at the start of display labels.
+
+        Returns
+        -------
+        str or None
+            Elemental or molecular symbol, if available.
+        """
+        if self.element is not None:
+            return self.element.symbol
+        if self.elements:
+            return "-".join(element.symbol for element in self.elements)
+        return None
+
+    @staticmethod
+    def _charge_label(charge: int, *, omit_unit: bool = True) -> str:
+        """Format a charge number as a linearized ionic charge.
+
+        Returns
+        -------
+        str
+            Charge magnitude followed by its sign, omitting a unit magnitude when requested.
+        """
+        magnitude = abs(charge)
+        sign = "+" if charge >= 0 else "-"
+        return sign if omit_unit and magnitude == 1 else f"{magnitude}{sign}"
+
+    def rich_label(self, compact: bool = False) -> Text:
+        """Return a Rich label colored consistently by element symbol.
+
+        Parameters
+        ----------
+        compact
+            Use the compact context-aware label instead of the standalone description.
+
+        Returns
+        -------
+        `rich.text.Text`
+            Species label with an isotope-derived color when element data is available.
+        """
+        label = self.compact_label() if compact else str(self)
+        element = self.element or (self.elements[0] if self.elements else None)
+        if element is None:
+            return Text(label)
+        return Text(label, style=_element_style(element.symbol))
+
+    def __rich__(self) -> Text:
+        """Return a Rich label colored consistently by element symbol.
+
+        Charge states of the same element or isotope share a color, while different isotopes use
+        distinct symbols and therefore different colors. Homonuclear molecules use the color of
+        their constituent; heteronuclear molecules use the first constituent.
+
+        Returns
+        -------
+        `rich.text.Text`
+            Species label with an element-derived color when element data is available.
+        """
+        return self.rich_label()
 
 
 @dataclass
@@ -145,6 +248,30 @@ class ProfileData:
     velocity: VelocityData | None = None
     """Bulk velocity data of the species."""
 
+    def array_shapes(self) -> tuple[tuple[str, tuple[int, ...]], ...]:
+        """Return paths and shapes for every array stored in this profile.
+
+        The dataclass hierarchy is traversed dynamically, so newly added array fields are
+        included without changing this method.
+
+        Returns
+        -------
+        tuple[tuple[str, tuple[int, ...]], ...]
+            Field paths and corresponding array shapes.
+        """
+        shapes: list[tuple[str, tuple[int, ...]]] = []
+
+        def collect(value: object, path: str = "") -> None:
+            if isinstance(value, np.ndarray):
+                shapes.append((path, value.shape))
+            elif is_dataclass(value) and not isinstance(value, type):
+                for data_field in fields(value):
+                    child_path = f"{path}.{data_field.name}" if path else data_field.name
+                    collect(getattr(value, data_field.name), child_path)
+
+        collect(self)
+        return tuple(shapes)
+
 
 @dataclass
 class SpeciesComposition:
@@ -161,9 +288,136 @@ class SpeciesComposition:
     neutral_bundle: list[ProfileData] = field(default_factory=list)
     """Neutral bundle profiles."""
     molecule: list[ProfileData] = field(default_factory=list)
-    """Molecule profiles."""
+    """Neutral and charged molecule profiles."""
     molecular_bundle: list[ProfileData] = field(default_factory=list)
     """Molecular bundle profiles."""
+
+    def _profile_groups(self) -> tuple[tuple[str, tuple[ProfileData, ...], bool], ...]:
+        """Return profile groups discovered from the dataclass type annotations.
+
+        Returns
+        -------
+        tuple[tuple[str, tuple[ProfileData, ...], bool], ...]
+            Field names, stored profiles, and whether the field is a profile collection.
+        """
+        type_hints = get_type_hints(type(self))
+        groups = []
+        for data_field in fields(self):
+            annotation = type_hints[data_field.name]
+            value = getattr(self, data_field.name)
+            is_profile = isinstance(annotation, type) and issubclass(annotation, ProfileData)
+            list_args = get_args(annotation) if get_origin(annotation) is list else ()
+            is_profile_list = (
+                len(list_args) == 1
+                and isinstance(list_args[0], type)
+                and issubclass(list_args[0], ProfileData)
+            )
+            if is_profile:
+                profiles = (value,)
+                is_collection = False
+            elif is_profile_list:
+                profiles = tuple(value)
+                is_collection = True
+            else:
+                continue
+            groups.append((data_field.name, profiles, is_collection))
+
+        return tuple(groups)
+
+    def __str__(self) -> str:
+        """Return a concise summary containing species names and profile shapes.
+
+        Returns
+        -------
+        str
+            Multiline summary of species names and array shapes grouped by type.
+        """
+        lines = [self.__class__.__name__]
+        for group_name, profiles, is_collection in self._profile_groups():
+            if not profiles:
+                continue
+            count = f" ({len(profiles)})" if len(profiles) > 1 else ""
+            lines.append(f"  {group_name}{count}")
+            for profile in profiles:
+                if is_collection:
+                    lines.append(f"    - {profile.species.compact_label()}")
+                indent = "      " if is_collection else "    "
+                lines.extend(
+                    f"{indent}{path}: shape={shape}" for path, shape in profile.array_shapes()
+                )
+
+        return "\n".join(lines)
+
+    def __rich__(self) -> Tree:
+        """Return a Rich tree containing species names and profile shapes.
+
+        Returns
+        -------
+        `rich.tree.Tree`
+            Tree representation rendered by Rich-enabled output.
+        """
+        tree = Tree(Text(self.__class__.__name__, style="bold cyan"))
+        for group_name, profiles, is_collection in self._profile_groups():
+            if not profiles:
+                continue
+            count = f" ({len(profiles)})" if len(profiles) > 1 else ""
+            branch = tree.add(Text(f"{group_name}{count}", style="bold"))
+            for profile in profiles:
+                parent = (
+                    branch.add(profile.species.rich_label(compact=True))
+                    if is_collection
+                    else branch
+                )
+                for path, shape in profile.array_shapes():
+                    parent.add(Text(f"{path}: shape={shape}", style="dim"))
+
+        return tree
+
+
+def select_profile_data(
+    composition: SpeciesComposition,
+    indices: NDArray[np.intp],
+    source_size: int,
+) -> None:
+    """Select valid source entries from all one-dimensional profile arrays.
+
+    Parameters
+    ----------
+    composition
+        Species composition whose profile arrays are updated in place.
+    indices
+        Positions of valid source entries in the selected grid subset.
+    source_size
+        Number of entries in the source grid subset before invalid cells are removed.
+    """
+    profiles = [composition.electron]
+    for group_name in (
+        "ion",
+        "ion_bundle",
+        "neutral",
+        "neutral_bundle",
+        "molecule",
+        "molecular_bundle",
+    ):
+        profiles.extend(getattr(composition, group_name))
+
+    def select_profile(profile: ProfileData) -> None:
+        for profile_field in fields(profile):
+            value = getattr(profile, profile_field.name)
+            if isinstance(value, np.ndarray) and value.ndim == 1 and value.size == source_size:
+                setattr(profile, profile_field.name, value[indices])
+            elif isinstance(value, VelocityData):
+                for velocity_field in fields(value):
+                    velocity = getattr(value, velocity_field.name)
+                    if (
+                        isinstance(velocity, np.ndarray)
+                        and velocity.ndim == 1
+                        and velocity.size == source_size
+                    ):
+                        setattr(value, velocity_field.name, velocity[indices])
+
+    for profile in profiles:
+        select_profile(profile)
 
 
 def get_ion_state(
@@ -234,15 +488,17 @@ def get_ion_state(
 
     if len(elements) > 1:  # molecular ions and bundles
         species_data.elements = elements
-        if z_min == z_max == 0:
-            species_data.species_type = SpeciesType.NEUTRAL_BUNDLE
-        elif z_min == z_max:
+        if z_min == z_max:
             species_data.species_type = SpeciesType.MOLECULE
             species_data.vibrational_mode = (
-                str(state.vibrational_mode) if len(state.vibrational_mode) else None
+                str(getattr(state, "vibrational_mode", "")).strip()
+                if len(getattr(state, "vibrational_mode", ""))
+                else None
             )
             species_data.vibrational_level = (
-                state.vibrational_level if state.vibrational_level != EMPTY_FLOAT else None
+                getattr(state, "vibrational_level", EMPTY_FLOAT)
+                if getattr(state, "vibrational_level", EMPTY_FLOAT) != EMPTY_FLOAT
+                else None
             )
         else:
             species_data.species_type = SpeciesType.MOLECULAR_BUNDLE
@@ -281,25 +537,19 @@ def get_neutral_state(state: IDSStructure, elements: tuple[Element, ...]) -> Spe
         if len(getattr(state, "electron_configuration", "")) > 0
         else None,
     )
-    if len(elements) > 1:  # molecules and bundles
+    if len(elements) > 1:  # molecules
         species_data.elements = elements
-        if (
-            getattr(state, "vibrational_mode", None)
-            and getattr(state, "vibrational_level", EMPTY_FLOAT) != EMPTY_FLOAT
-        ):
-            species_data.species_type = SpeciesType.MOLECULE
-            species_data.vibrational_mode = (
-                str(getattr(state, "vibrational_mode", "")).strip()
-                if len(getattr(state, "vibrational_mode", ""))
-                else None
-            )
-            species_data.vibrational_level = (
-                getattr(state, "vibrational_level", EMPTY_FLOAT)
-                if getattr(state, "vibrational_level", EMPTY_FLOAT) != EMPTY_FLOAT
-                else None
-            )
-        else:
-            species_data.species_type = SpeciesType.NEUTRAL_BUNDLE
+        species_data.species_type = SpeciesType.MOLECULE
+        species_data.vibrational_mode = (
+            str(getattr(state, "vibrational_mode", "")).strip()
+            if len(getattr(state, "vibrational_mode", ""))
+            else None
+        )
+        species_data.vibrational_level = (
+            getattr(state, "vibrational_level", EMPTY_FLOAT)
+            if getattr(state, "vibrational_level", EMPTY_FLOAT) != EMPTY_FLOAT
+            else None
+        )
     else:  # neutrals
         species_data.element = elements[0]
         species_data.species_type = SpeciesType.NEUTRAL
