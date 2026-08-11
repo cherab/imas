@@ -195,6 +195,16 @@ def load_core_species(
                     composition.ion.append(profile_data)
                     ion_uuids.add(species_tuple)
 
+                # === Case: MOLECULE ===
+                elif species_data.species_type == SpeciesType.MOLECULE:
+                    composition.molecule.append(profile_data)
+                    ion_uuids.add(species_tuple)
+
+                # === Case: MOLECULAR_BUNDLE ===
+                elif species_data.species_type == SpeciesType.MOLECULAR_BUNDLE:
+                    composition.molecular_bundle.append(profile_data)
+                    ion_bundle_uuids.add(species_tuple)
+
                 # === Case: ION_BUNDLE ===
                 elif species_data.species_type == SpeciesType.ION_BUNDLE:
                     # Split ion bundles into individual ion states
@@ -277,14 +287,17 @@ def load_core_species(
                 if species_data.species_type == SpeciesType.ION:
                     composition.ion.append(profile_data)
                     ion_uuids.add(species_tuple)
+                elif species_data.species_type == SpeciesType.MOLECULE:
+                    composition.molecule.append(profile_data)
+                    ion_uuids.add(species_tuple)
                 else:
                     print(
                         f"Warning! Skipping non-bundled ion with unexpected species {species_data}"
                     )
 
-    # ----------------------------
-    # === Neutrals (molecules) ===
-    # ----------------------------
+    # ----------------
+    # === Neutrals ===
+    # ----------------
     for neutral in profile_1d.neutral:
         elements = get_elements(neutral.element)
         if not len(elements):
