@@ -10,7 +10,7 @@ from cherab.imas.plasma.utility import get_entry_reference
 @pytest.mark.parametrize(
     ("constructor", "entry_kwargs", "expected"),
     [
-        (
+        pytest.param(
             "uri",
             {
                 "uri_builder": lambda _tmp_path, _path_iter_jintrac: (
@@ -19,6 +19,7 @@ from cherab.imas.plasma.utility import get_entry_reference
                 "mode": "w",
             },
             "imas:memory?path=cherab_test_memory_uri",
+            marks=pytest.mark.requires_imas_memory_backend,
         ),
         (
             "uri",
