@@ -91,7 +91,7 @@ def _iter_jintrac_radiation_values_data() -> tuple[IDSToplevel, IDSToplevel]:
     if subset_name is None:
         raise RuntimeError("Unable to find GGD subset id=5 (cells) in source grid_ggd.")
 
-    num_cells = len(subsets[subset_name])
+    num_cells = len(subsets[subset_name][0])
     if num_cells == 0:
         raise RuntimeError("The selected GGD subset (id=5) contains no cells.")
 
