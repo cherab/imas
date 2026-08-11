@@ -12,6 +12,18 @@ from cherab.imas.ggd.unstruct_2d_mesh import UnstructGrid2D
 from cherab.imas.ggd.unstruct_3d_mesh import UnstructGrid3D
 
 
+def test_geometry_hash_supports_ragged_cells():
+    vertices = np.array([[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [2.0, 0.0]])
+    cells = [np.array([0, 1, 2, 3]), np.array([1, 4, 2])]
+
+    grid = UnstructGrid2D(vertices, cells, coordinate_system="cartesian")
+    same_grid = UnstructGrid2D(vertices.copy(), [cell.copy() for cell in cells])
+    changed_grid = UnstructGrid2D(vertices, [cells[0], np.array([1, 2, 4])])
+
+    assert grid._interpolator_geometry_hash() == same_grid._interpolator_geometry_hash()
+    assert grid._interpolator_geometry_hash() != changed_grid._interpolator_geometry_hash()
+
+
 def _assert_disk_cache_file_exists(
     cache_dir: Path,
     grid: UnstructGrid2D | UnstructGrid2DExtended | UnstructGrid3D,
