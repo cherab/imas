@@ -144,8 +144,9 @@ def _create_rad_func_ggd(
     grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)
     grid_subset_name, grid_subset_index = get_subset_name_index(subset_id, grid_subset_id)
 
-    if not np.array_equal(subsets[grid_subset_name], np.arange(grid.num_cell, dtype=int)):
-        grid = grid.subset(subsets[grid_subset_name], name=grid_subset_name)
+    subset_indices, subset_mask = subsets[grid_subset_name]
+    if not np.array_equal(subset_indices, np.arange(grid.num_cell, dtype=int)):
+        grid = grid.subset(subset_indices, name=grid_subset_name, valid_data_mask=subset_mask)
 
     rad_func = AxisymmetricMapper(grid.interpolator(data, **interp_kwargs))
 
