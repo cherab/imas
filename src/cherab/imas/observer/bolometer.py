@@ -33,8 +33,8 @@ from raysect.primitive import Box, Subtract, Union
 from raysect.primitive.csg import CSGPrimitive
 
 from cherab.tools.observers.bolometry import BolometerCamera, BolometerFoil, BolometerSlit
-from imas.db_entry import DBEntry
 
+from .._dbentry import _open_dbentry_for_reading
 from ..ids.bolometer import load_cameras
 from ..ids.bolometer._camera import BoloCamera, Geometry
 from ..ids.bolometer.utility import CameraType, GeometryType
@@ -69,7 +69,7 @@ def load_bolometers(
 @overload
 def load_bolometers(
     uri: str,
-    mode: str,
+    mode: Literal["r"] | None = None,
     *,
     parent: _NodeBase | None = None,
     dd_version: str | None = None,
@@ -90,12 +90,14 @@ def load_bolometers(
     Parameters
     ----------
     *args
-        Arguments passed to `~imas.db_entry.DBEntry`.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     parent
         The parent node of `~cherab.tools.observers.bolometry.BolometerCamera` in the Raysect
         scene-graph, by default None.
     **kwargs
-        Keyword arguments passed to `~imas.db_entry.DBEntry` constructor.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -116,14 +118,14 @@ def load_bolometers(
 
     If you have a local IMAS database and store the "bolometer.h5" file there:
 
-    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", "r", parent=world)
+    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", parent=world)
 
     If you want to load netCDF files directly:
 
-    >>> bolometers = load_bolometers("path/to/bolometer_file.nc", "r", parent=world)
+    >>> bolometers = load_bolometers("path/to/bolometer_file.nc", parent=world)
     """
     # Load bolometer IDS
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         # Get available time slices
         ids = get_ids_time_slice(entry, "bolometer")
 
@@ -502,7 +504,7 @@ def visualize(
 
     Examples
     --------
-    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/", "r")
+    >>> bolometers = load_bolometers("imas:hdf5?path=path/to/db/")
     >>> fig = visualize(bolometers[0], num_rays=100, ray_from_channel=[0, 3])
     """
     try:

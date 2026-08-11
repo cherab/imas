@@ -31,9 +31,9 @@ from scipy.constants import atomic_mass, electron_mass
 from cherab.core import AtomicData, Maxwellian, Plasma, Species
 from cherab.core.math import VectorAxisymmetricMapper
 from cherab.tools.equilibrium import EFITEquilibrium
-from imas import DBEntry
 from imas.ids_structure import IDSStructure
 
+from .._dbentry import _open_dbentry_for_reading
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
 from ..ids.common.grid_radial import get_psi_norm, load_core_grid
@@ -93,17 +93,20 @@ def load_plasma(
     Parameters
     ----------
     *args
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        IMAS URI, netCDF path, or legacy positional arguments for the core plasma's
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     time
         Time for the core plasma, by default 0.
     occurrence_core
         Occurrence index of the ``core_profiles`` IDS, by default 0.
     edge_args
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma
-        if different from the core plasma. By default None: uses the same as `*args`.
+        URI, netCDF path, or legacy positional DBEntry arguments for the edge plasma if
+        different from the core plasma. Read mode is selected automatically. By default
+        None: uses the same source as `*args`.
     edge_kwargs
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor for the edge plasma
-        if different from the core plasma. By default None: uses the same as `**kwargs`.
+        Additional DBEntry options for the edge plasma if different from the core plasma.
+        By default None: uses the same options as `**kwargs`.
     time_edge
         Time for the edge plasma. If None, uses `~cherab.imas.plasma.load_plasma.time`.
         By default None.
@@ -142,7 +145,8 @@ def load_plasma(
         Parent node in the Raysect scene graph, by default None.
         Typically a `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        Additional `~imas.db_entry.DBEntry` options for the core plasma, such as
+        ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -173,7 +177,7 @@ def load_plasma(
 
     # === Core profiles IDS ===
     try:
-        with DBEntry(*args, **kwargs) as entry_core:
+        with _open_dbentry_for_reading(*args, **kwargs) as entry_core:
             core_profiles_ids = get_ids_time_slice(
                 entry_core,
                 "core_profiles",
@@ -199,7 +203,7 @@ def load_plasma(
 
     # === Edge profiles IDS ===
     try:
-        with DBEntry(*edge_args, **edge_kwargs) as entry_edge:
+        with _open_dbentry_for_reading(*edge_args, **edge_kwargs) as entry_edge:
             edge_profiles_ids = get_ids_time_slice(
                 entry_edge,
                 "edge_profiles",
@@ -277,7 +281,7 @@ def load_plasma(
         not len(grid_ggd.space) and len(grid_ggd.path) and "#" in str(grid_ggd.path)
     )
     if needs_external_grid_reference:
-        with DBEntry(*edge_args, **edge_kwargs) as entry:
+        with _open_dbentry_for_reading(*edge_args, **edge_kwargs) as entry:
             grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True, entry=entry)
     else:
         grid, subsets, subset_id = load_grid(grid_ggd, with_subsets=True)

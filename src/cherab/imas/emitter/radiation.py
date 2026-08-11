@@ -35,10 +35,10 @@ from raysect.primitive import Cylinder, Subtract
 from cherab.core.math import AxisymmetricMapper
 from cherab.tools.emitters import RadiationFunction
 from cherab.tools.equilibrium import EFITEquilibrium
-from imas import DBEntry
 from imas.ids_struct_array import IDSStructArray
 from imas.ids_structure import IDSStructure
 
+from .._dbentry import _open_dbentry_for_reading
 from ..ggd import UnstructGrid2DExtended
 from ..ggd.base_mesh import InterpolatorCacheMode
 from ..ids.common import get_ids_time_slice, load_ids_path_reference, resolve_ids_path_reference
@@ -174,7 +174,7 @@ def _resolve_grid_ggd_reference(
             raise RuntimeError(
                 "Unable to resolve external grid_ggd.path without DBEntry arguments."
             )
-        with DBEntry(*db_args, **(db_kwargs or {})) as entry:
+        with _open_dbentry_for_reading(*db_args, **(db_kwargs or {})) as entry:
             resolved = load_ids_path_reference(entry, path)
     else:
         ids_name = ids_root.metadata.name
@@ -244,17 +244,19 @@ def load_radiation_emitter(
     Parameters
     ----------
     *args
-        Positional arguments passed to `imas.DBEntry`.
+        IMAS URI, netCDF path, or legacy positional arguments for `imas.DBEntry`.
+        For a URI or path, read mode is selected automatically; do not pass ``"r"``.
     time
         Time slice to load from the IDS, by default 0.0.
     occurrence
         Occurrence of the radiation IDS, by default 0.
     args2
-        Arguments passed to `imas.DBEntry` for the second emissivity. If None, the second emissivity
-        is not loaded, by default None.
+        URI, netCDF path, or legacy positional DBEntry arguments for the second emissivity.
+        Read mode is selected automatically. If None, the second emissivity is not loaded,
+        by default None.
     kwargs2
-        Keyword arguments passed to `imas.DBEntry` for the second emissivity. If None, the second
-        emissivity is not loaded, by default None.
+        Additional DBEntry options for the second emissivity. If None, no options are used,
+        by default None.
     time2
         Time slice to load for the second emissivity. By default, uses the same time as the first
         emissivity.
@@ -305,7 +307,7 @@ def load_radiation_emitter(
         Directory used when ``interpolator_cache="disk"``, by default None
         (uses the system cache directory, e.g., ``~/.cache/cherab/imas/interpolators``).
     **kwargs
-        Additional keyword arguments passed to `imas.DBEntry`.
+        Additional `imas.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -346,7 +348,7 @@ def load_radiation_emitter(
     zmin: float = 0.0
 
     try:
-        with DBEntry(*args, **kwargs) as entry:
+        with _open_dbentry_for_reading(*args, **kwargs) as entry:
             ids = get_ids_time_slice(
                 entry,
                 "radiation",
@@ -360,7 +362,7 @@ def load_radiation_emitter(
 
     if args2 is not None and source != "coefficients":
         try:
-            with DBEntry(*args2, **(kwargs2 or {})) as entry:
+            with _open_dbentry_for_reading(*args2, **(kwargs2 or {})) as entry:
                 ids2 = get_ids_time_slice(
                     entry,
                     "radiation",

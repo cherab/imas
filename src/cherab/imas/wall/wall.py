@@ -23,8 +23,7 @@ from raysect.core.scenegraph._nodebase import _NodeBase
 from raysect.optical.material.material import Material
 from raysect.primitive import Mesh
 
-from imas import DBEntry
-
+from .._dbentry import _open_dbentry_for_reading
 from ..ids.common import get_ids_time_slice
 from ..ids.wall import load_wall_2d, load_wall_3d
 
@@ -47,7 +46,9 @@ def load_wall_mesh(
     Parameters
     ----------
     *args
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     time
         Time for the wall, by default 0.
     occurrence
@@ -70,7 +71,7 @@ def load_wall_mesh(
         Parent node in the Raysect scene graph, by default None.
         Normally, `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -82,12 +83,12 @@ def load_wall_mesh(
     >>> from raysect.optical import World
     >>> world = World()
     >>> meshes = load_wall_mesh(
-    ...     "imas:hdf5?path=/work/imas/shared/imasdb/ITER_MD/3/116100/1001/", "r", parent=world
+    ...     "imas:hdf5?path=/work/imas/shared/imasdb/ITER_MD/3/116100/1001/", parent=world
     ... )
     >>> meshes
     {'FullTokamak.none.none': <raysect.primitive.mesh.mesh.Mesh at 0x1766322a0>}
     """
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         wall_ids = get_ids_time_slice(
             entry, "wall", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
@@ -115,13 +116,15 @@ def load_wall_outline(
     Parameters
     ----------
     *args
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     occurrence
         Occurrence index of the ``wall`` IDS, by default 0.
     desc_index
         Index of ``description_2d``, by default 0.
     **kwargs
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -130,7 +133,7 @@ def load_wall_outline(
 
     Examples
     --------
-    >>> load_wall_outline("imas:hdf5?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/", "r")
+    >>> load_wall_outline("imas:hdf5?path=/work/imas/shared/imasdb/ITER_MD/3/116000/5/")
     {'First Wall': array([[ 4.11129713, -2.49559808],
                           [ 4.11129713, -1.48329401],
                           ...
@@ -139,7 +142,7 @@ def load_wall_outline(
                         ...
                         [ 6.36320019, -3.24460006]])}
     """
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         description2d = entry.get("wall", occurrence=occurrence, autoconvert=False).description_2d[
             desc_index
         ]

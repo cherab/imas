@@ -33,9 +33,9 @@ from scipy.constants import atomic_mass, electron_mass
 from cherab.core import AtomicData, Maxwellian, Plasma, Species
 from cherab.core.math import AxisymmetricMapper, VectorAxisymmetricMapper
 from cherab.tools.equilibrium.efit import FluxSurfaceNormal, PoloidalFieldVector
-from imas import DBEntry
 from imas.ids_structure import IDSStructure
 
+from .._dbentry import _open_dbentry_for_reading
 from ..ggd.base_mesh import GGDGrid
 from ..ids.common import get_ids_time_slice
 from ..ids.common.ggd import load_grid
@@ -89,7 +89,9 @@ def load_edge_plasma(
     Parameters
     ----------
     *args
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     time
         Time for the edge plasma, by default 0.
     occurrence
@@ -114,7 +116,7 @@ def load_edge_plasma(
         Parent node in the Raysect scene graph, by default None.
         Typically a `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -131,7 +133,7 @@ def load_edge_plasma(
     # -----------------------------------------
     # Load required data from the edge_profiles IDS and form the edge grid and species composition
     # data structures.
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         edge_profiles_ids = get_ids_time_slice(
             entry, "edge_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
