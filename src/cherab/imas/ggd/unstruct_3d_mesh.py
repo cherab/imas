@@ -33,7 +33,15 @@ from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
-from .base_mesh import CellSelection, GGDGrid, InterpolatorCacheMode, as_index_array
+from .base_mesh import (
+    CellConnectivity,
+    CellData,
+    CellSelection,
+    GGDGrid,
+    InterpolatorCacheMode,
+    as_cell_data,
+    as_index_array,
+)
 
 __all__ = ["UnstructGrid3D"]
 
@@ -61,13 +69,13 @@ class UnstructGrid3D(GGDGrid):
     def __init__(
         self,
         vertices: ArrayLike,
-        cells: ArrayLike,
+        cells: CellConnectivity,
         name: str = "Cells",
     ) -> None:
         vertices = np.array(vertices, dtype=np.float64)
         vertices.setflags(write=False)
-        cells = np.array(cells, dtype=np.int32)
-        cells.setflags(write=False)
+        cells_array: NDArray[np.int32] = np.array(cells, dtype=np.int32)
+        cells_array.setflags(write=False)
 
         if vertices.ndim != 2:
             raise ValueError(
@@ -81,20 +89,20 @@ class UnstructGrid3D(GGDGrid):
                 + f"The shape of 'vertices' is {vertices.shape}."
             )
 
-        if cells.ndim != 2:
+        if cells_array.ndim != 2:
             raise ValueError(
                 "Attribute 'cells' must be a 2D array-like. "
-                + f"The number of dimensions in 'cells' is {cells.ndim}."
+                + f"The number of dimensions in 'cells' is {cells_array.ndim}."
             )
 
-        if cells.shape[1] != 8:
+        if cells_array.shape[1] != 8:
             raise ValueError(
                 "Attribute 'cells' must be a (M, 8) array-like. "
-                + f"The shape of 'cells' is {cells.shape}."
+                + f"The shape of 'cells' is {cells_array.shape}."
             )
 
         self._vertices: NDArray[np.float64] = vertices
-        self._cells: NDArray[np.int32] = cells
+        self._cells: NDArray[np.int32] = cells_array
 
         super().__init__(name=name, dimension=3, coordinate_system="cartesian")
 
@@ -252,7 +260,7 @@ class UnstructGrid3D(GGDGrid):
     @override
     def interpolator(
         self,
-        grid_data: NDArray[np.float64],
+        grid_data: CellData,
         fill_value: float = 0,
         *,
         interpolator_cache: InterpolatorCacheMode = "memory",
@@ -284,6 +292,7 @@ class UnstructGrid3D(GGDGrid):
         `.UnstructGridFunction3D`
             Interpolator instance.
         """
+        grid_data = as_cell_data(grid_data, self._num_cell)
         return self._build_cached_interpolator(
             interpolator_cls=UnstructGridFunction3D,
             template_builder=lambda: UnstructGridFunction3D(

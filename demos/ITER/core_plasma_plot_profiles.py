@@ -73,7 +73,7 @@ plots_path.mkdir(exist_ok=True)
 
 # Load and plot equilibrium
 path = iter_jintrac()
-equilibrium, psi_interpolator = load_equilibrium(path, "r", with_psi_interpolator=True)
+equilibrium, psi_interpolator = load_equilibrium(path, with_psi_interpolator=True)
 plot_equilibrium(equilibrium)
 plt.gcf().savefig(plots_path / "equilibrium.png", dpi=200)
 
@@ -95,7 +95,7 @@ fig = plot_quantity(b[:, :, 2], extent, title="Bz [T]", symmetric=True)
 fig.savefig(plots_path / "bz.png", dpi=200)
 
 # Load core plasma
-plasma = load_core_plasma(path, "r", equilibrium=equilibrium, psi_interpolator=psi_interpolator)
+plasma = load_core_plasma(path, equilibrium=equilibrium, psi_interpolator=psi_interpolator)
 
 # Sample and plot electron profiles
 ne_plasma = sample3d_grid(plasma.electron_distribution.density, xsamp, [0], zsamp)

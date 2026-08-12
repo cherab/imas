@@ -30,12 +30,43 @@ from ..ids.common.species import SpeciesComposition
 
 __all__ = [
     "ProfileInterpolator",
+    "get_entry_reference",
     "warn_unsupported_species",
     "get_subset_name_index",
 ]
 
 
 ZERO_VELOCITY = ConstantVector3D(Vector3D(0, 0, 0))
+
+
+def get_entry_reference(entry: object) -> str:
+    """Return a human-readable DBEntry reference.
+
+    Parameters
+    ----------
+    entry
+        DBEntry-like object.
+
+    Returns
+    -------
+    str
+        URI if available, otherwise a fallback string using legacy DBEntry attributes
+        in ``key=value`` format.
+    """
+    uri = getattr(entry, "uri", None)
+    if uri:
+        return str(uri)
+
+    legacy_attr_names = ("backend_id", "db_name", "pulse", "run", "user_name", "data_version")
+    parts = []
+    for name in legacy_attr_names:
+        if hasattr(entry, name):
+            parts.append(f"{name}={getattr(entry, name)!r}")
+
+    if not parts:
+        return "<unknown DBEntry>"
+
+    return ", ".join(parts)
 
 
 @dataclass
@@ -54,6 +85,10 @@ class ProfileInterpolator:
     """Interpolating function for the velocity profile."""
 
 
+# TODO: Add molecular species to Cherab Plasma when molecular models are available:
+# - represent neutral and charged molecules in Plasma.composition;
+# - construct distributions using molecular masses;
+# - integrate molecular collision and radiative models.
 def warn_unsupported_species(
     composition: SpeciesComposition,
     species_type: Literal["ion_bundle", "molecule", "molecular_bundle"],
@@ -69,21 +104,7 @@ def warn_unsupported_species(
     """
     profiles = getattr(composition, species_type, None)
     if profiles is not None and len(profiles) > 0:
-        names: list[str] = []
-        for profile_data in profiles:
-            name: str | None = getattr(profile_data.species, "name", None)
-            if name is None:
-                element = getattr(profile_data.species, "element", None)
-                if element is None:
-                    elements = getattr(profile_data.species, "elements", None)
-                    if elements is None or len(elements) == 0:
-                        name = "Unknown"
-                    else:
-                        name = "".join([e.name for e in elements])
-                else:
-                    name = element.name
-
-            names.append(name)
+        names = [str(profile_data.species) for profile_data in profiles]
 
         print(
             f"Warning! Species of type '{species_type}' are currently not supported.\n"

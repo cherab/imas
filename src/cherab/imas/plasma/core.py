@@ -33,13 +33,18 @@ from cherab.core import AtomicData, Maxwellian, Plasma, Species
 from cherab.core.math import VectorAxisymmetricMapper
 from cherab.imas.ids.core_profiles.load_profiles import ProfileData
 from cherab.tools.equilibrium import EFITEquilibrium
-from imas import DBEntry
 
+from .._dbentry import _open_dbentry_for_reading
 from ..ids.common import get_ids_time_slice
 from ..ids.common.grid_radial import get_psi_norm, load_core_grid
 from ..ids.core_profiles import load_core_species
 from .equilibrium import load_equilibrium, load_magnetic_field
-from .utility import ZERO_VELOCITY, ProfileInterpolator, warn_unsupported_species
+from .utility import (
+    ZERO_VELOCITY,
+    ProfileInterpolator,
+    get_entry_reference,
+    warn_unsupported_species,
+)
 
 __all__ = ["load_core_plasma"]
 
@@ -74,7 +79,9 @@ def load_core_plasma(
     Parameters
     ----------
     *args
-        Arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     time
         Time for the core plasma, by default 0.
     occurrence
@@ -103,7 +110,7 @@ def load_core_plasma(
         Parent node in the Raysect scene graph, by default None.
         Typically a `~raysect.optical.scenegraph.world.World` instance.
     **kwargs
-        Keyword arguments passed to the `~imas.db_entry.DBEntry` constructor.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -123,10 +130,11 @@ def load_core_plasma(
     # ---------------------------------------------------------
     # Load required data from the core_profiles IDS and form the core grid and species composition
     # data structures.
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         core_profiles_ids = get_ids_time_slice(
             entry, "core_profiles", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
+        entry_reference = get_entry_reference(entry)
 
     if not len(core_profiles_ids.profiles_1d):
         raise RuntimeError("The profiles_1d AOS in core_profiles IDS is empty.")
@@ -168,7 +176,7 @@ def load_core_plasma(
     # ----------------------------
     # === Create Plasma object ===
     # ----------------------------
-    name = f"IMAS core plasma: time {core_profiles_ids.time[0]}, uri {entry.uri}."
+    name = f"IMAS core plasma: time {core_profiles_ids.time[0]}, uri {entry_reference}."
     plasma = Plasma(parent=parent, name=name)
     radius_inner, radius_outer = equilibrium.r_range
     zmin, zmax = equilibrium.z_range

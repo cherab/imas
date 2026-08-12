@@ -47,10 +47,6 @@ pre-commit:
         - run: test ${CI:-false} = true
       run: pixi {run} pyrefly-check {staged_files}
 
-    - name: typos
-      stage_fixed: true
-      run: pixi {run} typos {staged_files}
-
     - name: actionlint
       glob: ".github/workflows/*.{yaml,yml}"
       run: pixi {run} actionlint {staged_files}
@@ -80,3 +76,7 @@ pre-commit:
       only:
         - run: test ${CI:-false} = true
       run: pixi {run} nbstripout --verify {staged_files}
+
+    - name: typos
+      stage_fixed: true
+      run: pixi {run} typos {staged_files}

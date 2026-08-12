@@ -26,8 +26,8 @@ from raysect.core.math.function.vector3d.function2d import FloatToVector3DFuncti
 
 from cherab.imas.ids.equilibrium.load_equilibrium import Equilibrium2DData
 from cherab.tools.equilibrium import EFITEquilibrium
-from imas import DBEntry
 
+from .._dbentry import _open_dbentry_for_reading
 from ..ids.common import get_ids_time_slice
 from ..ids.equilibrium import load_equilibrium_data, load_magnetic_field_data
 
@@ -69,7 +69,9 @@ def load_equilibrium(
     Parameters
     ----------
     *args
-        Arguments passed to `~imas.db_entry.DBEntry`.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     time
         Time for the equilibrium, by default 0.
     occurrence
@@ -81,7 +83,7 @@ def load_equilibrium(
         If True, returns the ``psi_norm(rho_tor_norm)`` interpolator; otherwise, returns only the
         equilibrium object.
     **kwargs
-        Keyword arguments passed to `~imas.db_entry.DBEntry`.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -98,7 +100,7 @@ def load_equilibrium(
         If the equilibrium IDS does not have a time slice or if ``rho_tor_norm`` is not available
         when ``with_psi_interpolator`` is True.
     """
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         equilibrium_ids = get_ids_time_slice(
             entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
         )
@@ -159,7 +161,9 @@ def load_magnetic_field(
     Parameters
     ----------
     *args
-        Arguments passed to `~imas.db_entry.DBEntry`.
+        IMAS URI, netCDF path, or legacy positional arguments for
+        `~imas.db_entry.DBEntry`. For a URI or path, read mode is selected automatically;
+        do not pass ``"r"``.
     time
         Time for the equilibrium, by default 0.
     occurrence
@@ -168,7 +172,7 @@ def load_magnetic_field(
         Maximum allowed difference between the requested time and the nearest available
         time, by default `numpy.inf`.
     **kwargs
-        Keyword arguments passed to `~imas.db_entry.DBEntry`.
+        Additional `~imas.db_entry.DBEntry` options, such as ``dd_version`` or ``xml_path``.
 
     Returns
     -------
@@ -180,7 +184,7 @@ def load_magnetic_field(
     RuntimeError
         If the equilibrium IDS does not have a time slice.
     """
-    with DBEntry(*args, **kwargs) as entry:
+    with _open_dbentry_for_reading(*args, **kwargs) as entry:
         equilibrium_ids = get_ids_time_slice(
             entry, "equilibrium", time=time, occurrence=occurrence, time_threshold=time_threshold
         )

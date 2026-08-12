@@ -19,7 +19,6 @@ noarch = false
 python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
 
 [package.host-dependencies]
-uv = "*"
 python = "*"
 hatch-cython = ">=0.6.0"
 hatch-vcs = "*"
@@ -29,6 +28,7 @@ cherab = "1.5.*"
 
 [package.run-dependencies]
 imas-python = "*"
+rich = "*"
 pooch = "*"
 typing-extensions = ">=4.5"
 
@@ -38,7 +38,6 @@ typing-extensions = ">=4.5"
 [dependencies]
 cherab-imas = { path = "." }
 ipython = "*"
-rich = "*"
 
 # Publication-quality plot
 ultraplot = ">=1.72.0"
@@ -136,6 +135,7 @@ lint = { cmd = "lefthook run pre-commit --all-files --force", description = "�
 # Clean build artifacts
 [feature.tools.tasks]
 clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
+clean-c = { cmd = "find src -type f -name '*.c' -delete", description = "🧹 Clean C source files" }
 doc-clean = { cmd = [
   "rm",
   "-rf",

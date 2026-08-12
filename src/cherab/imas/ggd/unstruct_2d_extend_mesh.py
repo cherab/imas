@@ -38,7 +38,15 @@ from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction3D, UnstructGridVectorFunction3D
 from ..math.tetrahedralize import calculate_tetra_volume, cell_to_5tetra
-from .base_mesh import CellSelection, GGDGrid, InterpolatorCacheMode, as_index_array
+from .base_mesh import (
+    CellConnectivity,
+    CellData,
+    CellSelection,
+    GGDGrid,
+    InterpolatorCacheMode,
+    as_cell_data,
+    as_index_array,
+)
 from .unstruct_3d_mesh import UnstructGrid3D
 
 __all__ = ["UnstructGrid2DExtended"]
@@ -77,7 +85,7 @@ class UnstructGrid2DExtended(GGDGrid):
     def __init__(
         self,
         vertices: ArrayLike,
-        cells: ArrayLike,
+        cells: CellConnectivity,
         num_faces: int,
         num_poloidal: int,
         num_toroidal: int,
@@ -86,8 +94,8 @@ class UnstructGrid2DExtended(GGDGrid):
     ) -> None:
         vertices = np.array(vertices, dtype=np.float64)
         vertices.setflags(write=False)
-        cells = np.array(cells, dtype=np.int32)
-        cells.setflags(write=False)
+        cells_array: NDArray[np.int32] = np.array(cells, dtype=np.int32)
+        cells_array.setflags(write=False)
 
         if vertices.ndim != 2:
             raise ValueError(
@@ -101,20 +109,20 @@ class UnstructGrid2DExtended(GGDGrid):
                 + f"The shape of 'vertices' is {vertices.shape}."
             )
 
-        if cells.ndim != 2:
+        if cells_array.ndim != 2:
             raise ValueError(
                 "Attribute 'cells' must be a 2D array-like. "
-                + f"The number of dimensions in 'cells' is {cells.ndim}."
+                + f"The number of dimensions in 'cells' is {cells_array.ndim}."
             )
 
-        if cells.shape[1] != 8:
+        if cells_array.shape[1] != 8:
             raise ValueError(
                 "Attribute 'cells' must be a (M, 8) array-like. "
-                + f"The shape of 'cells' is {cells.shape}."
+                + f"The shape of 'cells' is {cells_array.shape}."
             )
 
         self._vertices: NDArray[np.float64] = vertices
-        self._cells: NDArray[np.int32] = cells
+        self._cells: NDArray[np.int32] = cells_array
         self._num_faces = num_faces
         self._num_poloidal = num_poloidal
         self._num_toroidal = num_toroidal
@@ -425,7 +433,7 @@ class UnstructGrid2DExtended(GGDGrid):
     @override
     def interpolator(
         self,
-        grid_data: NDArray[np.float64],
+        grid_data: CellData,
         fill_value: float = 0,
         *,
         interpolator_cache: InterpolatorCacheMode = "memory",
@@ -457,6 +465,7 @@ class UnstructGrid2DExtended(GGDGrid):
         `.UnstructGridFunction3D`
             Interpolator instance.
         """
+        grid_data = as_cell_data(grid_data, self._num_cell)
         return self._build_cached_interpolator(
             interpolator_cls=UnstructGridFunction3D,
             template_builder=lambda: UnstructGridFunction3D(
@@ -570,7 +579,7 @@ class UnstructGrid2DExtended(GGDGrid):
         self._initial_setup()
 
     def plot_tetra_mesh(
-        self, data: ArrayLike | None = None, ax: matplotlib.axes.Axes | None = None
+        self, data: CellData | None = None, ax: matplotlib.axes.Axes | None = None
     ) -> None:
         """Plot the tetrahedral mesh grid geometry.
 
@@ -594,7 +603,7 @@ class UnstructGrid2DExtended(GGDGrid):
     @override
     def plot_mesh(
         self,
-        data: ArrayLike | None = None,
+        data: CellData | None = None,
         ax: matplotlib.axes.Axes | None = None,
         **grid_styles,
     ) -> matplotlib.axes.Axes:
@@ -630,7 +639,7 @@ class UnstructGrid2DExtended(GGDGrid):
             collection_mesh = PolyCollection(verts, **grid_styles)
         else:
             collection_mesh = PolyCollection(verts)
-            collection_mesh.set_array(data)
+            collection_mesh.set_array(as_cell_data(data, self._num_faces))
         ax.add_collection(collection_mesh)
         ax.set_aspect(1)
         ax.set_xlim(self._mesh_extent["rmin"], self._mesh_extent["rmax"])
@@ -647,7 +656,7 @@ class UnstructGrid2DExtended(GGDGrid):
 
     def plot_tri_mesh(
         self,
-        data: ArrayLike,
+        data: CellData,
         ax: matplotlib.axes.Axes | None = None,
         cmap: str = "viridis",
         **kwargs,
@@ -684,9 +693,7 @@ class UnstructGrid2DExtended(GGDGrid):
                 f"({self._num_faces=}, {self._num_poloidal=}.)"
             )
 
-        data = np.asarray_chkfinite(data)
-        if data.shape[0] != self._num_faces:
-            raise ValueError("The data array must have the same number of faces as the grid.")
+        data = as_cell_data(data, self._num_faces)
         data = np.repeat(data, 2)
 
         # Create triangulation for the first poloidal plane

@@ -19,7 +19,7 @@ plt.rcParams["backend"] = "Agg"  # Use non-interactive backend for testing
 
 def test_load_edge_plasma(path_iter_jintrac: str):
     """Test loading of edge plasma data from an IMAS file."""
-    plasma = load_edge_plasma(path_iter_jintrac, "r")
+    plasma = load_edge_plasma(path_iter_jintrac)
 
     # Test that a Plasma object is returned
     assert isinstance(plasma, Plasma)
@@ -47,6 +47,40 @@ def test_load_edge_plasma(path_iter_jintrac: str):
 
     # Expecting all charge states from 0 to Z for Ne
     assert len(ion_charges) == neon.atomic_number + 1
+
+
+@pytest.mark.parametrize(
+    "grid_subset_id",
+    [
+        pytest.param(5, id="Cells"),
+        pytest.param(-1, id="Inner-core"),
+        pytest.param(-2, id="Inner-SOL"),
+        pytest.param(-3, id="Lower-inner-divertor"),
+        pytest.param(-5, id="Outer-core"),
+        pytest.param(-6, id="Outer-SOL"),
+        pytest.param(-8, id="Lower-outer-divertor"),
+        pytest.param(-101, id="Neutral-pressure-cells"),
+        pytest.param(22, id="CORE"),
+        pytest.param(23, id="SOL"),
+        pytest.param(24, id="OUTER_DIVERTOR"),
+        pytest.param(25, id="INNER_DIVERTOR"),
+        pytest.param(12, id="Inner-Midplane"),
+        pytest.param(11, id="Outer-Midplane"),
+    ],
+)
+def test_load_edge_plasma_solps(path_iter_solps: str, grid_subset_id: int):
+    """Test loading edge plasma from the SOLPS dataset."""
+    plasma = load_edge_plasma(
+        path_iter_solps,
+        "r",
+        grid_subset_id=grid_subset_id,
+        split_ion_bundles=False,
+    )
+
+    assert isinstance(plasma, Plasma)
+    assert plasma.geometry is not None
+    assert plasma.electron_distribution is not None
+    assert len(plasma.composition) > 0
 
 
 def test_load_edge_plasma_with_time(path_iter_jintrac: str):

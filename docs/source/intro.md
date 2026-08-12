@@ -60,16 +60,37 @@ from cherab.imas.plasma import load_plasma
 world = World()
 
 # Load plasma from IMAS database
-# You can put same parameters defined in `imas.DBEntry`
 plasma = load_plasma(
     "imas:hdf5?path=testdb",  # IMAS URI
-    "r",  # read mode
     time=0.0,
     parent=world,
 )
 ```
 
-This script creates a `World` object and loads a plasma from an IMAS database located at `testdb`. The plasma is created close to time `0.0` and is added to the world as its parent.
+This script creates a `World` object and loads a plasma from an IMAS database located at `testdb`, reading the `core_profiles/equilibrium/edge_profiles` IDSs.
+The plasma is created close to time `0.0` and is added to the world as its parent.
+
+All `cherab-imas` loader APIs open URI and netCDF sources in IMAS read mode automatically. Pass
+the source directly, without the `"r"` required by `imas.DBEntry` itself:
+
+```python
+# IMAS URI
+plasma = load_plasma("imas:hdf5?path=testdb")
+
+# A netCDF data entry works the same way
+plasma = load_plasma("/path/to/data.nc")
+
+# Other DBEntry options remain available as keyword arguments
+plasma = load_plasma("/path/to/data.nc", dd_version="4.1.0")
+
+# Legacy form is also supported
+from imas.ids_defs import HDF5_BACKEND
+
+plasma = load_plasma(HDF5_BACKEND, "testdb", 12345, 0)
+```
+
+Existing calls that explicitly pass `"r"` continue to work for compatibility, but are deprecated.
+Modes that create or replace data, such as `"w"`, `"a"`, and `"x"`, are rejected by loader APIs.
 
 You can find more examples and detailed documentation in the [Examples](examples) and [API Reference](api) sections.
 

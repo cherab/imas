@@ -5,21 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.1] - 2026-07-28
+## [0.6.0] - 2026-08-12
 
 ### Added
 
 - Add synthetic JINTRAC radiation values dataset support and related regression tests
 - Extend radiation emitter loading to support dual emissivity sources with improved validation
+- Add IDS path utility helpers and `get_entry_reference` for resolving entry references
+- Add unit tests for IDS path handling, grid loading via path references, and plasma utility entry-reference workflows
+- Add public `CellConnectivity`, `CellData`, and `VertexIndices` types and the `as_cell_data()`
+  validation helper for GGD meshes
+- Add validity-mask support for retaining the relationship between compacted 2D grids and their
+  source GGD face data
+- Add an optimized Cython implementation for calculating polygonal cell areas and area-weighted
+  centroids, with OpenMP support for large meshes
+- Add profile-shape inspection and plain-text/Rich summaries for species compositions
+- Add regression tests for 2D grid geometry, subset validity, molecular species, and core/edge
+  profile loading
+- Add a 2D radiation-emitter example notebook
 
 ### Changed
 
+- Select read mode automatically when CHERAB object loaders receive an IMAS URI or netCDF path;
+  explicit `"r"` arguments remain temporarily supported but are deprecated
+- Reject data-creating DBEntry modes in CHERAB object loader APIs
+- Update API docstrings, examples, demos, and notebooks to use mode-free loader calls
 - Improve radiation emitter loading checks for duplicate emissivity values and core-profile grid data
+- Refactor `load_grid` to support explicit `entry` selection and improve referenced-grid source resolution
+- Enhance plasma and emitter loading paths to use entry-reference aware grid resolution
+- **Breaking:** Change `load_grid(..., with_subsets=True)` and
+  `load_unstruct_grid_2d(..., with_subsets=True)` subset values from index arrays to
+  `(indices, valid_data_mask)` tuples
+- Extend `UnstructGrid2D` with source-data validity tracking so interpolation and plotting accept
+  either compacted cell data or source-sized data
+- Calculate cylindrical 2D cell volumes from area-weighted centroids over a full toroidal rotation
+- Filter edge and blended-plasma profile arrays consistently when invalid GGD faces are omitted
+- Classify neutral and charged molecular species consistently and retain molecular bundles in core
+  and edge species compositions
+- Promote `rich` from a test-only dependency to a runtime dependency
+- Summarize non-empty species groups with compact labels, conventional ionic charge notation, and
+  stable symbol-derived coloring in plain and `rich` tree output
+- Update the edge-plasma example to use the ITER-SOLPS sample dataset
 
 ### Fixed
 
 - Fix grid data loading checks for radiation core profiles
 - Improve error handling in radiation emitter loading workflows
+- Ignore missing, incomplete, and out-of-range GGD faces while preserving correct subset mappings
+- Fix triangle indexing, cylindrical cell-volume calculation, and volume preservation in 2D grid
+  subsets
+- Fix the Cython compile and link arguments on macOS
+- Preserve neutral and charged molecular species when loading core and edge compositions
 
 ## [0.5.0] - 2026-06-24
 

@@ -35,10 +35,27 @@ from raysect.core.math.function.vector3d.function2d import Function2D as VectorF
 from raysect.core.math.function.vector3d.function3d import Function3D as VectorFunction3D
 from raysect.core.math.vector import Vector3D
 
-__all__ = ["GGDGrid", "CellSelection", "InterpolatorCacheMode", "as_index_array"]
+__all__ = [
+    "GGDGrid",
+    "CellConnectivity",
+    "CellData",
+    "CellSelection",
+    "InterpolatorCacheMode",
+    "VertexIndices",
+    "as_cell_data",
+    "as_index_array",
+]
 
 ZEROVECTOR = Vector3D(0, 0, 0)
+
+CellData: TypeAlias = NDArray[np.floating[Any]] | Sequence[float]
+"""One-dimensional scalar data defined on grid cells."""
+VertexIndices: TypeAlias = Sequence[SupportsIndex] | NDArray[np.integer[Any]]
+"""Vertex indices defining one grid cell."""
+CellConnectivity: TypeAlias = NDArray[np.integer[Any]] | Sequence[VertexIndices]
+"""Vertex connectivity defining a sequence of grid cells."""
 CellSelection: TypeAlias = Sequence[SupportsIndex] | NDArray[np.integer[Any]]
+"""One-dimensional array of cell-selection indices."""
 InterpolatorCacheMode: TypeAlias = Literal["none", "memory", "disk"]
 """Cache mode for interpolator templates.
 
@@ -48,6 +65,34 @@ InterpolatorCacheMode: TypeAlias = Literal["none", "memory", "disk"]
   The cache directory can be specified via the `interpolator_cache_dir` argument.
 """
 InterpolatorT = TypeVar("InterpolatorT")
+
+
+def as_cell_data(data: CellData, num_cell: int) -> NDArray[np.float64]:
+    """Return validated scalar cell data as a one-dimensional float array.
+
+    Parameters
+    ----------
+    data
+        Scalar values defined on grid cells.
+    num_cell
+        Expected number of cell values.
+
+    Returns
+    -------
+    NDArray[numpy.float64]
+        Validated one-dimensional cell data.
+
+    Raises
+    ------
+    ValueError
+        If the data is not one-dimensional or does not contain ``num_cell`` values.
+    """
+    data_array = np.asarray_chkfinite(data, dtype=np.float64)
+    if data_array.ndim != 1:
+        raise ValueError("Cell data must be one-dimensional.")
+    if data_array.size != num_cell:
+        raise ValueError(f"Cell data must contain {num_cell} values.")
+    return data_array
 
 
 def as_index_array(indices: CellSelection) -> NDArray[np.intp]:
@@ -162,6 +207,10 @@ class GGDGrid:
     def _interpolator_geometry_hash(self) -> str | None:
         """Return a stable geometry hash based on the grid `vertices` and `cells`.
 
+        ``cells`` may be either a regular NumPy array or a sequence of
+        variable-length index arrays (for example, a mixture of triangular and
+        quadrilateral cells).
+
         Returns
         -------
         str | None
@@ -173,16 +222,26 @@ class GGDGrid:
         if vertices is None or cells is None:
             return None
 
-        vertices_array = np.ascontiguousarray(vertices)
-        cells_array = np.ascontiguousarray(cells)
-
         digest = hashlib.blake2b(digest_size=20)
+
+        vertices_array = np.ascontiguousarray(vertices)
         digest.update(str(vertices_array.dtype).encode("ascii"))
         digest.update(np.asarray(vertices_array.shape, dtype=np.int64).tobytes())
         digest.update(vertices_array.tobytes())
-        digest.update(str(cells_array.dtype).encode("ascii"))
-        digest.update(np.asarray(cells_array.shape, dtype=np.int64).tobytes())
-        digest.update(cells_array.tobytes())
+
+        if isinstance(cells, np.ndarray) and cells.dtype != object:
+            cells_array = np.ascontiguousarray(cells)
+            digest.update(str(cells_array.dtype).encode("ascii"))
+            digest.update(np.asarray(cells_array.shape, dtype=np.int64).tobytes())
+            digest.update(cells_array.tobytes())
+        else:
+            digest.update(np.asarray(len(cells), dtype=np.int64).tobytes())
+            for cell in cells:
+                cell_array = np.ascontiguousarray(cell)
+                digest.update(str(cell_array.dtype).encode("ascii"))
+                digest.update(np.asarray(cell_array.shape, dtype=np.int64).tobytes())
+                digest.update(cell_array.tobytes())
+
         return digest.hexdigest()
 
     def _interpolator_cache_key(
@@ -451,7 +510,7 @@ class GGDGrid:
     @abstractmethod
     def interpolator(
         self,
-        grid_data: NDArray[np.float64],
+        grid_data: CellData,
         fill_value: float = 0.0,
         *,
         interpolator_cache: InterpolatorCacheMode = "memory",
@@ -524,7 +583,7 @@ class GGDGrid:
 
     def plot_mesh(
         self,
-        data: NDArray[np.float64] | None = None,
+        data: CellData | None = None,
         ax: matplotlib.axes.Axes | None = None,
         **grid_styles,
     ) -> matplotlib.axes.Axes:

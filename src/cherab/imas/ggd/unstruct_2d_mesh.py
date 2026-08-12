@@ -19,8 +19,8 @@
 
 from __future__ import annotations
 
-import hashlib
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -38,11 +38,54 @@ from raysect.core.math.polygon import triangulate2d
 from raysect.core.math.vector import Vector3D
 
 from ..math import UnstructGridFunction2D, UnstructGridVectorFunction2D
-from .base_mesh import CellSelection, GGDGrid, InterpolatorCacheMode, as_index_array
+from ..math.polygon import calculate_2d_cell_geometry
+from .base_mesh import (
+    CellConnectivity,
+    CellData,
+    CellSelection,
+    GGDGrid,
+    InterpolatorCacheMode,
+    as_index_array,
+)
 
 __all__ = ["UnstructGrid2D"]
 
 ZERO_VECTOR = Vector3D(0, 0, 0)
+
+
+def _as_cell_data(data: CellData, valid_data_mask: NDArray[np.bool_]) -> NDArray[np.float64]:
+    """Return validated scalar cell data as a one-dimensional float array.
+
+    Parameters
+    ----------
+    data
+        Scalar values defined on grid cells.
+    valid_data_mask
+        Boolean array indicating valid cell data.
+
+    Returns
+    -------
+    NDArray[numpy.float64]
+        Validated one-dimensional cell data.
+
+    Raises
+    ------
+    ValueError
+        If the data is not one-dimensional or does not match the valid data mask.
+    """
+    data_array = np.asarray_chkfinite(data, dtype=np.float64)
+    if data_array.ndim != 1:
+        raise ValueError("Cell data must be one-dimensional.")
+    num_valid = int(np.count_nonzero(valid_data_mask))
+    if data_array.size == num_valid:
+        return data_array
+    if data_array.size == valid_data_mask.size:
+        return data_array[valid_data_mask]
+    raise ValueError(
+        "Cell data must contain either the number of valid cells or the number of "
+        f"source entries. Data size: {data_array.size}, valid cells: {num_valid}, "
+        f"source entries: {valid_data_mask.size}."
+    )
 
 
 class UnstructGrid2D(GGDGrid):
@@ -57,9 +100,14 @@ class UnstructGrid2D(GGDGrid):
     vertices
         Array-like of shape ``(N, 2)`` containing coordinates of the polygon vertices.
     cells
-        List of ``(N,)``-shaped arrays containing the vertex indices in clockwise or
-        counterclockwise order for each polygonal cell in the list (the starting vertex must not be
-        included twice).
+        An ``(N, 4)`` integer array or a list/tuple of 1-D integer index arrays containing
+        the vertex indices in clockwise or counterclockwise order for each polygonal cell
+        (the starting vertex must not be included twice).
+    valid_data_mask
+        Boolean mask over the source face/data entries. Its number of ``True``
+        values must equal the number of cells retained by this grid. Data passed
+        to plotting/interpolation may therefore be either source-sized or already
+        compacted to the valid cells.
     name
         Name of the grid, by default ``'Cells'``.
     coordinate_system
@@ -69,11 +117,12 @@ class UnstructGrid2D(GGDGrid):
     def __init__(
         self,
         vertices: ArrayLike,
-        cells: list[ArrayLike],
+        cells: CellConnectivity,
+        valid_data_mask: NDArray[np.bool_] | Sequence[bool] | None = None,
         name: str = "Cells",
         coordinate_system: Literal["cylindrical", "cartesian"] = "cylindrical",
     ) -> None:
-        vertices = np.asarray_chkfinite(vertices, dtype=np.float64)
+        vertices = np.ascontiguousarray(np.asarray_chkfinite(vertices, dtype=np.float64))
         vertices.setflags(write=False)
 
         if vertices.ndim != 2:
@@ -100,6 +149,20 @@ class UnstructGrid2D(GGDGrid):
 
         self._vertices: NDArray[np.float64] = vertices
         self._cells: tuple[NDArray[np.intp], ...] = tuple(normalized_cells)
+
+        if valid_data_mask is None:
+            valid_data_mask = np.ones(len(self._cells), dtype=np.bool_)
+        else:
+            valid_data_mask = np.asarray(valid_data_mask, dtype=np.bool_)
+        if valid_data_mask.ndim != 1:
+            raise ValueError("valid_data_mask must be one-dimensional.")
+        if (n := np.count_nonzero(valid_data_mask)) != len(self._cells):
+            raise ValueError(
+                f"The number of valid data mask entries ({n})"
+                f" must match the number of cells ({len(self._cells)})."
+            )
+        self._valid_data_mask = np.array(valid_data_mask, dtype=np.bool_, copy=True)
+        self._valid_data_mask.setflags(write=False)
 
         super().__init__(name, 2, coordinate_system)
 
@@ -138,7 +201,7 @@ class UnstructGrid2D(GGDGrid):
         for i, cell in enumerate(self._cells):
             ntri = len(cell) - 2
             if ntri == 1:
-                self._triangles[i] = cell
+                self._triangles[itri] = cell
             else:
                 vert = self._vertices[cell]
                 tri = triangulate2d(cast(Any, vert))
@@ -151,27 +214,16 @@ class UnstructGrid2D(GGDGrid):
         self._cell_to_triangle_map.setflags(write=False)
         self._triangle_to_cell_map.setflags(write=False)
 
-        # Calculate cell area and centroid
-        self._cell_centre = np.empty((len(self._cells), 2), dtype=np.float64)
-        self._cell_area = np.empty(len(self._cells), dtype=np.float64)
-
-        vx = x[self._triangles]
-        vy = y[self._triangles]
-        area = 0.5 * np.abs(
-            (vx[:, 0] - vx[:, 2]) * (vy[:, 1] - vy[:, 2])
-            - (vx[:, 1] - vx[:, 2]) * (vy[:, 0] - vy[:, 2])
+        # Calculate cell areas and area centroids in Cython.
+        self._cell_centre, self._cell_area = calculate_2d_cell_geometry(
+            self._vertices, self._triangles, self._cell_to_triangle_map
         )
-
-        for i, cell in enumerate(self._cells):
-            self._cell_centre[i] = self._vertices[cell].mean(0)
-            i_start, ntri = self._cell_to_triangle_map[i]
-            self._cell_area[i] = area[i_start : i_start + ntri].sum()
-
         self._cell_centre.setflags(write=False)
         self._cell_area.setflags(write=False)
 
         if self._coordinate_system == "cylindrical":
-            self._cell_volume = 0.5 * np.pi * self._cell_centre[:, 0] * self._cell_area
+            self._cell_volume = np.multiply(self._cell_centre[:, 0], self._cell_area)
+            np.multiply(self._cell_volume, 2.0 * np.pi, out=self._cell_volume)
             self._cell_volume.setflags(write=False)
 
     @property
@@ -183,34 +235,6 @@ class UnstructGrid2D(GGDGrid):
     def cells(self) -> tuple[NDArray[np.intp], ...]:
         """List of ``K`` polygonal cells as 1-D integer index arrays."""
         return self._cells
-
-    @override
-    def _interpolator_geometry_hash(self) -> str | None:
-        """Return a stable geometry hash for polygonal 2-D grids.
-
-        This override handles ragged polygon connectivity (`tuple` of variable-length
-        arrays), which cannot be hashed robustly via a single contiguous array.
-
-        Returns
-        -------
-        str | None
-            Stable digest string for cache keys.
-        """
-        digest = hashlib.blake2b(digest_size=20)
-
-        vertices_array = np.ascontiguousarray(self._vertices)
-        digest.update(str(vertices_array.dtype).encode("ascii"))
-        digest.update(np.asarray(vertices_array.shape, dtype=np.int64).tobytes())
-        digest.update(vertices_array.tobytes())
-
-        digest.update(np.asarray(len(self._cells), dtype=np.int64).tobytes())
-        for cell in self._cells:
-            cell_array = np.ascontiguousarray(cell, dtype=np.intp)
-            digest.update(str(cell_array.dtype).encode("ascii"))
-            digest.update(np.asarray(cell_array.shape, dtype=np.int64).tobytes())
-            digest.update(cell_array.tobytes())
-
-        return digest.hexdigest()
 
     @property
     def triangles(self) -> NDArray[np.int32]:
@@ -234,14 +258,27 @@ class UnstructGrid2D(GGDGrid):
         """
         return self._cell_to_triangle_map
 
+    @property
+    def valid_data_mask(self) -> NDArray[np.bool_]:
+        """Boolean mask over source data entries retained by this grid."""
+        return self._valid_data_mask
+
     @override
-    def subset(self, indices: CellSelection, name: str | None = None) -> UnstructGrid2D:
+    def subset(
+        self,
+        indices: CellSelection,
+        name: str | None = None,
+        *,
+        valid_data_mask: NDArray[np.bool_] | Sequence[bool] | None = None,
+    ) -> UnstructGrid2D:
         """Create a subset UnstructGrid2D from this instance.
 
         Parameters
         ----------
         indices
             Indices of the cells of the original grid in the subset.
+        valid_data_mask
+            Boolean array indicating which cells in the subset have valid data.
         name
             Name of the grid subset. Default is ``instance.name + " subset"``.
 
@@ -249,8 +286,33 @@ class UnstructGrid2D(GGDGrid):
         -------
         `.UnstructGrid2D`
             Subset instance.
+
+        Raises
+        ------
+        ValueError
+            If the validity mask is not one-dimensional or does not select exactly
+            one valid entry per subset cell.
         """
+        # ``load_unstruct_grid_2d(..., with_subsets=True)`` returns the index
+        # array and its source validity mask together. Accept that pair directly
+        # for convenience while retaining the normal ``indices`` API.
+        if valid_data_mask is None and isinstance(indices, tuple) and len(indices) == 2:
+            candidate_mask = np.asarray(indices[1])
+            if candidate_mask.ndim == 1 and candidate_mask.dtype == np.bool_:
+                indices, valid_data_mask = cast(Any, indices[0]), candidate_mask
+
         index_array = as_index_array(indices)
+
+        if valid_data_mask is None:
+            valid_data_mask = np.ones(index_array.size, dtype=np.bool_)
+        else:
+            valid_data_mask = np.asarray(valid_data_mask, dtype=np.bool_)
+        if valid_data_mask.ndim != 1:
+            raise ValueError("valid_data_mask must be one-dimensional.")
+        if np.count_nonzero(valid_data_mask) != index_array.size:
+            raise ValueError(
+                "The number of valid data entries must match the number of subset cells."
+            )
 
         grid = UnstructGrid2D.__new__(UnstructGrid2D)
 
@@ -259,6 +321,8 @@ class UnstructGrid2D(GGDGrid):
         grid._dimension = self._dimension
         grid._scalar_interpolator = None
         grid._vector_interpolator = None
+        grid._valid_data_mask = np.array(valid_data_mask, dtype=np.bool_, copy=True)
+        grid._valid_data_mask.setflags(write=False)
 
         index_list = [int(i) for i in index_array]
         cells_original: tuple[NDArray[np.intp], ...] = tuple(
@@ -282,13 +346,16 @@ class UnstructGrid2D(GGDGrid):
             i_start += num_vertices
         grid._cells = tuple(cells)
         grid._num_cell = len(grid._cells)
-        ntri_total = i_start - 2 * len(cells_original)
+        ntri_total = sum(len(cell) - 2 for cell in cells)
 
         # cell area and centres of this subset
         grid._cell_area = np.array(self.cell_area[index_array])
         grid._cell_area.setflags(write=False)
         grid._cell_centre = np.array(self.cell_centre[index_array])
         grid._cell_centre.setflags(write=False)
+        if self._coordinate_system == "cylindrical":
+            grid._cell_volume = np.array(self.cell_volume[index_array])
+            grid._cell_volume.setflags(write=False)
 
         # mesh extent of this subset
         xmin, ymin = grid._vertices.min(0)
@@ -318,7 +385,7 @@ class UnstructGrid2D(GGDGrid):
         for i, cell in enumerate(cells):
             ntri = len(cell) - 2
             if ntri == 1:
-                grid._triangles[i] = cell
+                grid._triangles[itri] = cell
             else:
                 c2t = c2t_map[i]
                 tri = self.triangles[c2t[0] : c2t[0] + c2t[1]]
@@ -336,7 +403,7 @@ class UnstructGrid2D(GGDGrid):
     @override
     def interpolator(
         self,
-        grid_data: NDArray[np.float64],
+        grid_data: CellData,
         fill_value: float = 0,
         *,
         interpolator_cache: InterpolatorCacheMode = "memory",
@@ -368,6 +435,7 @@ class UnstructGrid2D(GGDGrid):
         `.UnstructGridFunction2D`
             Interpolator instance.
         """
+        grid_data = _as_cell_data(grid_data, self._valid_data_mask)
         return self._build_cached_interpolator(
             interpolator_cls=UnstructGridFunction2D,
             template_builder=lambda: UnstructGridFunction2D(
@@ -455,6 +523,7 @@ class UnstructGrid2D(GGDGrid):
             "coordinate_system": self._coordinate_system,
             "vertices": self._vertices,
             "cells": self._cells,
+            "valid_data_mask": self._valid_data_mask,
         }
         return state
 
@@ -466,12 +535,17 @@ class UnstructGrid2D(GGDGrid):
         self._vertices = state["vertices"]
         self._vertices.setflags(write=False)
         self._cells = tuple(np.asarray(cell, dtype=np.intp) for cell in state["cells"])
+        self._valid_data_mask = np.asarray(
+            state.get("valid_data_mask", np.ones(len(self._cells), dtype=np.bool_)),
+            dtype=np.bool_,
+        )
+        self._valid_data_mask.setflags(write=False)
 
         self._initial_setup()
 
     def plot_triangle_mesh(
         self,
-        data: ArrayLike | None = None,
+        data: CellData | None = None,
         ax: matplotlib.axes.Axes | None = None,
         **grid_styles,
     ) -> matplotlib.axes.Axes:
@@ -501,11 +575,12 @@ class UnstructGrid2D(GGDGrid):
         grid_styles.setdefault("linewidth", 0.25)
 
         verts = self._vertices[self._triangles]
+        polygons = cast(Sequence[ArrayLike], verts)
         if data is None:
-            collection_mesh = PolyCollection([verts], **grid_styles)
+            collection_mesh = PolyCollection(polygons, **grid_styles)
         else:
-            data_array = np.asarray(data)
-            collection_mesh = PolyCollection([verts])
+            data_array = _as_cell_data(data, self._valid_data_mask)
+            collection_mesh = PolyCollection(polygons)
             collection_mesh.set_array(data_array[self._triangle_to_cell_map])
         ax.add_collection(collection_mesh)
         ax.set_aspect(1)
@@ -524,7 +599,7 @@ class UnstructGrid2D(GGDGrid):
     @override
     def plot_mesh(
         self,
-        data: ArrayLike | None = None,
+        data: CellData | None = None,
         ax: matplotlib.axes.Axes | None = None,
         **grid_styles,
     ) -> matplotlib.axes.Axes:
@@ -560,7 +635,7 @@ class UnstructGrid2D(GGDGrid):
             collection_mesh = PolyCollection(verts, **grid_styles)
         else:
             collection_mesh = PolyCollection(verts)
-            collection_mesh.set_array(data)
+            collection_mesh.set_array(_as_cell_data(data, self._valid_data_mask))
         ax.add_collection(collection_mesh)
         ax.set_aspect(1)
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])

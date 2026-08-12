@@ -10,7 +10,7 @@ from cherab.imas.plasma.equilibrium import load_magnetic_field
 
 def test_load_plasma(path_iter_jintrac: str):
     """Test basic loading of plasma data from an IMAS file."""
-    plasma = load_plasma(path_iter_jintrac, "r")
+    plasma = load_plasma(path_iter_jintrac)
 
     # Test that a Plasma object is returned
     assert isinstance(plasma, Plasma)

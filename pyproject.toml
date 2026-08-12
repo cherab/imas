@@ -34,13 +34,14 @@ classifiers = [
 dependencies = [
   "cherab==1.5.*",
   "imas-python[netcdf]",
+  "rich",
   "pooch",
   "typing-extensions; python_version < '3.12'",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "rich", "plotly"]
+test = ["pytest", "pytest-cov", "plotly"]
 
 [project.urls]
 Homepage = "https://github.com/cherab"
@@ -75,7 +76,8 @@ src = "cherab"
 include_numpy = true
 compile_py = false
 parallel = true
-compile_args = ["-O3"]
+compile_args = ["-O3", { arg = "-Xclang=-fopenmp", platforms = ["darwin"] }]
+extra_link_args = [{ arg = "-lomp", platforms = ["darwin"] }]
 env = [
   { env = "LDFLAGS", arg = "-headerpad_max_install_names", platforms = [
     "darwin",
@@ -89,10 +91,16 @@ define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
 targets = ["**/*.pyx"]
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313-* cp314-* cp314t-*" # TODO: add cp313/314 when cherab supports it
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*" # TODO: Suppport latest CPython after cherab supports it
 build-frontend = "build[uv]"
 test-extras = ["test"]
 test-command = "pytest {project}/tests"
+
+[tool.cibuildwheel.macos]
+repair-wheel-command = """\
+DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
+--require-archs {delocate_archs} -w {dest_dir} -v {wheel}\
+"""
 
 # -----------------------
 # === Cov/Test config ===
