@@ -90,6 +90,9 @@ def _sum_ggd_species_emissivity(
 ) -> NDArray[np.float64] | None:
     """Sum ``<species_name>(:)/emissivity(:)/<field>(:)`` for one GGD structure.
 
+    For example, this sums ``ggd.ion(i)/emissivity(grid_subset_index)/values(:)`` across all ion
+    species entries.
+
     Returns
     -------
     `NDArray[numpy.float64]` or None

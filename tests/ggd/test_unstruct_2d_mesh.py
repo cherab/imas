@@ -1,6 +1,8 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
+from cherab.imas.ggd.unstruct_2d_extend_mesh import UnstructGrid2DExtended
 from cherab.imas.ggd.unstruct_2d_mesh import UnstructGrid2D
 from cherab.imas.math.polygon import calculate_2d_cell_geometry
 
@@ -67,3 +69,74 @@ def test_large_geometry_calculation_openmp_path():
     np.testing.assert_allclose(centres[:, 0], 2.0 / 3.0)
     np.testing.assert_allclose(centres[:, 1], 1.0 / 3.0)
     np.testing.assert_allclose(areas, 1.0)
+
+
+def test_plot_tri_mesh_maps_source_cell_data_to_triangles():
+    vertices = np.array(
+        [
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 1.0],
+            [0.0, 1.0],
+            [2.0, 0.0],
+            [3.0, 0.0],
+            [2.0, 1.0],
+        ]
+    )
+    grid = UnstructGrid2D(
+        vertices,
+        [[0, 1, 2, 3], [4, 5, 6]],
+        valid_data_mask=np.array([True, False, True]),
+        coordinate_system="cartesian",
+    )
+
+    ax = grid.plot_tri_mesh([2.0, 99.0, 5.0], cmap="magma")
+
+    arr = ax.collections[0].get_array()
+    assert arr is not None
+    np.testing.assert_allclose(arr, [2.0, 2.0, 5.0])
+    assert ax.collections[0].get_cmap().name == "magma"
+    assert grid._triangulation is not None
+    assert not hasattr(grid, "plot_triangle_mesh")
+    fig = ax.get_figure()
+    assert isinstance(fig, plt.Figure)
+    plt.close(fig)
+
+
+def test_extended_plot_tri_mesh_uses_triangle_face_data():
+    vertices = np.array(
+        [
+            [1.0, 0.0, 0.0],
+            [2.0, 0.0, 0.0],
+            [2.0, 0.0, 1.0],
+            [1.0, 0.0, 1.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 2.0, 0.0],
+            [0.0, 2.0, 1.0],
+            [0.0, 1.0, 1.0],
+        ]
+    )
+    cells = np.array(
+        [
+            [0, 1, 2, 3, 4, 5, 6, 7],
+            [4, 5, 6, 7, 0, 1, 2, 3],
+        ]
+    )
+    grid = UnstructGrid2DExtended(
+        vertices,
+        cells,
+        num_faces=1,
+        num_poloidal=4,
+        num_toroidal=2,
+    )
+
+    ax = grid.plot_tri_mesh([3.0], cmap="plasma")
+
+    arr = ax.collections[0].get_array()
+    assert arr is not None
+    np.testing.assert_allclose(arr, [3.0, 3.0])
+    assert ax.collections[0].get_cmap().name == "plasma"
+    assert grid._triangulation is not None
+    fig = ax.get_figure()
+    assert isinstance(fig, plt.Figure)
+    plt.close(fig)

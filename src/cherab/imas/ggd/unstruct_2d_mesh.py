@@ -33,6 +33,7 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import PolyCollection
+from matplotlib.tri import Triangulation
 from numpy.typing import ArrayLike, NDArray
 from raysect.core.math.polygon import triangulate2d
 from raysect.core.math.vector import Vector3D
@@ -170,6 +171,7 @@ class UnstructGrid2D(GGDGrid):
     def _initial_setup(self) -> None:
         self._scalar_interpolator = None
         self._vector_interpolator = None
+        self._triangulation: Triangulation | None = None
 
         self._num_cell: int = len(self._cells)
 
@@ -321,6 +323,7 @@ class UnstructGrid2D(GGDGrid):
         grid._dimension = self._dimension
         grid._scalar_interpolator = None
         grid._vector_interpolator = None
+        grid._triangulation = None
         grid._valid_data_mask = np.array(valid_data_mask, dtype=np.bool_, copy=True)
         grid._valid_data_mask.setflags(write=False)
 
@@ -543,47 +546,50 @@ class UnstructGrid2D(GGDGrid):
 
         self._initial_setup()
 
-    def plot_triangle_mesh(
+    def plot_tri_mesh(
         self,
-        data: CellData | None = None,
+        data: CellData,
         ax: matplotlib.axes.Axes | None = None,
-        **grid_styles,
+        cmap: str = "viridis",
+        **kwargs,
     ) -> matplotlib.axes.Axes:
-        """Plot the triangle mesh grid geometry to a matplotlib figure.
+        """Plot cell data on the triangular mesh using Matplotlib's tripcolor.
 
         Parameters
         ----------
         data
-            Data array defined on the polygonal mesh.
+            Data array defined on the polygonal mesh. Each cell value is assigned to all
+            triangles forming that cell.
         ax
             Matplotlib axes to plot on. If None, a new figure and axes are created.
-        **grid_styles
-            Styles for the grid lines and faces,
-            by default ``{"facecolor": "none", "edgecolor": "b", "linewidth": 0.25}``.
+        cmap
+            Colormap to use for the data, by default ``"viridis"``.
+        **kwargs
+            Additional keyword arguments passed to `~matplotlib.axes.Axes.tripcolor`.
 
         Returns
         -------
         `~matplotlib.axes.Axes`
             The matplotlib axes with the plotted mesh.
         """
+        data_array = _as_cell_data(data, self._valid_data_mask)
+        triangle_data = data_array[self._triangle_to_cell_map]
+
+        if self._triangulation is None:
+            self._triangulation = Triangulation(
+                self._vertices[:, 0], self._vertices[:, 1], self._triangles
+            )
+
         if ax is None:
             _, ax = plt.subplots(constrained_layout=True)
 
-        # Set default grid line styles if not provided
-        grid_styles.setdefault("facecolor", "none")
-        grid_styles.setdefault("edgecolor", "b")
-        grid_styles.setdefault("linewidth", 0.25)
-
-        verts = self._vertices[self._triangles]
-        polygons = cast(Sequence[ArrayLike], verts)
-        if data is None:
-            collection_mesh = PolyCollection(polygons, **grid_styles)
-        else:
-            data_array = _as_cell_data(data, self._valid_data_mask)
-            collection_mesh = PolyCollection(polygons)
-            collection_mesh.set_array(data_array[self._triangle_to_cell_map])
-        ax.add_collection(collection_mesh)
         ax.set_aspect(1)
+        ax.tripcolor(
+            self._triangulation,
+            facecolors=triangle_data,
+            cmap=cmap,
+            **kwargs,
+        )
         ax.set_xlim(self._mesh_extent["xmin"], self._mesh_extent["xmax"])
         ax.set_ylim(self._mesh_extent["ymin"], self._mesh_extent["ymax"])
 

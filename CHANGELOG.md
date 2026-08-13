@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Add `UnstructGrid2D.plot_tri_mesh()` for plotting cell data on the triangulated mesh with Matplotlib's `tripcolor()`
+
+### Changed
+
+- Use explicit triangle face colors in the `plot_tri_mesh()` implementations of the 2D and 2D-extended unstructured grids
+
+### Removed
+
+- **Breaking:** Remove the redundant `UnstructGrid2D.plot_triangle_mesh()` method in favor of `plot_tri_mesh()`
+
 ## [0.6.0] - 2026-08-12
 
 ### Added
