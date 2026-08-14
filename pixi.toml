@@ -1,5 +1,5 @@
 [workspace]
-channels = ["conda-forge"]
+channels = ["conda-forge", "https://prefix.dev/koyo-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 preview = ["pixi-build"]
 
@@ -38,6 +38,9 @@ typing-extensions = ">=4.5"
 [dependencies]
 cherab-imas = { path = "." }
 ipython = "*"
+
+# Type stubs for static type checking
+cherab-stubs = "*"
 
 # Publication-quality plot
 ultraplot = ">=1.72.0"
