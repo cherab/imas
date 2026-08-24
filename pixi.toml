@@ -3,20 +3,20 @@ channels = ["conda-forge", "https://prefix.dev/koyo-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 preview = ["pixi-build"]
 
+[workspace.build-variants]
+python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
+
 # -------------------------------
 # === Packaging Configuration ===
 # -------------------------------
 [package]
-version = "dynamic" # Until pixi recommends something else
+version = "dynamic"  # Until pixi recommends something else
 
 [package.build]
 backend = { name = "pixi-build-python", version = "*" }
 
 [package.build.config]
 noarch = false
-
-[workspace.build-variants]
-python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
 
 [package.host-dependencies]
 python = "*"
@@ -80,27 +80,37 @@ sphinx-github-style = "*"
 sphinx-api-relink = "*"
 
 [feature.docs.tasks]
-doc-build = { cmd = [
-  "sphinx-build",
-  "-b",
-  "{{ target }}",
-  "-j",
-  "auto",
-  "source",
-  "build/{{ target }}",
-], cwd = "docs", args = [
-  { arg = "target", default = "html" },
-], description = "📝 Build the docs" }
-doc-serve = { args = [
-  { arg = "port", default = "8000" },
-], cmd = [
-  "python",
-  "-m",
-  "http.server",
-  "{{ port }}",
-  "--directory",
-  "build/html",
-], cwd = "docs", description = "🚀 Start a local server for the docs" }
+doc-build = {
+  cmd = [
+    "sphinx-build",
+    "-b",
+    "{{ target }}",
+    "-j",
+    "auto",
+    "source",
+    "build/{{ target }}",
+  ],
+  cwd = "docs",
+  args = [
+    { arg = "target", default = "html" },
+  ],
+  description = "📝 Build the docs",
+}
+doc-serve = {
+  cmd = [
+    "python",
+    "-m",
+    "http.server",
+    "{{ port }}",
+    "--directory",
+    "build/html",
+  ],
+  cwd = "docs",
+  args = [
+    { arg = "port", default = "8000" },
+  ],
+  description = "🚀 Start a local server for the docs",
+}
 
 # === Linting feature ===
 [feature.lint.dependencies]
@@ -115,7 +125,7 @@ shellcheck = "*"
 validate-pyproject = "*"
 cython-lint = "*"
 blacken-docs = "*"
-taplo = "*"
+tombi = "*"
 nbstripout = ">=0.9.1,<0.10"
 
 [feature.lint.tasks]
@@ -126,9 +136,9 @@ mypy = { cmd = "mypy", description = "Type check with mypy" }
 pyrefly-check = { cmd = "pyrefly check", description = "Type check with pyrefly" }
 ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
 ruff-format = { cmd = "ruff format", description = "Format with ruff" }
+toml-format = { cmd = "tombi format", description = "Format TOML files" }
 dprint = { cmd = "dprint fmt", description = "Format with dprint" }
 typos = { cmd = "typos --write-changes --force-exclude", description = "Fix typos" }
-taplo = { cmd = "taplo fmt", description = "Format toml files with taplo" }
 actionlint = { cmd = "actionlint", description = "Lint actions with actionlint" }
 blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blocks with Black" }
 validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
@@ -137,29 +147,32 @@ lint = { cmd = "lefthook run pre-commit --all-files --force", description = "�
 
 # Clean build artifacts
 [feature.tools.tasks]
-clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
-clean-c = { cmd = "find src -type f -name '*.c' -delete", description = "🧹 Clean C source files" }
-doc-clean = { cmd = [
-  "rm",
-  "-rf",
-  "build",
-  "source/_api",
-], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
+clean = {
+  cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' -o -name '*.html' \\) -delete",
+  description = "🧹 Clean build artifacts",
+}
+clean-c = {
+  cmd = "find src -type f -name '*.c' -delete",
+  description = "🧹 Clean C source files",
+}
+doc-clean = {
+  cmd = ["rm", "-rf", "build", "source/_api"],
+  cwd = "docs",
+  description = "🔥 Clean the docs build & api directory",
+}
 
 # === Python environment features ===
-[feature.py310.dependencies]
+[feature.py-oldest.dependencies]
 python = "3.10.*"
-[feature.py314.dependencies]
+
+[feature.py-latest.dependencies]
 python = "3.14.*"
 
 [environments]
-default = { features = ["py314"], solve-group = "py314" }
-docs = { features = ["py314", "docs"], solve-group = "py314" }
-test = { features = ["py314", "test"], solve-group = "py314" }
-test-py314 = { features = [
-  "py314",
-  "test",
-], solve-group = "py314" } # alias of test
-test-py310 = ["py310", "test"]
-lint = { features = ["lint", "test"], solve-group = "py314" }
+default = { features = ["py-latest"], solve-group = "py-latest" }
+docs = { features = ["py-latest", "docs"], solve-group = "py-latest" }
+test = { features = ["py-latest", "test"], solve-group = "py-latest" }
+test-pylatest = { features = ["py-latest", "test"], solve-group = "py-latest" }  # alias of test
+test-pyoldest = ["py-oldest", "test"]
+lint = { features = ["lint", "test"], solve-group = "py-latest" }
 tools = { features = ["tools"], no-default-feature = true }

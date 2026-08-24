@@ -24,10 +24,10 @@ pre-commit:
       stage_fixed: true
       run: pixi {run} dprint {staged_files}
 
-    - name: taplo
+    - name: toml format
       glob: "*.toml"
       stage_fixed: true
-      run: pixi {run} taplo {staged_files}
+      run: pixi {run} toml-format {staged_files}
 
     - name: ruff check
       glob: "*.{py,pyi}"
