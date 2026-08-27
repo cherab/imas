@@ -1,0 +1,71 @@
+name: 📚 Latest documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-latest
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: 🟨 Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.10.1
+        with:
+          environments: docs
+
+      - name: 📝 Build docs
+        run: pixi run -e docs doc-build
+
+      - name: 📦 Upload documentation
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-html
+          path: docs/build/html
+          retention-days: 1
+
+  deploy:
+    name: Deploy latest documentation
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: 📥 Download documentation
+        uses: actions/download-artifact@v8
+        with:
+          name: docs-html
+          path: docs/build/html
+
+      - name: Initialize GitHub Pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs/pages-root
+          clean: false
+          force: false
+          attempt-limit: 5
+
+      - name: 🚀 Deploy latest documentation
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs/build/html
+          target-folder: latest
+          force: false
+          attempt-limit: 5
