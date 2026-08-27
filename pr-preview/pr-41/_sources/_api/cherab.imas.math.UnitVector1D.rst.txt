@@ -1,0 +1,20 @@
+cherab.imas.math.UnitVector1D
+=============================
+
+.. currentmodule:: cherab.imas.math
+
+.. autoclass:: UnitVector1D
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+      ~UnitVector1D.__call__
+
+

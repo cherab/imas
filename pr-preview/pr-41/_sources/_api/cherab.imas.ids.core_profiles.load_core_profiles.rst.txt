@@ -1,0 +1,6 @@
+cherab.imas.ids.core\_profiles.load\_core\_profiles
+===================================================
+
+.. currentmodule:: cherab.imas.ids.core_profiles
+
+.. autofunction:: load_core_profiles

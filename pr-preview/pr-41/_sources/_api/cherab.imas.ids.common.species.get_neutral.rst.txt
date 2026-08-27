@@ -1,0 +1,6 @@
+cherab.imas.ids.common.species.get\_neutral
+===========================================
+
+.. currentmodule:: cherab.imas.ids.common.species
+
+.. autofunction:: get_neutral

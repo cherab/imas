@@ -1,0 +1,15 @@
+cherab.imas.emitter
+===================
+
+.. automodule:: cherab.imas.emitter
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_radiation_emitter
+
+
+

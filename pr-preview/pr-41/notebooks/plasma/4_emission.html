@@ -1,0 +1,1624 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="3_full_plasma.html" rel="prev"/>
+<link href="../radiation/grid_3d.html" rel="next"/>
+<link href="" rel="icon"/>
+<title>Emission Models - CHERAB-IMAS</title>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../_static/sphinx_immaterial_theme.74c816e3f9967dd6e.min.css?v=6cfe2491" rel="stylesheet" type="text/css"/>
+<link href="../../_static/copybutton.css?v=76b2166b" rel="stylesheet" type="text/css"/>
+<link href="../../_static/sphinx-codeautolink.css?v=b2176991" rel="stylesheet" type="text/css"/>
+<link href="../../_static/github_style.css?v=1093691d" rel="stylesheet" type="text/css"/>
+<link href="../../_static/sphinx-design.min.css?v=95c83b7e" rel="stylesheet" type="text/css"/>
+<link href="../../_static/nbsphinx-code-cells.css?v=2aa19091" rel="stylesheet" type="text/css"/>
+<link href="../../_static/custom.css?v=f23068b1" rel="stylesheet" type="text/css"/>
+<script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#Retrieve-atomic-data">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="CHERAB-IMAS" class="md-header__button md-logo" data-md-component="logo" href="../../index.html" title="CHERAB-IMAS">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            CHERAB-IMAS
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Emission Models
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<a aria-label="Share" class="md-search__icon md-icon" data-clipboard="" data-clipboard-text="" data-md-component="search-share" href="javascript:void(0)" tabindex="-1" title="Share">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+</a>
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+<div class="md-search__suggest" data-md-component="search-suggest"></div>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/cherab/imas" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="CHERAB-IMAS" class="md-nav__button md-logo" data-md-component="logo" href="../../index.html" title="CHERAB-IMAS">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    CHERAB-IMAS
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/cherab/imas" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+</div>
+<div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../index.html">
+<span class="md-ellipsis">
+<span title="/index.md (reference label)"><span>👋 Welcome</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../intro.html">
+<span class="md-ellipsis">
+<span title="/intro.md (reference label)"><span>🚀 Get Started</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../examples.html">
+<span class="md-ellipsis">
+<span title="/examples.md (reference label)"><span>🧪 Examples</span></span>
+</span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+<span title="/examples.md (reference label)"><span>🧪 Examples</span></span>
+</label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_3_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../examples.html#plasma">
+<span class="md-ellipsis">
+<span title="/examples.md#plasma (reference label)"><span>Plasma</span></span>
+</span>
+</a>
+<label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_3_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_1">
+<span class="md-nav__icon md-icon"></span>
+<span title="/examples.md#plasma (reference label)"><span>Plasma</span></span>
+</label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="1_equilibrium.html">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/1_equilibrium.ipynb (reference label)"><span>Plasma Equilibrium</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="2_edge_plasma.html">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/2_edge_plasma.ipynb (reference label)"><span>Edge Plasma profiles</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="3_full_plasma.html">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/3_full_plasma.ipynb (reference label)"><span>Full Plasma <wbr/>(Core + Edge profiles)</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb (reference label)"><span>Emission Models</span></span>
+</span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="#">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb (reference label)"><span>Emission Models</span></span>
+</span>
+</a>
+<nav class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Retrieve-atomic-data">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#retrieve-atomic-data (reference label)"><span>Retrieve atomic data</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Load-full-plasma-from-IMAS">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#load-full-plasma-from-imas (reference label)"><span>Load full plasma from IMAS</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Construct-emission-models">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#construct-emission-models (reference label)"><span>Construct emission models</span></span>
+</span>
+</a>
+<nav aria-label="Construct emission models" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Apply-emission-models-to-plasma-species">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#apply-emission-models-to-plasma-species (reference label)"><span>Apply emission models to plasma species</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Visualize-emission-profiles">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#visualize-emission-profiles (reference label)"><span>Visualize emission profiles</span></span>
+</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Measure-line-of-sight-Spectra">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#measure-line-of-sight-spectra (reference label)"><span>Measure line-<wbr/>of-<wbr/>sight Spectra</span></span>
+</span>
+</a>
+<nav aria-label="Measure line-of-sight Spectra" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Visualize-measured-spectra">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#visualize-measured-spectra (reference label)"><span>Visualize measured spectra</span></span>
+</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../examples.html#radiation">
+<span class="md-ellipsis">
+<span title="/examples.md#radiation (reference label)"><span>Radiation</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../examples.html#observer">
+<span class="md-ellipsis">
+<span title="/examples.md#observer (reference label)"><span>Observer</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../examples.html#miscellaneous">
+<span class="md-ellipsis">
+<span title="/examples.md#miscellaneous (reference label)"><span>Miscellaneous</span></span>
+</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--section md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+<span class="md-ellipsis">
+<span>Reference</span>
+</span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_4_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_4">
+<span class="md-nav__icon md-icon"></span>
+<span>Reference</span>
+</label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../api.html">
+<span class="md-ellipsis">
+<span title="/api.md (reference label)"><span>📚 API Reference</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../contributing.html">
+<span class="md-ellipsis">
+<span title="/contributing.md (reference label)"><span>🤝 Contributing</span></span>
+</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Retrieve-atomic-data">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#retrieve-atomic-data (reference label)"><span>Retrieve atomic data</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Load-full-plasma-from-IMAS">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#load-full-plasma-from-imas (reference label)"><span>Load full plasma from IMAS</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Construct-emission-models">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#construct-emission-models (reference label)"><span>Construct emission models</span></span>
+</span>
+</a>
+<nav aria-label="Construct emission models" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Apply-emission-models-to-plasma-species">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#apply-emission-models-to-plasma-species (reference label)"><span>Apply emission models to plasma species</span></span>
+</span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Visualize-emission-profiles">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#visualize-emission-profiles (reference label)"><span>Visualize emission profiles</span></span>
+</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Measure-line-of-sight-Spectra">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#measure-line-of-sight-spectra (reference label)"><span>Measure line-<wbr/>of-<wbr/>sight Spectra</span></span>
+</span>
+</a>
+<nav aria-label="Measure line-of-sight Spectra" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#Visualize-measured-spectra">
+<span class="md-ellipsis">
+<span title="/notebooks/plasma/4_emission.ipynb#visualize-measured-spectra (reference label)"><span>Visualize measured spectra</span></span>
+</span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset" role="main">
+<div class="admonition note">
+  This page was generated from
+  <a class="reference external" href="https://github.com/cherab/imas/blob/master/docs/notebooks/plasma/4_emission.ipynb">docs/notebooks/plasma/4_emission.ipynb</a>.
+  <br/>
+  Interactive online version:
+  <span style="white-space: nowrap;"><a href="https://mybinder.org/v2/gh/cherab/imas/master?filepath=docs/notebooks/plasma/4_emission.ipynb"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"/></a>.</span>
+<a class="reference download internal" download="" href="4_emission.ipynb">Download notebook</a>.
+  <script>
+    if (document.location.host) {
+      let nbviewer_link = document.createElement('a');
+      nbviewer_link.setAttribute('href',
+        'https://nbviewer.org/url' +
+        (window.location.protocol == 'https:' ? 's/' : '/') +
+        window.location.host +
+        window.location.pathname.slice(0, -4) +
+        'ipynb');
+      nbviewer_link.innerHTML = 'Or view it on <em>nbviewer</em>';
+      nbviewer_link.classList.add('reference');
+      nbviewer_link.classList.add('external');
+      document.currentScript.replaceWith(nbviewer_link, '.');
+    }
+  </script>
+</div><h1 id="Emission-Models">Emission Models<a class="headerlink" href="#Emission-Models" title="Link to this heading">¶</a></h1>
+<p>This notebook demonstrates how to construct emission models to be used in synthetic diagnostics.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[1]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/index.html#module-numpy"><span class="nn">numpy</span></a><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ultraplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">uplt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raysect.core.math</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">Point3D</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.vector.Vector3D" title="raysect.core.math.vector.Vector3D"><span class="n">Vector3D</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raysect.core.workflow</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/render_engines.html#raysect.core.workflow.MulticoreEngine" title="raysect.core.workflow.MulticoreEngine"><span class="n">MulticoreEngine</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raysect.optical</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.ray.Ray" title="raysect.optical.ray.Ray"><span class="n">Ray</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.scenegraph.world.World" title="raysect.optical.scenegraph.world.World"><span class="n">World</span></a>
+<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/init.html#module-rich"><span class="nn">rich</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/init.html#rich.print" title="rich.print"><span class="nb">print</span></a> <span class="k">as</span> <span class="n">rprint</span>
+<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#module-rich.table"><span class="nn">rich.table</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table" title="rich.table.Table"><span class="n">Table</span></a>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.core.atomic</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/elements_and_isotopes.html#cherab.core.atomic.elements.Isotope" title="cherab.core.atomic.elements.Isotope"><span class="n">Isotope</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">Line</span></a><span class="p">,</span> <span class="n">elements</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.core.math</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/math/samplers.html#cherab.core.math.samplers.sample3d" title="cherab.core.math.samplers.sample3d"><span class="n">sample3d</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.core.model</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/brem/bremsstrahlung.html#cherab.core.model.plasma.bremsstrahlung.Bremsstrahlung" title="cherab.core.model.plasma.bremsstrahlung.Bremsstrahlung"><span class="n">Bremsstrahlung</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.impact_excitation.ExcitationLine" title="cherab.core.model.plasma.impact_excitation.ExcitationLine"><span class="n">ExcitationLine</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.recombination.RecombinationLine" title="cherab.core.model.plasma.recombination.RecombinationLine"><span class="n">RecombinationLine</span></a>
+<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="../../_api/cherab.imas.datasets.html#module-cherab.imas.datasets"><span class="nn">cherab.imas.datasets</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="../../_api/cherab.imas.datasets.iter_jintrac.html#cherab.imas.datasets.iter_jintrac" title="cherab.imas.datasets.iter_jintrac"><span class="n">iter_jintrac</span></a>
+<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="../../_api/cherab.imas.plasma.html#module-cherab.imas.plasma"><span class="nn">cherab.imas.plasma</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="../../_api/cherab.imas.plasma.load_plasma.html#cherab.imas.plasma.load_plasma" title="cherab.imas.plasma.load_plasma"><span class="n">load_plasma</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.openadas</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS" title="cherab.openadas.openadas.OpenADAS"><span class="n">OpenADAS</span></a>
+
+<span class="c1"># Set dark background for plots</span>
+<span class="n">uplt</span><span class="o">.</span><span class="n">rc</span><span class="o">.</span><span class="n">style</span> <span class="o">=</span> <span class="s2">"dark_background"</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/runner/work/imas/imas/.pixi/envs/docs/lib/python3.14/site-packages/ultraplot/__init__.py:221: UltraPlotWarning: Rebuilding font cache. This usually happens after installing or updating ultraplot.
+  register_fonts(default=True)
+</pre></div></div>
+</div>
+<h2 id="Retrieve-atomic-data">Retrieve atomic data<a class="headerlink" href="#Retrieve-atomic-data" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://open.adas.ac.uk">OpenADAS</a> provides data for a variety of emission processes in plasmas. Here we demonstrate how to include some of these processes in a <code class="docutils literal notranslate"><span class="pre">cherab</span></code> simulation and generate synthetic spectra.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[2]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS" title="cherab.openadas.openadas.OpenADAS"><span class="n">atomic_data</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS" title="cherab.openadas.openadas.OpenADAS"><span class="n">OpenADAS</span></a><span class="p">(</span><span class="n">permit_extrapolation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">missing_rates_return_null</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<p>When using OpenADAS data first time, the relevant data files must be downloaded and installed.
+Usually, they are downloaded by executing <a class="reference external" href="https://www.cherab.info/atomic/repository.html#cherab.openadas.repository.create.populate" title="(in Cherab v1.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">populate</span></code></a>, but some files are not downloaded by default.
+Currently, neon and tungsten atomic data files (related to adf11, adf15) are to be downloaded manually as a workaround.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[3]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/openadas.html#module-cherab.openadas.install"><span class="nn">cherab.openadas.install</span></a><span class="w"> </span><span class="kn">import</span> <span class="n">install_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.openadas.repository</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/repository.html#cherab.openadas.repository.create.populate" title="cherab.openadas.repository.create.populate"><span class="n">populate</span></a>
+
+<span class="k">try</span><span class="p">:</span>
+    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS.ionisation_rate" title="cherab.openadas.openadas.OpenADAS.ionisation_rate"><span class="n">atomic_data</span><span class="o">.</span><span class="n">ionisation_rate</span></a><span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS.recombination_pec" title="cherab.openadas.openadas.OpenADAS.recombination_pec"><span class="n">atomic_data</span><span class="o">.</span><span class="n">recombination_pec</span></a><span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="s2">"2s1 2p6 2s0.5"</span><span class="p">,</span> <span class="s2">"2s2 2p5 2p2.5"</span><span class="p">))</span>
+<span class="k">except</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/exceptions.html#RuntimeError"><span class="ne">RuntimeError</span></a><span class="p">:</span>
+    <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#print"><span class="nb">print</span></a><span class="p">(</span><span class="s2">"Populating OpenADAS repository..."</span><span class="p">)</span>
+
+    <span class="c1"># Download ADAS files from OpenADAS</span>
+    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/repository.html#cherab.openadas.repository.create.populate" title="cherab.openadas.repository.create.populate"><span class="n">populate</span></a><span class="p">()</span>
+
+    <span class="c1"># Install ADAS files that are not downloaded by default</span>
+    <span class="c1"># TODO: uncomment tungsten ADF15 once https://github.com/cherab/core/pull/497 is resolved</span>
+    <span class="n">install_files</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="c1"># "adf11scd": ((elements.tungsten, "adf11/scd50/scd50_w.dat"),),</span>
+            <span class="c1"># "adf11acd": ((elements.tungsten, "adf11/acd50/acd50_w.dat"),),</span>
+            <span class="s2">"adf15"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"adf15/pec96#ne/pec96#ne_pjr#ne</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.dat"</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="o">.</span><span class="n">atomic_number</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="c1"># + [</span>
+            <span class="c1">#     (elements.tungsten, i, f"adf15/pec40#w/pec40#w_ic#w{i}.dat")</span>
+            <span class="c1">#     for i in range(elements.tungsten.atomic_number)</span>
+            <span class="c1"># ],</span>
+        <span class="p">},</span>
+        <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Populating OpenADAS repository...
+Installing adf11/scd12/scd12_h.dat...
+ - downloading ADF file 'adf11/scd12/scd12_h.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd12/scd12_h.dat'
+Installing adf11/scd96/scd96_he.dat...
+ - downloading ADF file 'adf11/scd96/scd96_he.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd96/scd96_he.dat'
+Installing adf11/scd96/scd96_li.dat...
+ - downloading ADF file 'adf11/scd96/scd96_li.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd96/scd96_li.dat'
+Installing adf11/scd96/scd96_be.dat...
+ - downloading ADF file 'adf11/scd96/scd96_be.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd96/scd96_be.dat'
+Installing adf11/scd89/scd89_b.dat...
+ - downloading ADF file 'adf11/scd89/scd89_b.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd89/scd89_b.dat'
+Installing adf11/scd96/scd96_c.dat...
+ - downloading ADF file 'adf11/scd96/scd96_c.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd96/scd96_c.dat'
+Installing adf11/scd96/scd96_n.dat...
+ - downloading ADF file 'adf11/scd96/scd96_n.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd96/scd96_n.dat'
+Installing adf11/scd96/scd96_o.dat...
+ - downloading ADF file 'adf11/scd96/scd96_o.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd96/scd96_o.dat'
+Installing adf11/scd96/scd96_ne.dat...
+Installing adf11/scd89/scd89_ar.dat...
+ - downloading ADF file 'adf11/scd89/scd89_ar.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd89/scd89_ar.dat'
+Installing adf11/scd89/scd89_kr.dat...
+ - downloading ADF file 'adf11/scd89/scd89_kr.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd89/scd89_kr.dat'
+Installing adf11/scd89/scd89_xe.dat...
+ - downloading ADF file 'adf11/scd89/scd89_xe.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd89/scd89_xe.dat'
+Installing adf11/acd12/acd12_h.dat...
+ - downloading ADF file 'adf11/acd12/acd12_h.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd12/acd12_h.dat'
+Installing adf11/acd96/acd96_he.dat...
+ - downloading ADF file 'adf11/acd96/acd96_he.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd96/acd96_he.dat'
+Installing adf11/acd96/acd96_li.dat...
+ - downloading ADF file 'adf11/acd96/acd96_li.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd96/acd96_li.dat'
+Installing adf11/acd96/acd96_be.dat...
+ - downloading ADF file 'adf11/acd96/acd96_be.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd96/acd96_be.dat'
+Installing adf11/acd89/acd89_b.dat...
+ - downloading ADF file 'adf11/acd89/acd89_b.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd89/acd89_b.dat'
+Installing adf11/acd96/acd96_c.dat...
+ - downloading ADF file 'adf11/acd96/acd96_c.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd96/acd96_c.dat'
+Installing adf11/acd96/acd96_n.dat...
+ - downloading ADF file 'adf11/acd96/acd96_n.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd96/acd96_n.dat'
+Installing adf11/acd96/acd96_o.dat...
+ - downloading ADF file 'adf11/acd96/acd96_o.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd96/acd96_o.dat'
+Installing adf11/acd96/acd96_ne.dat...
+Installing adf11/acd89/acd89_ar.dat...
+ - downloading ADF file 'adf11/acd89/acd89_ar.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd89/acd89_ar.dat'
+Installing adf11/acd89/acd89_kr.dat...
+ - downloading ADF file 'adf11/acd89/acd89_kr.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd89/acd89_kr.dat'
+Installing adf11/acd89/acd89_xe.dat...
+ - downloading ADF file 'adf11/acd89/acd89_xe.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd89/acd89_xe.dat'
+Installing adf11/ccd96/ccd96_h.dat...
+ - downloading ADF file 'adf11/ccd96/ccd96_h.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd96/ccd96_h.dat'
+Installing adf11/ccd96/ccd96_he.dat...
+ - downloading ADF file 'adf11/ccd96/ccd96_he.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd96/ccd96_he.dat'
+Installing adf11/ccd89/ccd89_li.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_li.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_li.dat'
+Installing adf11/ccd89/ccd89_be.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_be.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_be.dat'
+Installing adf11/ccd89/ccd89_b.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_b.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_b.dat'
+Installing adf11/ccd96/ccd96_c.dat...
+ - downloading ADF file 'adf11/ccd96/ccd96_c.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd96/ccd96_c.dat'
+Installing adf11/ccd89/ccd89_n.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_n.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_n.dat'
+Installing adf11/ccd89/ccd89_o.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_o.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_o.dat'
+Installing adf11/ccd89/ccd89_ne.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_ne.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_ne.dat'
+Installing adf11/ccd89/ccd89_ar.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_ar.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_ar.dat'
+Installing adf11/ccd89/ccd89_kr.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_kr.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_kr.dat'
+Installing adf11/ccd89/ccd89_xe.dat...
+ - downloading ADF file 'adf11/ccd89/ccd89_xe.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/ccd89/ccd89_xe.dat'
+Installing adf11/plt12/plt12_h.dat...
+ - downloading ADF file 'adf11/plt12/plt12_h.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt12/plt12_h.dat'
+Installing adf11/plt96/plt96_he.dat...
+ - downloading ADF file 'adf11/plt96/plt96_he.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_he.dat'
+Installing adf11/plt96/plt96_li.dat...
+ - downloading ADF file 'adf11/plt96/plt96_li.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_li.dat'
+Installing adf11/plt96/plt96_be.dat...
+ - downloading ADF file 'adf11/plt96/plt96_be.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_be.dat'
+Installing adf11/plt89/plt89_b.dat...
+ - downloading ADF file 'adf11/plt89/plt89_b.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt89/plt89_b.dat'
+Installing adf11/plt96/plt96_c.dat...
+ - downloading ADF file 'adf11/plt96/plt96_c.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_c.dat'
+Installing adf11/plt96/plt96_n.dat...
+ - downloading ADF file 'adf11/plt96/plt96_n.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_n.dat'
+Installing adf11/plt96/plt96_o.dat...
+ - downloading ADF file 'adf11/plt96/plt96_o.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_o.dat'
+Installing adf11/plt96/plt96_ne.dat...
+ - downloading ADF file 'adf11/plt96/plt96_ne.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt96/plt96_ne.dat'
+Installing adf11/plt40/plt40_ar.dat...
+ - downloading ADF file 'adf11/plt40/plt40_ar.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt40/plt40_ar.dat'
+Installing adf11/plt89/plt89_kr.dat...
+ - downloading ADF file 'adf11/plt89/plt89_kr.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt89/plt89_kr.dat'
+Installing adf11/plt89/plt89_xe.dat...
+ - downloading ADF file 'adf11/plt89/plt89_xe.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/plt89/plt89_xe.dat'
+Installing adf11/prb12/prb12_h.dat...
+ - downloading ADF file 'adf11/prb12/prb12_h.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb12/prb12_h.dat'
+Installing adf11/prb96/prb96_he.dat...
+ - downloading ADF file 'adf11/prb96/prb96_he.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_he.dat'
+Installing adf11/prb96/prb96_li.dat...
+ - downloading ADF file 'adf11/prb96/prb96_li.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_li.dat'
+Installing adf11/prb96/prb96_be.dat...
+ - downloading ADF file 'adf11/prb96/prb96_be.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_be.dat'
+Installing adf11/prb89/prb89_b.dat...
+ - downloading ADF file 'adf11/prb89/prb89_b.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb89/prb89_b.dat'
+Installing adf11/prb96/prb96_c.dat...
+ - downloading ADF file 'adf11/prb96/prb96_c.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_c.dat'
+Installing adf11/prb96/prb96_n.dat...
+ - downloading ADF file 'adf11/prb96/prb96_n.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_n.dat'
+Installing adf11/prb96/prb96_o.dat...
+ - downloading ADF file 'adf11/prb96/prb96_o.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_o.dat'
+Installing adf11/prb96/prb96_ne.dat...
+ - downloading ADF file 'adf11/prb96/prb96_ne.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb96/prb96_ne.dat'
+Installing adf11/prb89/prb89_ar.dat...
+ - downloading ADF file 'adf11/prb89/prb89_ar.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb89/prb89_ar.dat'
+Installing adf11/prb89/prb89_kr.dat...
+ - downloading ADF file 'adf11/prb89/prb89_kr.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb89/prb89_kr.dat'
+Installing adf11/prb89/prb89_xe.dat...
+ - downloading ADF file 'adf11/prb89/prb89_xe.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prb89/prb89_xe.dat'
+Installing adf11/prc96/prc96_h.dat...
+ - downloading ADF file 'adf11/prc96/prc96_h.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc96/prc96_h.dat'
+Installing adf11/prc96/prc96_he.dat...
+ - downloading ADF file 'adf11/prc96/prc96_he.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc96/prc96_he.dat'
+Installing adf11/prc89/prc89_li.dat...
+ - downloading ADF file 'adf11/prc89/prc89_li.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_li.dat'
+Installing adf11/prc89/prc89_be.dat...
+ - downloading ADF file 'adf11/prc89/prc89_be.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_be.dat'
+Installing adf11/prc89/prc89_b.dat...
+ - downloading ADF file 'adf11/prc89/prc89_b.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_b.dat'
+Installing adf11/prc96/prc96_c.dat...
+ - downloading ADF file 'adf11/prc96/prc96_c.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc96/prc96_c.dat'
+Installing adf11/prc89/prc89_n.dat...
+ - downloading ADF file 'adf11/prc89/prc89_n.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_n.dat'
+Installing adf11/prc89/prc89_o.dat...
+ - downloading ADF file 'adf11/prc89/prc89_o.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_o.dat'
+Installing adf11/prc89/prc89_ne.dat...
+ - downloading ADF file 'adf11/prc89/prc89_ne.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_ne.dat'
+Installing adf11/prc89/prc89_ar.dat...
+ - downloading ADF file 'adf11/prc89/prc89_ar.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_ar.dat'
+Installing adf11/prc89/prc89_kr.dat...
+ - downloading ADF file 'adf11/prc89/prc89_kr.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_kr.dat'
+Installing adf11/prc89/prc89_xe.dat...
+ - downloading ADF file 'adf11/prc89/prc89_xe.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/prc89/prc89_xe.dat'
+Installing adf12/qef93#h/qef93#h_h1.dat...
+ - downloading ADF file 'adf12/qef93#h/qef93#h_h1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef93#h/qef93#h_h1.dat'
+Installing adf12/qef93#h/qef93#h_he2.dat...
+ - downloading ADF file 'adf12/qef93#h/qef93#h_he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef93#h/qef93#h_he2.dat'
+Installing adf12/qef97#h/qef97#h_en2_kvi#he2.dat...
+ - downloading ADF file 'adf12/qef97#h/qef97#h_en2_kvi#he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef97#h/qef97#h_en2_kvi#he2.dat'
+Installing adf12/qef93#h/qef93#h_be4.dat...
+ - downloading ADF file 'adf12/qef93#h/qef93#h_be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef93#h/qef93#h_be4.dat'
+Installing adf12/qef97#h/qef97#h_en2_kvi#be4.dat...
+ - downloading ADF file 'adf12/qef97#h/qef97#h_en2_kvi#be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef97#h/qef97#h_en2_kvi#be4.dat'
+Installing adf12/qef93#h/qef93#h_b5.dat...
+ - downloading ADF file 'adf12/qef93#h/qef93#h_b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef93#h/qef93#h_b5.dat'
+Installing adf12/qef97#h/qef97#h_en2_kvi#b5.dat...
+ - downloading ADF file 'adf12/qef97#h/qef97#h_en2_kvi#b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef97#h/qef97#h_en2_kvi#b5.dat'
+Installing adf12/qef93#h/qef93#h_c6.dat...
+ - downloading ADF file 'adf12/qef93#h/qef93#h_c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef93#h/qef93#h_c6.dat'
+Installing adf12/qef97#h/qef97#h_en2_kvi#c6.dat...
+ - downloading ADF file 'adf12/qef97#h/qef97#h_en2_kvi#c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef97#h/qef97#h_en2_kvi#c6.dat'
+Installing adf12/qef93#h/qef93#h_ne10.dat...
+ - downloading ADF file 'adf12/qef93#h/qef93#h_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef93#h/qef93#h_ne10.dat'
+Installing adf12/qef97#h/qef97#h_en2_kvi#ne10.dat...
+ - downloading ADF file 'adf12/qef97#h/qef97#h_en2_kvi#ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf12/qef97#h/qef97#h_en2_kvi#ne10.dat'
+Installing adf15/pec12#h/pec12#h_pju#h0.dat...
+ - downloading ADF file 'adf15/pec12#h/pec12#h_pju#h0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec12#h/pec12#h_pju#h0.dat'
+Installing adf15/pec96#he/pec96#he_pju#he0.dat...
+ - downloading ADF file 'adf15/pec96#he/pec96#he_pju#he0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#he/pec96#he_pju#he0.dat'
+Installing adf15/pec96#he/pec96#he_pju#he1.dat...
+ - downloading ADF file 'adf15/pec96#he/pec96#he_pju#he1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#he/pec96#he_pju#he1.dat'
+Installing adf15/pec96#be/pec96#be_pju#be0.dat...
+ - downloading ADF file 'adf15/pec96#be/pec96#be_pju#be0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#be/pec96#be_pju#be0.dat'
+Installing adf15/pec96#be/pec96#be_pju#be1.dat...
+ - downloading ADF file 'adf15/pec96#be/pec96#be_pju#be1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#be/pec96#be_pju#be1.dat'
+Installing adf15/pec96#be/pec96#be_pju#be2.dat...
+ - downloading ADF file 'adf15/pec96#be/pec96#be_pju#be2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#be/pec96#be_pju#be2.dat'
+Installing adf15/pec96#be/pec96#be_pju#be3.dat...
+ - downloading ADF file 'adf15/pec96#be/pec96#be_pju#be3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#be/pec96#be_pju#be3.dat'
+Installing adf15/pec96#c/pec96#c_vsu#c0.dat...
+ - downloading ADF file 'adf15/pec96#c/pec96#c_vsu#c0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#c/pec96#c_vsu#c0.dat'
+Installing adf15/pec96#c/pec96#c_vsu#c1.dat...
+ - downloading ADF file 'adf15/pec96#c/pec96#c_vsu#c1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#c/pec96#c_vsu#c1.dat'
+Installing adf15/pec96#c/pec96#c_vsu#c2.dat...
+ - downloading ADF file 'adf15/pec96#c/pec96#c_vsu#c2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#c/pec96#c_vsu#c2.dat'
+Installing adf15/pec96#c/pec96#c_pju#c5.dat...
+ - downloading ADF file 'adf15/pec96#c/pec96#c_pju#c5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#c/pec96#c_pju#c5.dat'
+Installing adf15/pec96#n/pec96#n_vsu#n0.dat...
+ - downloading ADF file 'adf15/pec96#n/pec96#n_vsu#n0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#n/pec96#n_vsu#n0.dat'
+Installing adf15/pec96#n/pec96#n_vsu#n1.dat...
+ - downloading ADF file 'adf15/pec96#n/pec96#n_vsu#n1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#n/pec96#n_vsu#n1.dat'
+Installing adf21/bms97#h/bms97#h_h1.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_h1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_h1.dat'
+Installing adf21/bms97#h/bms97#h_he2.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_he2.dat'
+Installing adf21/bms97#h/bms97#h_li3.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_li3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_li3.dat'
+Installing adf21/bms97#h/bms97#h_be4.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_be4.dat'
+Installing adf21/bms97#h/bms97#h_b5.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_b5.dat'
+Installing adf21/bms97#h/bms97#h_c6.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_c6.dat'
+Installing adf21/bms97#h/bms97#h_n7.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_n7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_n7.dat'
+Installing adf21/bms97#h/bms97#h_o8.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_o8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_o8.dat'
+Installing adf21/bms97#h/bms97#h_f9.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_f9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_f9.dat'
+Installing adf21/bms97#h/bms97#h_ne10.dat...
+ - downloading ADF file 'adf21/bms97#h/bms97#h_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf21/bms97#h/bms97#h_ne10.dat'
+Installing adf22/bmp97#h/bmp97#h_2_h1.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_h1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_h1.dat'
+Installing adf22/bmp97#h/bmp97#h_3_h1.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_h1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_h1.dat'
+Installing adf22/bmp97#h/bmp97#h_4_h1.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_h1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_h1.dat'
+Installing adf22/bmp97#h/bmp97#h_2_he2.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_he2.dat'
+Installing adf22/bmp97#h/bmp97#h_3_he2.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_he2.dat'
+Installing adf22/bmp97#h/bmp97#h_4_he2.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_he2.dat'
+Installing adf22/bmp97#h/bmp97#h_2_li3.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_li3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_li3.dat'
+Installing adf22/bmp97#h/bmp97#h_3_li3.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_li3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_li3.dat'
+Installing adf22/bmp97#h/bmp97#h_4_li3.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_li3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_li3.dat'
+Installing adf22/bmp97#h/bmp97#h_2_be4.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_be4.dat'
+Installing adf22/bmp97#h/bmp97#h_3_be4.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_be4.dat'
+Installing adf22/bmp97#h/bmp97#h_4_be4.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_be4.dat'
+Installing adf22/bmp97#h/bmp97#h_2_b5.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_b5.dat'
+Installing adf22/bmp97#h/bmp97#h_3_b5.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_b5.dat'
+Installing adf22/bmp97#h/bmp97#h_4_b5.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_b5.dat'
+Installing adf22/bmp97#h/bmp97#h_2_c6.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_c6.dat'
+Installing adf22/bmp97#h/bmp97#h_3_c6.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_c6.dat'
+Installing adf22/bmp97#h/bmp97#h_4_c6.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_c6.dat'
+Installing adf22/bmp97#h/bmp97#h_2_n7.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_n7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_n7.dat'
+Installing adf22/bmp97#h/bmp97#h_3_n7.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_n7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_n7.dat'
+Installing adf22/bmp97#h/bmp97#h_4_n7.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_n7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_n7.dat'
+Installing adf22/bmp97#h/bmp97#h_2_o8.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_o8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_o8.dat'
+Installing adf22/bmp97#h/bmp97#h_3_o8.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_o8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_o8.dat'
+Installing adf22/bmp97#h/bmp97#h_4_o8.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_o8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_o8.dat'
+Installing adf22/bmp97#h/bmp97#h_2_f9.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_f9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_f9.dat'
+Installing adf22/bmp97#h/bmp97#h_3_f9.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_f9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_f9.dat'
+Installing adf22/bmp97#h/bmp97#h_4_f9.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_f9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_f9.dat'
+Installing adf22/bmp97#h/bmp97#h_2_ne10.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_2_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_2_ne10.dat'
+Installing adf22/bmp97#h/bmp97#h_3_ne10.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_3_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_3_ne10.dat'
+Installing adf22/bmp97#h/bmp97#h_4_ne10.dat...
+ - downloading ADF file 'adf22/bmp97#h/bmp97#h_4_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bmp97#h/bmp97#h_4_ne10.dat'
+Installing adf22/bme10#h/bme10#h_h1.dat...
+ - downloading ADF file 'adf22/bme10#h/bme10#h_h1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme10#h/bme10#h_h1.dat'
+Installing adf22/bme97#h/bme97#h_he2.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_he2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_he2.dat'
+Installing adf22/bme97#h/bme97#h_li3.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_li3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_li3.dat'
+Installing adf22/bme97#h/bme97#h_be4.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_be4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_be4.dat'
+Installing adf22/bme97#h/bme97#h_b5.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_b5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_b5.dat'
+Installing adf22/bme97#h/bme97#h_c6.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_c6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_c6.dat'
+Installing adf22/bme97#h/bme97#h_n7.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_n7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_n7.dat'
+Installing adf22/bme97#h/bme97#h_o8.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_o8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_o8.dat'
+Installing adf22/bme97#h/bme97#h_f9.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_f9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_f9.dat'
+Installing adf22/bme97#h/bme97#h_ne10.dat...
+ - downloading ADF file 'adf22/bme97#h/bme97#h_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_ne10.dat'
+Installing adf22/bme99#h/bme99#h_ar18.dat...
+ - downloading ADF file 'adf22/bme99#h/bme99#h_ar18.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme99#h/bme99#h_ar18.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne0.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne0.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne1.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne1.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne2.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne2.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne3.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne3.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne4.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne4.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne5.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne5.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne6.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne6.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne7.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne7.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne8.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne8.dat'
+Installing adf15/pec96#ne/pec96#ne_pjr#ne9.dat...
+ - downloading ADF file 'adf15/pec96#ne/pec96#ne_pjr#ne9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pjr#ne9.dat'
+</pre></div></div>
+</div>
+<h2 id="Load-full-plasma-from-IMAS">Load full plasma from IMAS<a class="headerlink" href="#Load-full-plasma-from-IMAS" title="Link to this heading">¶</a></h2>
+<p>The details of loading a full plasma are covered in the <a class="reference internal" href="3_full_plasma.html"><span class="doc">Full Plasma</span></a> notebook. Here we simply load a plasma from an IMAS jintrac dataset.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[4]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.scenegraph.world.World" title="raysect.optical.scenegraph.world.World"><span class="n">world</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.scenegraph.world.World" title="raysect.optical.scenegraph.world.World"><span class="n">World</span></a><span class="p">()</span>
+<span class="n">path</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="../../_api/cherab.imas.datasets.iter_jintrac.html#cherab.imas.datasets.iter_jintrac" title="cherab.imas.datasets.iter_jintrac"><span class="n">iter_jintrac</span></a><span class="p">()</span>
+<a class="sphinx-codeautolink-a" href="https://www.cherab.info/plasmas/core_plasma_classes.html#cherab.core.Plasma" title="cherab.core.plasma.node.Plasma"><span class="n">plasma</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="../../_api/cherab.imas.plasma.load_plasma.html#cherab.imas.plasma.load_plasma" title="cherab.imas.plasma.load_plasma"><span class="n">load_plasma</span></a><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.scenegraph.world.World" title="raysect.optical.scenegraph.world.World"><span class="n">world</span></a><span class="p">,</span> <span class="n">atomic_data</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS" title="cherab.openadas.openadas.OpenADAS"><span class="n">atomic_data</span></a><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+15:04:16 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+15:04:16 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+/home/runner/work/imas/imas/src/cherab/imas/plasma/blend.py:181: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
+  core_profiles_ids = get_ids_time_slice(
+/home/runner/work/imas/imas/src/cherab/imas/plasma/blend.py:207: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
+  edge_profiles_ids = get_ids_time_slice(
+/home/runner/work/imas/imas/src/cherab/imas/plasma/equilibrium.py:104: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
+  equilibrium_ids = get_ids_time_slice(
+/home/runner/work/imas/imas/src/cherab/imas/plasma/equilibrium.py:188: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
+  equilibrium_ids = get_ids_time_slice(
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Warning: z_min or z_max is EMPTY_FLOAT for state index 0. Using z_average to determine z_min and z_max.
+Warning: z_min or z_max is EMPTY_FLOAT for state index 0. Using z_average to determine z_min and z_max.
+Warning: z_min or z_max is EMPTY_FLOAT for state index 0. Using z_average to determine z_min and z_max.
+Warning: z_min or z_max is EMPTY_FLOAT for state index 1. Using z_average to determine z_min and z_max.
+Warning! Unable to verify that the cell nodes are in the winding order.
+Warning! Using average ion temperature for the D ion (z=+1).
+Warning! Using average ion temperature for the He ion (z=+1).
+Warning! Using average ion temperature for the He ion (z=+2).
+Warning! Using average ion temperature for the Ne ion (z=+1).
+Warning! Using average ion temperature for the Ne ion (z=+2).
+Warning! Using average ion temperature for the Ne ion (z=+3).
+Warning! Using average ion temperature for the Ne ion (z=+4).
+Warning! Using average ion temperature for the Ne ion (z=+5).
+Warning! Using average ion temperature for the Ne ion (z=+6).
+Warning! Using average ion temperature for the Ne ion (z=+7).
+Warning! Using average ion temperature for the Ne ion (z=+8).
+Warning! Using average ion temperature for the Ne ion (z=+9).
+Warning! Using average ion temperature for the Ne ion (z=+10).
+Warning! Using average ion temperature for the W ion (z=+1).
+Warning! Using average ion temperature for the W ion (z=+2).
+Warning! Using average ion temperature for the W ion (z=+3).
+Warning! Using average ion temperature for the W ion (z=+4).
+Warning! Using average ion temperature for the W ion (z=+5).
+Warning! Using average ion temperature for the W ion (z=+6).
+Warning! Using average ion temperature for the W ion (z=+7).
+Warning! Using average ion temperature for the W ion (z=+8).
+Warning! Using average ion temperature for the W ion (z=+9).
+Warning! Using average ion temperature for the W ion (z=+10).
+Warning! Using average ion temperature for the W ion (z=+11).
+Warning! Using average ion temperature for the W ion (z=+12).
+Warning! Using average ion temperature for the W ion (z=+13).
+Warning! Using average ion temperature for the W ion (z=+14).
+Warning! Using average ion temperature for the W ion (z=+15).
+Warning! Using average ion temperature for the W ion (z=+16).
+Warning! Using average ion temperature for the W ion (z=+17).
+Warning! Using average ion temperature for the W ion (z=+18).
+Warning! Using average ion temperature for the W ion (z=+19).
+Warning! Using average ion temperature for the W ion (z=+20).
+Warning! Using average ion temperature for the W ion (z=+21).
+Warning! Using average ion temperature for the W ion (z=+22).
+Warning! Using average ion temperature for the W ion (z=+23).
+Warning! Using average ion temperature for the W ion (z=+24).
+Warning! Using average ion temperature for the W ion (z=+25).
+Warning! Using average ion temperature for the W ion (z=+26).
+Warning! Using average ion temperature for the W ion (z=+27).
+Warning! Using average ion temperature for the W ion (z=+28).
+Warning! Using average ion temperature for the W ion (z=+29).
+Warning! Using average ion temperature for the W ion (z=+30).
+Warning! Using average ion temperature for the W ion (z=+31).
+Warning! Using average ion temperature for the W ion (z=+32).
+Warning! Using average ion temperature for the W ion (z=+33).
+Warning! Using average ion temperature for the W ion (z=+34).
+Warning! Using average ion temperature for the W ion (z=+35).
+Warning! Using average ion temperature for the W ion (z=+36).
+Warning! Using average ion temperature for the W ion (z=+37).
+Warning! Using average ion temperature for the W ion (z=+38).
+Warning! Using average ion temperature for the W ion (z=+39).
+Warning! Using average ion temperature for the W ion (z=+40).
+Warning! Using average ion temperature for the W ion (z=+41).
+Warning! Using average ion temperature for the W ion (z=+42).
+Warning! Using average ion temperature for the W ion (z=+43).
+Warning! Using average ion temperature for the W ion (z=+44).
+Warning! Using average ion temperature for the W ion (z=+45).
+Warning! Using average ion temperature for the W ion (z=+46).
+Warning! Using average ion temperature for the W ion (z=+47).
+Warning! Using average ion temperature for the W ion (z=+48).
+Warning! Using average ion temperature for the W ion (z=+49).
+Warning! Using average ion temperature for the W ion (z=+50).
+Warning! Using average ion temperature for the W ion (z=+51).
+Warning! Using average ion temperature for the W ion (z=+52).
+Warning! Using average ion temperature for the W ion (z=+53).
+Warning! Using average ion temperature for the W ion (z=+54).
+Warning! Using average ion temperature for the W ion (z=+55).
+Warning! Using average ion temperature for the W ion (z=+56).
+Warning! Using average ion temperature for the W ion (z=+57).
+Warning! Using average ion temperature for the W ion (z=+58).
+Warning! Using average ion temperature for the W ion (z=+59).
+Warning! Using average ion temperature for the W ion (z=+60).
+Warning! Using average ion temperature for the W ion (z=+61).
+Warning! Using average ion temperature for the W ion (z=+62).
+Warning! Using average ion temperature for the W ion (z=+63).
+Warning! Using average ion temperature for the W ion (z=+64).
+Warning! Using average ion temperature for the W ion (z=+65).
+Warning! Using average ion temperature for the W ion (z=+66).
+Warning! Using average ion temperature for the W ion (z=+67).
+Warning! Using average ion temperature for the W ion (z=+68).
+Warning! Using average ion temperature for the W ion (z=+69).
+Warning! Using average ion temperature for the W ion (z=+70).
+Warning! Using average ion temperature for the W ion (z=+71).
+Warning! Using average ion temperature for the W ion (z=+72).
+Warning! Using average ion temperature for the W ion (z=+73).
+Warning! Using average ion temperature for the W ion (z=+74).
+Warning! Species of type 'molecule' are currently not supported.
+The following species will be skipped: D-D molecule
+</pre></div></div>
+</div>
+<p>Show which species the plasma is composed of.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[5]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Organize plasma species by symbol and charge</span>
+<span class="n">species</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">plasma</span><span class="o">.</span><span class="n">composition</span><span class="p">:</span>
+    <span class="n">symbol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span>
+    <span class="k">if</span> <span class="n">symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+        <span class="n">species</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">species</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+<span class="c1"># Sort species of each element by charge</span>
+<span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+    <span class="n">species</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">atomic_number</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">atomic_weight</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">charge</span><span class="p">))</span>
+
+<span class="c1"># Print table of plasma species</span>
+<a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table" title="rich.table.Table"><span class="n">table</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table" title="rich.table.Table"><span class="n">Table</span></a><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Plasma Species"</span><span class="p">)</span>
+<a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table.add_column" title="rich.table.Table.add_column"><span class="n">table</span><span class="o">.</span><span class="n">add_column</span></a><span class="p">(</span><span class="s2">"Element"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"cyan"</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">"right"</span><span class="p">)</span>
+<a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table.add_column" title="rich.table.Table.add_column"><span class="n">table</span><span class="o">.</span><span class="n">add_column</span></a><span class="p">(</span><span class="s2">"Charge"</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+    <span class="n">charges</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">[</span><span class="n">symbol</span><span class="p">]]</span>
+    <span class="n">charges_split</span> <span class="o">=</span> <span class="p">[</span><span class="n">charges</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">charges</span><span class="p">),</span> <span class="mi">10</span><span class="p">)]</span>
+    <span class="n">charges_strs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">+"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">split</span><span class="p">)</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">charges_split</span><span class="p">]</span>
+    <span class="n">charges_str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">charges_strs</span><span class="p">)</span>
+    <a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table.add_row" title="rich.table.Table.add_row"><span class="n">table</span><span class="o">.</span><span class="n">add_row</span></a><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">charges_str</span><span class="p">)</span>
+<a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/init.html#rich.print" title="rich.print"><span class="n">rprint</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table" title="rich.table.Table"><span class="n">table</span></a><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-style: italic">                        Plasma Species                        </span>
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃<span style="font-weight: bold"> Element </span>┃<span style="font-weight: bold"> Charge                                           </span>┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│<span style="color: #008080; text-decoration-color: #008080">       D </span>│ 0+, 1+                                           │
+│<span style="color: #008080; text-decoration-color: #008080">       T </span>│ 0+, 1+                                           │
+│<span style="color: #008080; text-decoration-color: #008080">      He </span>│ 0+, 1+, 2+                                       │
+│<span style="color: #008080; text-decoration-color: #008080">      Ne </span>│ 0+, 1+, 2+, 3+, 4+, 5+, 6+, 7+, 8+, 9+           │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 10+                                              │
+│<span style="color: #008080; text-decoration-color: #008080">       W </span>│ 0+, 1+, 2+, 3+, 4+, 5+, 6+, 7+, 8+, 9+           │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 10+, 11+, 12+, 13+, 14+, 15+, 16+, 17+, 18+, 19+ │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 20+, 21+, 22+, 23+, 24+, 25+, 26+, 27+, 28+, 29+ │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 30+, 31+, 32+, 33+, 34+, 35+, 36+, 37+, 38+, 39+ │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 40+, 41+, 42+, 43+, 44+, 45+, 46+, 47+, 48+, 49+ │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 50+, 51+, 52+, 53+, 54+, 55+, 56+, 57+, 58+, 59+ │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 60+, 61+, 62+, 63+, 64+, 65+, 66+, 67+, 68+, 69+ │
+│<span style="color: #008080; text-decoration-color: #008080">         </span>│ 70+, 71+, 72+, 73+, 74+                          │
+└─────────┴──────────────────────────────────────────────────┘
+</pre></div>
+</div>
+<h2 id="Construct-emission-models">Construct emission models<a class="headerlink" href="#Construct-emission-models" title="Link to this heading">¶</a></h2>
+<h3 id="Apply-emission-models-to-plasma-species">Apply emission models to plasma species<a class="headerlink" href="#Apply-emission-models-to-plasma-species" title="Link to this heading">¶</a></h3>
+<p>Here we create emission models for Bremsstrahlung, excitation lines, and recombination lines for the main plasma species (D, T, He, Ne, W).</p>
+<p>We consider all excitation/recombination lines stored in the OpenADAS adf15 files for these species, which are saved in the <code class="docutils literal notranslate"><span class="pre">~/.cherab/openadas/repository/pec/...</span></code> directory after downloading the files from OpenADAS.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[6]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#module-json"><span class="nn">json</span></a>
+<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#module-pathlib"><span class="nn">pathlib</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.openadas.repository.utility</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_REPOSITORY_PATH</span>
+
+<span class="n">lines_exc</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">lines_rec</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">deuterium</span><span class="p">,</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">tritium</span><span class="p">,</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">helium</span><span class="p">,</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="p">,</span>
+    <span class="c1"># elements.tungsten,  # TODO: uncomment once https://github.com/cherab/core/pull/497 is resolved</span>
+<span class="p">]:</span>
+    <span class="n">ion_elm</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">element</span> <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#isinstance"><span class="nb">isinstance</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/elements_and_isotopes.html#cherab.core.atomic.elements.Isotope" title="cherab.core.atomic.elements.Isotope"><span class="n">Isotope</span></a><span class="p">)</span> <span class="k">else</span> <span class="n">elm</span>
+
+    <span class="c1"># === Excitation Lines ===</span>
+    <span class="n">dir_exc</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a><span class="p">(</span><span class="n">DEFAULT_REPOSITORY_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pec/excitation/</span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">paths_pec_exc</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#list"><span class="nb">list</span></a><span class="p">(</span><span class="n">dir_exc</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">))</span>
+    <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">paths_pec_exc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"No excitation data found for element </span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> in the repository </span><span class="si">{</span><span class="n">dir_exc</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths_pec_exc</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data_exc</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">charge</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="n">data_exc</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">lines_exc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.impact_excitation.ExcitationLine" title="cherab.core.model.plasma.impact_excitation.ExcitationLine"><span class="n">ExcitationLine</span></a><span class="p">(</span>
+                    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">Line</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" -&gt; "</span><span class="p">))),</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+    <span class="c1"># === Recombination Lines ===</span>
+    <span class="k">if</span> <span class="n">ion_elm</span> <span class="o">==</span> <span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="p">:</span>
+        <span class="c1"># Skip recombination lines for tungsten since they are not available in the repository</span>
+        <span class="k">continue</span>
+
+    <span class="n">dir_rec</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a><span class="p">(</span><span class="n">DEFAULT_REPOSITORY_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pec/recombination/</span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">paths_pec_rec</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#list"><span class="nb">list</span></a><span class="p">(</span><span class="n">dir_rec</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">))</span>
+    <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">paths_pec_rec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"No recombination data found for element </span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> in the repository </span><span class="si">{</span><span class="n">dir_rec</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths_pec_rec</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data_rec</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">charge</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="n">data_rec</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">lines_rec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.recombination.RecombinationLine" title="cherab.core.model.plasma.recombination.RecombinationLine"><span class="n">RecombinationLine</span></a><span class="p">(</span>
+                    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">Line</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" -&gt; "</span><span class="p">))),</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<p>Apply the Bremsstrahlung and line emission models to the plasma object.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[7]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">plasma</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span>
+    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/brem/bremsstrahlung.html#cherab.core.model.plasma.bremsstrahlung.Bremsstrahlung" title="cherab.core.model.plasma.bremsstrahlung.Bremsstrahlung"><span class="n">Bremsstrahlung</span></a><span class="p">(),</span>
+    <span class="o">*</span><span class="n">lines_exc</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">lines_rec</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div>
+</div>
+</div>
+<h3 id="Visualize-emission-profiles">Visualize emission profiles<a class="headerlink" href="#Visualize-emission-profiles" title="Link to this heading">¶</a></h3>
+<p>Let us visualize the total emission from all processes on a 2D grid in the R-Z plane. Due to the heavy computational load, we limit the grid resolution to 50 mm and wavelength range to 0.01–1000 nm with 50 bins per each decade.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[8]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Grid specification</span>
+<span class="n">R_MIN</span><span class="p">,</span> <span class="n">R_MAX</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">8.5</span>
+<span class="n">Z_MIN</span><span class="p">,</span> <span class="n">Z_MAX</span> <span class="o">=</span> <span class="o">-</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">4.4</span>
+<span class="n">RES</span> <span class="o">=</span> <span class="mf">50.0e-3</span>  <span class="c1"># resolution of grid in [m]</span>
+<span class="n">n_r</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">R_MAX</span> <span class="o">-</span> <span class="n">R_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">n_z</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">Z_MAX</span> <span class="o">-</span> <span class="n">Z_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_MIN</span><span class="p">,</span> <span class="n">R_MAX</span><span class="p">,</span> <span class="n">Z_MIN</span><span class="p">,</span> <span class="n">Z_MAX</span><span class="p">)</span>
+
+<span class="c1"># Define wavelength integration bands as (min_wavelength_nm, max_wavelength_nm).</span>
+<span class="c1"># We split the full 0.01–1000 nm range into decade intervals.</span>
+<span class="c1">#</span>
+<span class="c1"># Why this structure:</span>
+<span class="c1"># - Raysect/Cherab spectra use linearly spaced bins within each Spectrum object.</span>
+<span class="c1"># - Using multiple adjacent decade bands approximates logarithmic coverage overall,</span>
+<span class="c1">#   while preserving linear binning locally in each band.</span>
+<span class="n">wavelength_bands</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="n">wavelength_bins</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># number of bins per decade band</span>
+</code></pre></div>
+</div>
+</div>
+<p>Sample emission at each grid point integrating over the defined wavelength bands.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[9]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Emission2DSample</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">plasma</span><span class="p">,</span>
+        <span class="n">r_pts</span><span class="p">,</span>
+        <span class="n">z_pts</span><span class="p">,</span>
+        <span class="n">wavelength_bands</span><span class="p">,</span>
+        <span class="n">wavelength_bins</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plasma</span> <span class="o">=</span> <span class="n">plasma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r_pts</span> <span class="o">=</span> <span class="n">r_pts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_pts</span> <span class="o">=</span> <span class="n">z_pts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#list"><span class="nb">list</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndindex.html#numpy.ndindex" title="numpy.ndindex"><span class="n">np</span><span class="o">.</span><span class="n">ndindex</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">r_pts</span><span class="p">),</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">z_pts</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavelength_bands</span> <span class="o">=</span> <span class="n">wavelength_bands</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavelength_bins</span> <span class="o">=</span> <span class="n">wavelength_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/render_engines.html#raysect.core.workflow.MulticoreEngine" title="raysect.core.workflow.MulticoreEngine"><span class="n">MulticoreEngine</span></a><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emission_2d</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.zeros.html#numpy.zeros" title="numpy.zeros"><span class="n">np</span><span class="o">.</span><span class="n">zeros</span></a><span class="p">((</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">r_pts</span><span class="p">),</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">z_pts</span><span class="p">)))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">:</span>
+        <span class="n">i_r</span><span class="p">,</span> <span class="n">i_z</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r_pts</span><span class="p">[</span><span class="n">i_r</span><span class="p">]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_pts</span><span class="p">[</span><span class="n">i_z</span><span class="p">]</span>
+
+        <span class="n">n_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plasma</span><span class="o">.</span><span class="n">electron_distribution</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_e</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="mf">0.0</span>
+
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">min_wl</span><span class="p">,</span> <span class="n">max_wl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wavelength_bands</span><span class="p">:</span>
+            <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">spectrum</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">(</span>
+                <span class="n">min_wavelength</span><span class="o">=</span><span class="n">min_wl</span><span class="p">,</span>
+                <span class="n">max_wavelength</span><span class="o">=</span><span class="n">max_wl</span><span class="p">,</span>
+                <span class="n">bins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wavelength_bins</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emission</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">spectrum</span></a><span class="p">)</span>
+        <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">total</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packed_result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">i_r</span><span class="p">,</span> <span class="n">i_z</span><span class="p">),</span> <span class="n">value</span> <span class="o">=</span> <span class="n">packed_result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emission_2d</span><span class="p">[</span><span class="n">i_r</span><span class="p">,</span> <span class="n">i_z</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_emission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">spectrum</span></a><span class="p">:</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Calculate total emission at a point for a given spectrum."""</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plasma</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+            <span class="n">spectrum</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">emission</span><span class="p">(</span>
+                <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">Point3D</span></a><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span>
+                <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.vector.Vector3D" title="raysect.core.math.vector.Vector3D"><span class="n">Vector3D</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">spectrum</span></a><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">total</span><span class="p">()</span>
+
+
+<span class="c1"># Get R, Z sampling points</span>
+<span class="n">r_pts</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">z_pts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/math/samplers.html#cherab.core.math.samplers.sample3d" title="cherab.core.math.samplers.sample3d"><span class="n">sample3d</span></a><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">(</span><span class="n">R_MIN</span><span class="p">,</span> <span class="n">R_MAX</span><span class="p">,</span> <span class="n">n_r</span><span class="p">),</span>
+    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">Z_MIN</span><span class="p">,</span> <span class="n">Z_MAX</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Create emission sampler and run</span>
+<span class="n">emission_sampler</span> <span class="o">=</span> <span class="n">Emission2DSample</span><span class="p">(</span>
+    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/plasmas/core_plasma_classes.html#cherab.core.Plasma" title="cherab.core.plasma.node.Plasma"><span class="n">plasma</span></a><span class="p">,</span>
+    <span class="n">r_pts</span><span class="p">,</span>
+    <span class="n">z_pts</span><span class="p">,</span>
+    <span class="n">wavelength_bands</span><span class="p">,</span>
+    <span class="n">wavelength_bins</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">emission_sampler</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</code></pre></div>
+</div>
+</div>
+<p>Plot the 2-D emission map</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[10]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">emission_2d</span> <span class="o">=</span> <span class="n">emission_sampler</span><span class="o">.</span><span class="n">emission_2d</span>
+<span class="n">emission_2d</span><span class="p">[</span><span class="n">emission_2d</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/constants.html#numpy.nan" title="numpy.nan"><span class="n">np</span><span class="o">.</span><span class="n">nan</span></a>  <span class="c1"># for log plotting</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.ui.subplots.html#ultraplot.ui.subplots" title="ultraplot.ui.subplots"><span class="n">uplt</span><span class="o">.</span><span class="n">subplots</span></a><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+    <span class="n">emission_2d</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="n">discrete</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span>
+    <span class="n">origin</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">,</span>
+    <span class="n">norm</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">"rocket"</span><span class="p">,</span>
+    <span class="n">colorbar</span><span class="o">=</span><span class="s2">"r"</span><span class="p">,</span>
+    <span class="n">colorbar_kw</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#dict"><span class="nb">dict</span></a><span class="p">(</span>
+        <span class="n">tickdir</span><span class="o">=</span><span class="s2">"out"</span><span class="p">,</span>
+        <span class="n">formatter</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">"[W/m³/sr]"</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">aspect</span><span class="o">=</span><span class="s2">"equal"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Emissivity integrated over </span><span class="si">{</span><span class="n">wavelength_bands</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> – </span><span class="si">{</span><span class="n">wavelength_bands</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> nm"</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"$R$ [m]"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"$Z$ [m]"</span><span class="p">,</span>
+    <span class="n">xlocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">ylocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/notebooks_plasma_4_emission_20_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_4_emission_20_0.png" style="width: 425px; height: 572px;"/>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[11]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">dr</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.mean.html#numpy.mean" title="numpy.mean"><span class="n">np</span><span class="o">.</span><span class="n">mean</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.diff.html#numpy.diff" title="numpy.diff"><span class="n">np</span><span class="o">.</span><span class="n">diff</span></a><span class="p">(</span><span class="n">r_pts</span><span class="p">))</span>
+<span class="n">dz</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.mean.html#numpy.mean" title="numpy.mean"><span class="n">np</span><span class="o">.</span><span class="n">mean</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.diff.html#numpy.diff" title="numpy.diff"><span class="n">np</span><span class="o">.</span><span class="n">diff</span></a><span class="p">(</span><span class="n">z_pts</span><span class="p">))</span>
+<span class="n">total_power</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/constants.html#numpy.pi" title="numpy.pi"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">*</span> <span class="n">dr</span> <span class="o">*</span> <span class="n">dz</span> <span class="o">*</span> <span class="n">r_pts</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">emission_2d</span> <span class="o">*</span> <span class="mf">4.0</span> <span class="o">*</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/constants.html#numpy.pi" title="numpy.pi"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a>
+
+<a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#print"><span class="nb">print</span></a><span class="p">(</span><span class="sa">f</span><span class="s2">"Total radiated power: </span><span class="si">{</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.nansum.html#numpy.nansum" title="numpy.nansum"><span class="n">np</span><span class="o">.</span><span class="n">nansum</span></a><span class="p">(</span><span class="n">total_power</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e-6</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> MW"</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Total radiated power: 877 MW
+</pre></div></div>
+</div>
+<h2 id="Measure-line-of-sight-Spectra">Measure line-of-sight Spectra<a class="headerlink" href="#Measure-line-of-sight-Spectra" title="Link to this heading">¶</a></h2>
+<p>Here we measure line-of-sight spectra through the above modeled emission.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[12]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MeasureLoS</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">world</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/render_engines.html#raysect.core.workflow.MulticoreEngine" title="raysect.core.workflow.MulticoreEngine"><span class="n">MulticoreEngine</span></a><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">world</span> <span class="o">=</span> <span class="n">world</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#list"><span class="nb">list</span></a><span class="p">[</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rays</span><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#list"><span class="nb">list</span></a><span class="p">[</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">rays</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#sorted"><span class="nb">sorted</span></a><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">,</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">min_wavelength</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.ray.Ray" title="raysect.optical.ray.Ray"><span class="n">ray</span></a><span class="p">:</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.ray.Ray" title="raysect.optical.ray.Ray"><span class="n">Ray</span></a><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">:</span>
+        <span class="k">return</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.ray.Ray.trace" title="raysect.optical.ray.Ray.trace"><span class="n">ray</span><span class="o">.</span><span class="n">trace</span></a><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">world</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">result</span></a><span class="p">:</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">Spectrum</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.spectrum.Spectrum" title="raysect.optical.spectrum.Spectrum"><span class="n">result</span></a><span class="p">)</span>
+
+
+<span class="n">measure</span> <span class="o">=</span> <span class="n">MeasureLoS</span><span class="p">(</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.scenegraph.world.World" title="raysect.optical.scenegraph.world.World"><span class="n">world</span></a><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[13]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Generate rays with defined wavelength bands</span>
+<a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">origin</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">Point3D</span></a><span class="p">(</span><span class="mf">7.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)</span>
+<a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">endpoint</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">Point3D</span></a><span class="p">(</span><span class="mf">4.8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.2</span><span class="p">)</span>
+<span class="n">direction</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D.vector_to" title="raysect.core.math.point.Point3D.vector_to"><span class="n">origin</span><span class="o">.</span><span class="n">vector_to</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">endpoint</span></a><span class="p">)</span><span class="o">.</span><span class="n">normalise</span><span class="p">()</span>
+<span class="n">rays</span> <span class="o">=</span> <span class="p">[</span>
+    <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/optical/main_optical_classes.html#raysect.optical.ray.Ray" title="raysect.optical.ray.Ray"><span class="n">Ray</span></a><span class="p">(</span>
+        <span class="n">origin</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">origin</span></a><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+        <span class="n">bins</span><span class="o">=</span><span class="n">wavelength_bins</span><span class="p">,</span>
+        <span class="n">max_wavelength</span><span class="o">=</span><span class="n">band</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">min_wavelength</span><span class="o">=</span><span class="n">band</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">wavelength_bands</span>
+<span class="p">]</span>
+
+<span class="c1"># Measure line of sight spectrum</span>
+<span class="n">spectra</span> <span class="o">=</span> <span class="n">measure</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">rays</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<h3 id="Visualize-measured-spectra">Visualize measured spectra<a class="headerlink" href="#Visualize-measured-spectra" title="Link to this heading">¶</a></h3>
+<p>Let us visualize the ray trajectory projected onto the R-Z plane along with the measured spectra.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[14]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.ui.subplots.html#ultraplot.ui.subplots" title="ultraplot.ui.subplots"><span class="n">uplt</span><span class="o">.</span><span class="n">subplots</span></a><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">share</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Plot 2-D emissivity map</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+    <span class="n">emission_2d</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span>
+    <span class="n">origin</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">,</span>
+    <span class="n">norm</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">"rocket"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">,</span>
+    <span class="n">formatter</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">tickdir</span><span class="o">=</span><span class="s2">"out"</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="s2">"lr"</span><span class="p">,</span>
+    <span class="n">orientation</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">ticklabelsize</span><span class="o">=</span><span class="s2">"small"</span><span class="p">,</span>
+    <span class="n">length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">frame</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot line of sight</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">origin</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">x</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">origin</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">z</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"C0"</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">"Line of Sight"</span><span class="p">,</span>
+    <span class="n">legend</span><span class="o">=</span><span class="s2">"ur"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">aspect</span><span class="o">=</span><span class="s2">"equal"</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"$R$ [m]"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"$Z$ [m]"</span><span class="p">,</span>
+    <span class="n">xreverse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">ylocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">xlocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Emissivity [W/m³/sr]"</span><span class="p">,</span>
+    <span class="n">gridalpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot 1-D measured spectrum</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">:</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">wavelengths</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"C0"</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Ray-traced emission spectrum"</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Wavelength [nm]"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Spectral Radiance [W/m²/sr/nm]"</span><span class="p">,</span>
+    <span class="n">yformatter</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">gridalpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/notebooks_plasma_4_emission_27_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_4_emission_27_0.png" style="width: 885px; height: 576px;"/>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[15]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#print"><span class="nb">print</span></a><span class="p">(</span>
+    <span class="s2">"Total radiance along line of sight: "</span><span class="p">,</span>
+    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#sum"><span class="nb">sum</span></a><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">total</span><span class="p">()</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">spectra</span><span class="p">])</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> W/m²/sr"</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Total radiance along line of sight:  4.32e+05 W/m²/sr
+</pre></div></div>
+</div>
+<p>Let us also plot the bar chart of the integrated spectrum for each wavelength band to see which wavelength bands dominate the total emission.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[16]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.ui.subplots.html#ultraplot.ui.subplots" title="ultraplot.ui.subplots"><span class="n">uplt</span><span class="o">.</span><span class="n">subplots</span></a><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span> <span class="n">share</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Plot 2-D emissivity map</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+    <span class="n">emission_2d</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span>
+    <span class="n">origin</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">,</span>
+    <span class="n">norm</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">"rocket"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">,</span>
+    <span class="n">formatter</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">tickdir</span><span class="o">=</span><span class="s2">"out"</span><span class="p">,</span>
+    <span class="n">loc</span><span class="o">=</span><span class="s2">"lr"</span><span class="p">,</span>
+    <span class="n">orientation</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">ticklabelsize</span><span class="o">=</span><span class="s2">"small"</span><span class="p">,</span>
+    <span class="n">length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">frame</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot line of sight</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">origin</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">x</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">origin</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">z</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"C0"</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">"Line of Sight"</span><span class="p">,</span>
+    <span class="n">legend</span><span class="o">=</span><span class="s2">"ur"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">aspect</span><span class="o">=</span><span class="s2">"equal"</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"$R$ [m]"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"$Z$ [m]"</span><span class="p">,</span>
+    <span class="n">xreverse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">ylocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">xlocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Emissivity [W/m³/sr]"</span><span class="p">,</span>
+    <span class="n">gridalpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot 1-D measured spectrum</span>
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">:</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">wavelengths</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"C0"</span><span class="p">)</span>
+
+
+<span class="c1"># Plot histogram of integrated spectrum</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+    <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">spectra</span><span class="p">)),</span>
+    <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">total</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">yscale</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">yformatter</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+    <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">gridalpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Ray-traced emission spectrum"</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Wavelength [nm]"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Spectral Radiance [W/m²/sr/nm]"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s2">"Wavelength [nm]"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Ray-traced emission spectrum integrated over wavelength bands"</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s2">"Radiance [W/m²/sr]"</span><span class="p">,</span>
+    <span class="n">xlocator</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">wavelength_bands</span><span class="p">)),</span>
+    <span class="n">xticklabels</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">band</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> – </span><span class="si">{</span><span class="n">band</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">band</span> <span class="ow">in</span> <span class="n">wavelength_bands</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">axs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">abc</span><span class="o">=</span><span class="s2">"(a)"</span><span class="p">,</span>
+    <span class="n">abcloc</span><span class="o">=</span><span class="s2">"ul"</span><span class="p">,</span>
+    <span class="n">abcborder</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/notebooks_plasma_4_emission_30_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_4_emission_30_0.png" style="width: 881px; height: 597px;"/>
+</div>
+</div>
+<p>In this example, 1–10 nm wavelength band dominates the total emission. The radiance ratio between the soft X‑ray (0.01–10 nm) and UV/visible (10–1000 nm) bands is given by the following calculation:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[17]:
+</code></pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">radiance_soft_xray</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#sum"><span class="nb">sum</span></a><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">total</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]])</span>
+<span class="n">radiance_uv_visible</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#sum"><span class="nb">sum</span></a><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">total</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">[</span><span class="mi">3</span><span class="p">:]])</span>
+<a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#print"><span class="nb">print</span></a><span class="p">(</span><span class="sa">f</span><span class="s2">"soft X-ray radiance: </span><span class="si">{</span><span class="n">radiance_soft_xray</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> W/m²/sr"</span><span class="p">)</span>
+<a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#print"><span class="nb">print</span></a><span class="p">(</span><span class="sa">f</span><span class="s2">"UV/visible radiance: </span><span class="si">{</span><span class="n">radiance_uv_visible</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> W/m²/sr"</span><span class="p">)</span>
+<a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#print"><span class="nb">print</span></a><span class="p">(</span><span class="sa">f</span><span class="s2">"radiance ratio (soft X-ray / UV-visible): </span><span class="si">{</span><span class="n">radiance_soft_xray</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">radiance_uv_visible</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+soft X-ray radiance: 2.818e+05 W/m²/sr
+UV/visible radiance: 1.501e+05 W/m²/sr
+radiance ratio (soft X-ray / UV-visible): 1.88
+</pre></div></div>
+</div>
+</article>
+</div>
+<script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+</div>
+<button class="md-top md-icon" data-md-component="top" hidden="" type="button">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+</main>
+<footer class="md-footer">
+<nav aria-label="Footer" class="md-footer__inner md-grid">
+<a aria-label="Previous: Full Plasma (Core + Edge profiles)" class="md-footer__link md-footer__link--prev" href="3_full_plasma.html">
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</div>
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Previous
+              </span>
+<div class="md-ellipsis">
+                Full Plasma (Core + Edge profiles)
+              </div>
+</div>
+</a>
+<a aria-label="Next: 3D Grid Visualization" class="md-footer__link md-footer__link--next" href="../radiation/grid_3d.html">
+<div class="md-footer__title">
+<span class="md-footer__direction">
+                Next
+              </span>
+<div class="md-ellipsis">
+                3D Grid Visualization
+              </div>
+</div>
+<div class="md-footer__button md-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+</div>
+</a>
+</nav>
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+<div class="md-footer-copyright__highlight">
+        © Copyright 2023-2026, CHERAB Team.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" rel="noopener" target="_blank">Sphinx</a>
+    8.1.3.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" rel="noopener" target="_blank">Sphinx-Immaterial</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../..", "features": ["navigation.expand", "navigation.sections", "navigation.top", "navigation.footer", "search.share", "search.suggest", "toc.follow", "toc.sticky", "content.tabs.link", "content.tooltips", "announce.dismiss"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+<script src="../../_static/sphinx_immaterial_theme.32136f45f91ae6956.min.js?v=a7a9472a"></script>
+<script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+<script src="../../_static/copybutton.js?v=2dccb0ec"></script>
+<script src="../../_static/design-tabs.js?v=f930bc37"></script>
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+<script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+<script id="MathJax-script" src="../../_static/mathjax/tex-mml-chtml.js?v=cadf963e"></script>
+</body>
+</html>
