@@ -1,19 +1,15 @@
-[build-system]
-requires = ["hatch-vcs", "hatch-cython>=0.6.0", "cherab==1.5.*"]
-build-backend = "hatchling.build"
-
 [project]
 name = "cherab-imas"
 description = "Cherab spectroscopy framework: IMAS submodule"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "EUPL-1.1"
 authors = [
   { name = "munechika-koyo", email = "munechika.koyo@gmail.com" },
   { name = "vsnever" },
   { name = "jacklovell" },
 ]
-readme = "README.md"
-requires-python = ">=3.10"
-license = "EUPL-1.1"
-keywords = ["cherab", "IMAS", "imas", "tokamak", "fusion", "plasma"]
+keywords = ["IMAS", "cherab", "fusion", "imas", "plasma", "tokamak"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -21,12 +17,12 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Natural Language :: English",
   "Operating System :: Unix",
+  "Programming Language :: Cython",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
-  "Programming Language :: Cython",
   "Topic :: Scientific/Engineering :: Physics",
   "Topic :: Software Development :: Libraries",
   "Topic :: Software Development :: Libraries :: Python Modules",
@@ -34,32 +30,57 @@ classifiers = [
 dependencies = [
   "cherab==1.5.*",
   "imas-python[netcdf]",
-  "rich",
   "pooch",
+  "rich",
   "typing-extensions; python_version < '3.12'",
 ]
 dynamic = ["version"]
 
+[project.urls]
+Documentation = "https://cherab.github.io/imas/"
+Homepage = "https://github.com/cherab"
+Issues = "https://github.com/cherab/imas/issues"
+Repository = "https://github.com/cherab/imas"
+
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "plotly"]
 
-[project.urls]
-Homepage = "https://github.com/cherab"
-Documentation = "https://cherab.github.io/imas/"
-Repository = "https://github.com/cherab/imas"
-Issues = "https://github.com/cherab/imas/issues"
+[build-system]
+requires = ["cherab==1.5.*", "hatch-cython>=0.6.0", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-# ----------------------
-# === Version config ===
-# ----------------------
+[tool.cibuildwheel]
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*"  # TODO: Suppport latest CPython after cherab supports it
+build-frontend = "build[uv]"
+test-extras = ["test"]
+test-command = "pytest {project}/tests"
+
+[tool.cibuildwheel.macos]
+repair-wheel-command = """\
+DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
+--require-archs {delocate_archs} -w {dest_dir} -v {wheel}\
+"""
+
+[tool.coverage.run]
+source_pkgs = ["cherab.imas"]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+test = ["src/test", "*/test/src/test"]
+tests = ["tests", "*/test/tests"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.cython-lint]
+max-line-length = 100
+
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.metadata.hooks.vcs]
 
-# ----------------------------
-# === Build/Package config ===
-# ----------------------------
 [tool.hatch.build.targets.wheel]
 packages = ["src/cherab"]
 artifacts = ["*.so", "*.pyd", "*.dylib"]
@@ -86,93 +107,8 @@ env = [
   ], merges = true },
 ]
 define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
+files = { targets = ["**/*.pyx"] }
 
-[tool.hatch.build.targets.wheel.hooks.cython.options.files]
-targets = ["**/*.pyx"]
-
-[tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*" # TODO: Suppport latest CPython after cherab supports it
-build-frontend = "build[uv]"
-test-extras = ["test"]
-test-command = "pytest {project}/tests"
-
-[tool.cibuildwheel.macos]
-repair-wheel-command = """\
-DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
---require-archs {delocate_archs} -w {dest_dir} -v {wheel}\
-"""
-
-# -----------------------
-# === Cov/Test config ===
-# -----------------------
-[tool.coverage.run]
-source_pkgs = ["cherab.imas"]
-branch = true
-parallel = true
-
-[tool.coverage.paths]
-test = ["src/test", "*/test/src/test"]
-tests = ["tests", "*/test/tests"]
-
-[tool.coverage.report]
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "--cov='cherab.imas' --cov-report term-missing --no-cov-on-fail"
-
-
-# ------------------------------
-# === Lint & Format settings ===
-# ------------------------------
-[tool.ruff]
-line-length = 100
-
-[tool.ruff.lint]
-select = [
-  "E",   # pycodestyle
-  "B",   # flake8-bugbear
-  "F",   # pyflakes
-  "I",   # isort (import order)
-  "N",   # pep8-naming
-  "W",   # Warning
-  "UP",  # pyupgrade
-  "NPY", # numpy specific rules
-  "D",   # pydocstyle
-  "DOC", # pydoclint
-]
-preview = true
-ignore = [
-  # Recommended ignores by ruff when using formatter
-  "E501", # line too long
-  "N803", # argument name should be lowercase
-  "N806", # variable in function should be lowercase
-  "D107", # missing docstring in __init__
-]
-
-[tool.ruff.lint.isort]
-known-first-party = ["cherab"]
-
-[tool.ruff.lint.per-file-ignores]
-"**/*.ipynb" = [
-  "W292",
-  "D",
-  "DOC",
-] # no newline at end of file and skip docstring checks
-"tests/**" = ["D", "DOC"] # skip docstring checks in tests
-
-[tool.ruff.lint.pydocstyle]
-convention = "numpy"
-
-[tool.ruff.format]
-docstring-code-format = true
-
-[tool.cython-lint]
-max-line-length = 100
-
-# ------------------------------
-# === Type checking settings ===
-# ------------------------------
 [tool.mypy]
 files = ["src"]
 warn_unused_configs = true
@@ -183,3 +119,58 @@ plugins = ["numpy.typing.mypy_plugin"]
 
 [tool.pyrefly]
 project-includes = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--cov='cherab.imas' --cov-report term-missing --no-cov-on-fail"
+minversion = "6.0"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle
+  "B",  # flake8-bugbear
+  "F",  # pyflakes
+  "I",  # isort (import order)
+  "N",  # pep8-naming
+  "W",  # Warning
+  "UP",  # pyupgrade
+  "NPY",  # numpy specific rules
+  "D",  # pydocstyle
+  "DOC",  # pydoclint
+]
+preview = true
+ignore = [
+  # Recommended ignores by ruff when using formatter
+  "E501",  # line too long
+  "N803",  # argument name should be lowercase
+  "N806",  # variable in function should be lowercase
+  "D107",  # missing docstring in __init__
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["cherab"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/*.ipynb" = [
+  "W292",
+  "D",
+  "DOC",
+]  # no newline at end of file and skip docstring checks
+"tests/**" = ["D", "DOC"]  # skip docstring checks in tests
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.tombi]
+toml-version = "v1.1.0"
+format.rules.line-width = 100
+
+[tool.typos.default.extend-words]
+ist = "ist"
+arange = "arange"
+writeable = "writeable"
