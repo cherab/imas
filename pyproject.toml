@@ -168,7 +168,6 @@ docstring-code-format = true
 
 [tool.tombi]
 toml-version = "v1.1.0"
-format.rules.line-width = 100
 
 [tool.typos.default.extend-words]
 ist = "ist"
