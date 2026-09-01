@@ -25,7 +25,6 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.napoleon",
     "sphinx_api_relink",
-    "sphinx_copybutton",
     "sphinx_codeautolink",
     "sphinx_design",
     "sphinx_github_style",
@@ -58,11 +57,6 @@ napoleon_use_rtype = False
 
 # todo config
 todo_include_todos = True
-
-# Strip prompt text when copying code blocks with copy button
-copybutton_exclude = ".linenos, .gp"
-copybutton_prompt_text = r">>> |\.\.\. |\$ "
-copybutton_prompt_is_regexp = True
 
 exclude_patterns = [
     "_build",
@@ -126,7 +120,7 @@ html_theme_options = {
         "toc.follow",
         "toc.sticky",
         "content.tabs.link",
-        # "content.code.copy",
+        "content.code.copy",
         # "content.action.edit",
         # "content.action.view",
         "content.tooltips",

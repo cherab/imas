@@ -69,7 +69,6 @@ test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
 # === Docs feature ===
 [feature.docs.dependencies]
 sphinx = ">=7,<8.2"
-sphinx-copybutton = "*"
 sphinx-codeautolink = "*"
 sphinx-design = "*"
 sphinx-immaterial = "*"
