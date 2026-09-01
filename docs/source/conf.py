@@ -175,7 +175,7 @@ intersphinx_mapping = {
 intersphinx_timeout = 10
 
 # -- Sphinx GitHub Style configuration ----------------------------------------
-linkcode_blob = repository_main_branch if version_obj.is_devrelease else f"v{version_obj.public}"
+linkcode_blob = repository_main_branch if version_obj.is_devrelease else f"v{release}"
 linkcode_url = repository_url
 linkcode_link_text = "Source"
 
