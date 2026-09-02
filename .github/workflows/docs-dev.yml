@@ -1,4 +1,4 @@
-name: 📚 Latest documentation
+name: 📚 Development documentation
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: docs-latest
+  group: docs-development
   cancel-in-progress: true
 
 jobs:
@@ -27,6 +27,9 @@ jobs:
           environments: docs
 
       - name: 📝 Build docs
+        env:
+          DOCS_VERSIONED_BUILD: "true"
+          DOCS_VERSION_KIND: development
         run: pixi run -e docs doc-build
 
       - name: 📦 Upload documentation
@@ -37,8 +40,11 @@ jobs:
           retention-days: 1
 
   deploy:
-    name: Deploy latest documentation
+    name: Deploy development documentation
     needs: build
+    concurrency:
+      group: docs-gh-pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,11 +67,34 @@ jobs:
           force: false
           attempt-limit: 5
 
-      - name: 🚀 Deploy latest documentation
+      - name: 🚀 Deploy development documentation
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: docs/build/html
-          target-folder: latest
+          target-folder: dev
+          force: false
+          attempt-limit: 5
+
+      - name: 🔄 Ensure development version in manifest
+        id: manifest
+        run: |
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages
+          if git show refs/remotes/origin/gh-pages:versions.json | python -c 'import json, sys; assert any(item["version"] == "dev" for item in json.load(sys.stdin))'; then
+            echo "update=false" >> "$GITHUB_OUTPUT"
+          else
+            mkdir -p docs/pages-snapshot docs/version-manifest
+            git archive refs/remotes/origin/gh-pages | tar -x -C docs/pages-snapshot
+            python docs/generate_versions.py docs/pages-snapshot docs/version-manifest/versions.json
+            echo "update=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 🚀 Deploy version manifest if needed
+        if: steps.manifest.outputs.update == 'true'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs/version-manifest
+          clean: false
           force: false
           attempt-limit: 5
