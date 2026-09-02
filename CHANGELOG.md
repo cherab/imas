@@ -5,13 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - 2026-08-31
+## [0.7.0] - 2026-09-02
 
 ### Added
 
-- Add `UnstructGrid2D.plot_tri_mesh()` for plotting cell data on the triangulated mesh with Matplotlib's `tripcolor()`
-- Add GitHub Pages workflows for pull request previews, versioned release documentation, and
-  continuously updated `master` branch documentation under `latest/`
+- Add `UnstructGrid2D.plot_tri_mesh()` for plotting cell data on the triangulated mesh with
+  Matplotlib's `tripcolor()`
+- Add versioned GitHub Pages documentation with pull request previews, continuously updated
+  development documentation under `dev/`, release-specific pages, a version selector, and a
+  `latest/` redirect to the newest release
 
 ### Changed
 
