@@ -1,6 +1,8 @@
 """The configuration for this package documentation."""
 
+import os
 from datetime import date
+from typing import Any
 
 from packaging.version import parse
 
@@ -96,7 +98,13 @@ myst_url_schemes = {
 # -- HTML output ------------------------------------------------------------
 html_theme = "sphinx_immaterial"
 html_title = project
-html_theme_options = {
+docs_version_kind = os.environ.get("DOCS_VERSION_KIND", "local")
+docs_version_path = os.environ.get(
+    "DOCS_VERSION_PATH",
+    {"development": "dev", "release": release}.get(docs_version_kind, ""),
+)
+docs_pr_number = os.environ.get("DOCS_PR_NUMBER", "")
+html_theme_options: dict[str, Any] = {
     "repo_url": repository_url,
     "repo_name": "GitHub",
     "edit_uri": f"blob/{repository_main_branch}/docs/source",
@@ -148,9 +156,50 @@ html_theme_options = {
             },
         },
     ],
+    "version_dropdown": True,
 }
+
+# Deployed versions share one manifest at the GitHub Pages root. A static
+# single-entry selector avoids a failed network request during local preview.
+if docs_version_kind == "pull-request":
+    # A hidden local entry keeps the theme's warning-banner container enabled
+    # without fetching the public manifest or exposing the PR in the selector.
+    html_theme_options["version_info"] = [
+        {
+            "version": f"pr-{docs_pr_number}",
+            "title": f"PR #{docs_pr_number}",
+            "aliases": [],
+            "properties": {"hidden": True},
+        }
+    ]
+elif os.environ.get("DOCS_VERSIONED_BUILD") == "true":
+    html_theme_options["version_json"] = os.environ.get(
+        "DOCS_VERSION_MANIFEST_URL", "https://cherab.github.io/imas/versions.json"
+    )
+else:
+    html_theme_options["version_info"] = [
+        {
+            "version": release,
+            "title": release,
+            "aliases": [],
+        }
+    ]
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+html_js_files = ["version-banner.js"]
+
+# Values consumed by ``_templates/base.html`` and ``version-banner.js``.  The
+# public manifest is consulted in the browser so that a release automatically
+# becomes "old" as soon as a newer release is published.
+html_context = {
+    "docs_version_kind": docs_version_kind,
+    "docs_version_path": docs_version_path,
+    "docs_version_manifest_url": html_theme_options.get("version_json", ""),
+    "docs_latest_url": "https://cherab.github.io/imas/latest/",
+    "docs_pr_number": docs_pr_number,
+    "docs_pr_url": f"{repository_url}/pull/{docs_pr_number}" if docs_pr_number else "",
+    "docs_action_url": os.environ.get("DOCS_ACTION_URL", f"{repository_url}/actions"),
+}
 
 # Shorten Table Of Contents in API documentation
 object_description_options = [
