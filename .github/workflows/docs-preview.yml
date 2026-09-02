@@ -30,6 +30,12 @@ jobs:
           environments: docs
 
       - name: 📝 Build docs
+        env:
+          DOCS_VERSIONED_BUILD: "true"
+          DOCS_VERSION_KIND: pull-request
+          DOCS_VERSION_PATH: pr-preview/pr-${{ github.event.pull_request.number }}
+          DOCS_PR_NUMBER: ${{ github.event.pull_request.number }}
+          DOCS_ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}?pr=${{ github.event.pull_request.number }}
         run: pixi run -e docs doc-build
 
       - name: 📦 Upload documentation
@@ -47,6 +53,9 @@ jobs:
       always() &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.action == 'closed' || needs.build.result == 'success')
+    concurrency:
+      group: docs-gh-pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: write
