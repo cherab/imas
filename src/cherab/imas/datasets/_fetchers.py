@@ -12,6 +12,7 @@ data_fetcher = pooch.create(
     path=pooch.os_cache("cherab/imas"),
     base_url="doi:10.5281/zenodo.17062699",
     registry=registry,
+    retry_if_failed=3,
 )
 
 

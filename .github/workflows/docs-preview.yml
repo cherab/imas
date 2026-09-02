@@ -29,6 +29,12 @@ jobs:
         with:
           environments: docs
 
+      - name: 💾 Cache sample datasets
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/cherab/imas
+          key: ${{ runner.os }}-cherab-imas-datasets-${{ hashFiles('src/cherab/imas/datasets/_registry.py') }}
+
       - name: 📝 Build docs
         env:
           DOCS_ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}?pr=${{ github.event.pull_request.number }}
