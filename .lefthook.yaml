@@ -42,7 +42,7 @@ pre-commit:
       run: pixi {run} ruff format {staged_files}
 
     - name: pyrefly
-      glob: "*.{py,pyi}"
+      glob: "src/**/*.{py,pyi}"
       run: pixi {run} pyrefly-check {staged_files}
 
     - name: actionlint
