@@ -57,6 +57,7 @@ python-kaleido = ">=1.2.0,<2"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
+version = { cmd = "python -c 'import cherab.imas; print(cherab.imas.__version__)'", description = "🔢 Print the version" }
 
 # === Testing feature ===
 [feature.test.dependencies]
@@ -101,6 +102,55 @@ doc-build = {
   ],
   description = "📝 Build the docs",
 }
+doc-build-preview = {
+  cmd = [
+    "sphinx-build",
+    "-b",
+    "html",
+    "-E",
+    "-a",
+    "-j",
+    "auto",
+    "source",
+    "build/html",
+  ],
+  cwd = "docs",
+  env = {
+    DOCS_VERSIONED_BUILD = "true",
+    DOCS_VERSION_KIND = "pull-request",
+    DOCS_VERSION_PATH = "pr-preview/pr-{{ pr }}",
+    DOCS_PR_NUMBER = "{{ pr }}",
+  },
+  args = [
+    { arg = "pr" },
+  ],
+  description = "📝 Build a local pull request documentation preview",
+}
+doc-build-old = {
+  cmd = [
+    "sphinx-build",
+    "-b",
+    "html",
+    "-E",
+    "-a",
+    "-j",
+    "auto",
+    "source",
+    "build/html/{{ old }}",
+  ],
+  cwd = "docs",
+  env = {
+    DOCS_VERSIONED_BUILD = "true",
+    DOCS_VERSION_KIND = "release",
+    DOCS_VERSION_PATH = "{{ old }}",
+    DOCS_VERSION_MANIFEST_URL = "data:application/json,%5B%7B%22version%22%3A%22{{ latest }}%22%2C%22title%22%3A%22{{ latest }}%20%28latest%29%22%2C%22aliases%22%3A%5B%22latest%22%5D%7D%2C%7B%22version%22%3A%22{{ old }}%22%2C%22title%22%3A%22{{ old }}%22%2C%22aliases%22%3A%5B%5D%7D%5D",
+  },
+  args = [
+    { arg = "old" },
+    { arg = "latest" },
+  ],
+  description = "📝 Build an old-version documentation preview",
+}
 doc-serve = {
   cmd = [
     "python",
@@ -115,6 +165,26 @@ doc-serve = {
     { arg = "port", default = "8000" },
   ],
   description = "🚀 Start a local server for the docs",
+}
+doc-version-manifest-dev = {
+  cmd = [
+    "python",
+    "generate_versions.py",
+    "dev",
+    "version-manifest/versions.json",
+  ],
+  cwd = "docs",
+  description = "🔄 Generate the version manifest only when dev is missing",
+}
+doc-version-manifest-release = {
+  cmd = [
+    "python",
+    "generate_versions.py",
+    "release",
+    "version-manifest/versions.json",
+  ],
+  cwd = "docs",
+  description = "🔄 Add the current release to the version manifest",
 }
 
 # === Linting feature ===
