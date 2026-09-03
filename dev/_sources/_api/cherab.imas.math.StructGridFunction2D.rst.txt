@@ -1,0 +1,20 @@
+cherab.imas.math.StructGridFunction2D
+=====================================
+
+.. currentmodule:: cherab.imas.math
+
+.. autoclass:: StructGridFunction2D
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+      ~StructGridFunction2D.__call__
+
+

@@ -1,0 +1,6 @@
+cherab.imas.ids.common.resolve\_ids\_path\_reference
+====================================================
+
+.. currentmodule:: cherab.imas.ids.common
+
+.. autofunction:: resolve_ids_path_reference

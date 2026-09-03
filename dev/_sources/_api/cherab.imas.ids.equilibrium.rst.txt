@@ -1,0 +1,16 @@
+cherab.imas.ids.equilibrium
+===========================
+
+.. automodule:: cherab.imas.ids.equilibrium
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_equilibrium_data
+      load_magnetic_field_data
+
+
+

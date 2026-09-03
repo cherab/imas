@@ -1,0 +1,26 @@
+cherab.imas.ids.wall
+====================
+
+.. automodule:: cherab.imas.ids.wall
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_wall_2d
+      load_wall_3d
+
+
+
+.. currentmodule:: cherab.imas.ids.wall
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: module.rst
+   :recursive:
+
+   load2d
+   load3d

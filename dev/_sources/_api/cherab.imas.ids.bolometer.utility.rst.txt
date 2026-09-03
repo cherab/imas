@@ -1,0 +1,17 @@
+cherab.imas.ids.bolometer.utility
+=================================
+
+.. automodule:: cherab.imas.ids.bolometer.utility
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: class.rst
+
+      CameraType
+      GeometryType
+
+
+

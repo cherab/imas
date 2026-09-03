@@ -1,0 +1,16 @@
+cherab.imas.ids.edge\_profiles
+==============================
+
+.. automodule:: cherab.imas.ids.edge_profiles
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_edge_profiles
+      load_edge_species
+
+
+
