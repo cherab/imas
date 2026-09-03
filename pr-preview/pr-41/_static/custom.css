@@ -58,3 +58,57 @@ div.math mjx-container {
 div.math mjx-container mjx-assistive-mml {
     height: 0;
 }
+
+/* Read the Docs-inspired pull-request build notification. */
+html[data-docs-version-kind="pull-request"] .md-version {
+    display: none;
+}
+
+.version-banner[data-version-kind="pull-request"] {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.version-banner__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.version-banner__icon svg {
+    fill: currentcolor;
+    height: 2rem;
+    width: 2rem;
+}
+
+.version-banner__content,
+.version-banner__details {
+    display: block;
+}
+
+.version-banner__content > strong {
+    font-size: 0.75rem;
+}
+
+.version-banner__details a {
+    text-decoration: underline;
+    text-underline-offset: 0.1em;
+}
+
+.version-banner__button {
+    border: 1px solid currentcolor;
+    border-radius: 0.15rem;
+    display: inline-block;
+    font-weight: 700;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.5rem;
+    transition:
+        background-color 125ms,
+        color 125ms;
+}
+
+.version-banner__button:focus,
+.version-banner__button:hover {
+    background-color: var(--md-warning-fg-color);
+    color: var(--md-warning-bg-color);
+}
