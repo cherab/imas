@@ -17,6 +17,7 @@ release = version_obj.public
 gh_user_repo = "cherab/imas"
 repository_main_branch = "master"
 repository_url = f"https://github.com/{gh_user_repo}"
+docs_url = "https://cherab.github.io/iter"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -174,7 +175,7 @@ if docs_version_kind == "pull-request":
     ]
 elif os.environ.get("DOCS_VERSIONED_BUILD") == "true":
     html_theme_options["version_json"] = os.environ.get(
-        "DOCS_VERSION_MANIFEST_URL", "https://cherab.github.io/imas/versions.json"
+        "DOCS_VERSION_MANIFEST_URL", f"{docs_url}/versions.json"
     )
 else:
     html_theme_options["version_info"] = [
@@ -195,7 +196,7 @@ html_context = {
     "docs_version_kind": docs_version_kind,
     "docs_version_path": docs_version_path,
     "docs_version_manifest_url": html_theme_options.get("version_json", ""),
-    "docs_latest_url": "https://cherab.github.io/imas/latest/",
+    "docs_latest_url": f"{docs_url}/latest/",
     "docs_pr_number": docs_pr_number,
     "docs_pr_url": f"{repository_url}/pull/{docs_pr_number}" if docs_pr_number else "",
     "docs_action_url": os.environ.get("DOCS_ACTION_URL", f"{repository_url}/actions"),
