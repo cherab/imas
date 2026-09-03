@@ -22,7 +22,7 @@ from dataclasses import fields
 import numpy as np
 from numpy.typing import NDArray
 from raysect.core.math import Vector3D, translate
-from raysect.core.math.function.float import Constant2D, Constant3D, Function2D
+from raysect.core.math.function.float import Constant2D, Constant3D, Function2D, Function3D
 from raysect.core.math.function.vector3d import Constant2D as ConstantVector2D
 from raysect.core.math.function.vector3d import Constant3D as ConstantVector3D
 from raysect.core.math.function.vector3d import Function2D as VectorFunction2D
@@ -424,19 +424,23 @@ def _get_parallel_velocity_interpolators(
 
         return ConstantVector3D(Vector3D(0, 1.0e-16, 0))  # avoid zero-length vectors for blending
 
-    const_func = Constant2D if grid.dimension == 2 else Constant3D
-
-    vpar_i = const_func(0) if vpar is None else grid.interpolator(vpar)
-    vrad_i = const_func(0) if vrad is None else grid.interpolator(vrad)
-
     parallel_vector = UnitVector2D(b_field)
     surface_normal = FluxSurfaceNormal(b_field)
 
-    if grid.dimension == 3:  # 3D case
-        parallel_vector = VectorAxisymmetricMapper(parallel_vector)
-        surface_normal = VectorAxisymmetricMapper(surface_normal)
+    if grid.dimension == 2:
+        vpar_i = Constant2D(0) if vpar is None else grid.interpolator(vpar)
+        vrad_i = Constant2D(0) if vrad is None else grid.interpolator(vrad)
+        assert isinstance(vpar_i, Function2D)
+        assert isinstance(vrad_i, Function2D)
+        return vpar_i * parallel_vector + vrad_i * surface_normal
 
-    return vpar_i * parallel_vector + vrad_i * surface_normal
+    vpar_i = Constant3D(0) if vpar is None else grid.interpolator(vpar)
+    vrad_i = Constant3D(0) if vrad is None else grid.interpolator(vrad)
+    assert isinstance(vpar_i, Function3D)
+    assert isinstance(vrad_i, Function3D)
+    parallel_vector_3d = VectorAxisymmetricMapper(parallel_vector)
+    surface_normal_3d = VectorAxisymmetricMapper(surface_normal)
+    return vpar_i * parallel_vector_3d + vrad_i * surface_normal_3d
 
 
 def _get_poloidal_velocity_interpolators(
@@ -454,22 +458,29 @@ def _get_poloidal_velocity_interpolators(
 
         return ConstantVector3D(Vector3D(0, 1.0e-16, 0))  # avoid zero-length vectors for blending
 
-    const_func = Constant2D if grid.dimension == 2 else Constant3D
-
-    vpol_i = const_func(0) if vpol is None else grid.interpolator(vpol)
-    vrad_i = const_func(0) if vrad is None else grid.interpolator(vrad)
-    vtor_i = const_func(0) if vtor is None else grid.interpolator(vtor)
-
     poloidal_vector = PoloidalFieldVector(b_field)
     surface_normal = FluxSurfaceNormal(b_field)
     toroidal_vector = ConstantVector2D(Vector3D(0, 1, 0))
 
-    if grid.dimension == 3:  # 3D case
-        poloidal_vector = VectorAxisymmetricMapper(poloidal_vector)
-        surface_normal = VectorAxisymmetricMapper(surface_normal)
-        toroidal_vector = VectorAxisymmetricMapper(toroidal_vector)
+    if grid.dimension == 2:
+        vpol_i = Constant2D(0) if vpol is None else grid.interpolator(vpol)
+        vrad_i = Constant2D(0) if vrad is None else grid.interpolator(vrad)
+        vtor_i = Constant2D(0) if vtor is None else grid.interpolator(vtor)
+        assert isinstance(vpol_i, Function2D)
+        assert isinstance(vrad_i, Function2D)
+        assert isinstance(vtor_i, Function2D)
+        return vpol_i * poloidal_vector + vrad_i * surface_normal + vtor_i * toroidal_vector
 
-    return vpol_i * poloidal_vector + vrad_i * surface_normal + vtor_i * toroidal_vector
+    vpol_i = Constant3D(0) if vpol is None else grid.interpolator(vpol)
+    vrad_i = Constant3D(0) if vrad is None else grid.interpolator(vrad)
+    vtor_i = Constant3D(0) if vtor is None else grid.interpolator(vtor)
+    assert isinstance(vpol_i, Function3D)
+    assert isinstance(vrad_i, Function3D)
+    assert isinstance(vtor_i, Function3D)
+    poloidal_vector_3d = VectorAxisymmetricMapper(poloidal_vector)
+    surface_normal_3d = VectorAxisymmetricMapper(surface_normal)
+    toroidal_vector_3d = VectorAxisymmetricMapper(toroidal_vector)
+    return vpol_i * poloidal_vector_3d + vrad_i * surface_normal_3d + vtor_i * toroidal_vector_3d
 
 
 def _get_components_from_vpar(grid: GGDGrid, vpar: NDArray[np.float64], b_field: VectorFunction2D):
@@ -486,9 +497,11 @@ def _get_components_from_vpar(grid: GGDGrid, vpar: NDArray[np.float64], b_field:
             else:
                 r, _, z = cell_centre
         try:
-            b_field = b_field(r, z)
-            vpol[i] = np.sqrt(b_field.x**2 + b_field.z**2) * (vpar[i] / b_field.length)
-            vtor[i] = vpar[i] * b_field.y / b_field.length
+            field_vector = b_field(r, z)
+            vpol[i] = np.sqrt(field_vector.x**2 + field_vector.z**2) * (
+                vpar[i] / field_vector.length
+            )
+            vtor[i] = vpar[i] * field_vector.y / field_vector.length
         except ValueError:  # Outside equilibrium grid
             continue
 

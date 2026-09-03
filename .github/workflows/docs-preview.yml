@@ -1,0 +1,91 @@
+name: 📚 Documentation preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build documentation
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: 🟨 Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          environments: docs
+
+      - name: 💾 Cache sample datasets
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/cherab/imas
+          key: ${{ runner.os }}-cherab-imas-datasets-${{ hashFiles('src/cherab/imas/datasets/_registry.py') }}
+
+      - name: 📝 Build docs
+        env:
+          DOCS_ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}?pr=${{ github.event.pull_request.number }}
+        run: pixi run -e docs doc-build-preview ${{ github.event.pull_request.number }}
+
+      - name: 📦 Upload documentation
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-html
+          path: docs/build/html
+          retention-days: 1
+
+  preview:
+    name: Deploy PR preview
+    needs: build
+    # Fork PRs are built above, but cannot safely write previews to this repository.
+    if: >-
+      always() &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.action == 'closed' || needs.build.result == 'success')
+    concurrency:
+      group: docs-gh-pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: 📥 Download documentation
+        if: github.event.action != 'closed'
+        uses: actions/download-artifact@v8
+        with:
+          name: docs-html
+          path: docs/build/html
+
+      - name: Initialize GitHub Pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: docs/pages-root
+          clean: false
+          force: false
+          attempt-limit: 5
+
+      - name: 🚀 Deploy documentation preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: docs/build/html
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          qr-code: false

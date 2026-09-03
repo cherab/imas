@@ -1,0 +1,32 @@
+{% extends "!base.html" %}
+
+{% block outdated %}
+  <span
+    class="version-banner"
+    data-version-kind="{{ docs_version_kind|e }}"
+    data-version-path="{{ docs_version_path|e }}"
+    data-version-manifest="{{ docs_version_manifest_url|e }}"
+    data-latest-url="{{ docs_latest_url|e }}"
+  >
+    {% if docs_version_kind == "pull-request" %}
+      <span class="version-banner__icon" aria-hidden="true">
+        {% include ".icons/material/source-merge.svg" %}
+      </span>
+      <span class="version-banner__content">
+        <strong>This page was created from a pull request build</strong>
+        <span class="version-banner__details">
+          See the
+          <a href="{{ docs_action_url|e }}" target="_blank" rel="noopener noreferrer">build's detail page</a>
+          or pull request
+          <a href="{{ docs_pr_url|e }}" target="_blank" rel="noopener noreferrer">#{{ docs_pr_number|e }}</a>
+          for more information.
+        </span>
+      </span>
+    {% else %}
+      <span class="version-banner__content">
+        <span data-version-banner-prefix></span><strong data-version-banner-emphasis></strong><span data-version-banner-suffix></span>
+        <a class="version-banner__button" data-version-banner-link hidden>Switch to latest version</a>
+      </span>
+    {% endif %}
+  </span>
+{% endblock %}

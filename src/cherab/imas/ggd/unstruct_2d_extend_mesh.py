@@ -126,14 +126,13 @@ class UnstructGrid2DExtended(GGDGrid):
         self._num_faces = num_faces
         self._num_poloidal = num_poloidal
         self._num_toroidal = num_toroidal
-        self._triangulation = None  # matplotlib's triangulation at the poloidal plane for plotting
-
         super().__init__(name, 3, coordinate_system)
 
     @override
     def _initial_setup(self) -> None:
         self._scalar_interpolator = None
         self._vector_interpolator = None
+        self._triangulation: Triangulation | None = None
 
         self._num_cell: int = self._cells.shape[0]
 
@@ -713,7 +712,7 @@ class UnstructGrid2DExtended(GGDGrid):
             _, ax = plt.subplots(layout="constrained")
 
         ax.set_aspect(1)
-        ax.tripcolor(self._triangulation, data, cmap=cmap, **kwargs)
+        ax.tripcolor(self._triangulation, facecolors=data, cmap=cmap, **kwargs)
         ax.set_xlim(self._mesh_extent["rmin"], self._mesh_extent["rmax"])
         ax.set_ylim(self._mesh_extent["zmin"], self._mesh_extent["zmax"])
 

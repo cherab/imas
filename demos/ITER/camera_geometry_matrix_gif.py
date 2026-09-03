@@ -147,22 +147,21 @@ line_wavelength = np.array(
 wvl_delta = 3.0
 direction = Vector3D(0, 0, 1)
 print("Sampling emission profiles...")
-for it, t in enumerate(time):
+for i_t, t in enumerate(time):
     print(f"Processing time moment: {t} s")
     plasma = load_plasma(MDSPLUS_BACKEND, DATABASE, SHOT, RUN, USER, time=t)
     plasma.atomic_data = atomic_data
 
-    for il, line in enumerate(spectral_lines):
+    for i_l, line in enumerate(spectral_lines):
         plasma.models = [ExcitationLine(line), RecombinationLine(line)]
-        line_wvl = line_wavelength[il]
+        line_wvl = line_wavelength[i_l]
         spectrum = Spectrum(line_wvl - 0.5 * wvl_delta, line_wvl + 0.5 * wvl_delta, 1)
-        for ir, r1 in enumerate(r):
-            for iz, z1 in enumerate(z):
-                point = Point3D(r1, 0, z1)
-                for model in plasma.models:
-                    line_emission[il, it, ir, iz] += model.emission(
-                        point, direction, spectrum.new_spectrum()
-                    ).total()
+        for i_r, i_z in np.ndindex(len(r), len(z)):
+            point = Point3D(r[i_r], 0, z[i_z])
+            for model in plasma.models:
+                line_emission[i_l, i_t, i_r, i_z] += model.emission(
+                    point, direction, spectrum.new_spectrum()
+                ).total()
 
 # Load geometry matrix without reflections
 geom_matrix_norefl = read_geometry_matrix_without_reflections(

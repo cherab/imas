@@ -3,20 +3,26 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64"]
 preview = ["pixi-build"]
 
+[workspace.build-variants]
+python = [
+  "3.10.*",
+  "3.11.*",
+  "3.12.*",
+  "3.13.*",
+  "3.14.*",
+]
+
 # -------------------------------
 # === Packaging Configuration ===
 # -------------------------------
 [package]
-version = "dynamic" # Until pixi recommends something else
+version = "dynamic"  # Until pixi recommends something else
 
 [package.build]
 backend = { name = "pixi-build-python", version = "*" }
 
 [package.build.config]
 noarch = false
-
-[workspace.build-variants]
-python = ["3.10.*", "3.11.*", "3.12.*", "3.13.*", "3.14.*"]
 
 [package.host-dependencies]
 python = "*"
@@ -39,6 +45,9 @@ typing-extensions = ">=4.5"
 cherab-imas = { path = "." }
 ipython = "*"
 
+# Type stubs for static type checking
+cherab-stubs = "*"
+
 # Publication-quality plot
 ultraplot = ">=1.72.0"
 
@@ -48,6 +57,7 @@ python-kaleido = ">=1.2.0,<2"
 
 [tasks]
 ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
+version = { cmd = "python -c 'import cherab.imas; print(cherab.imas.__version__)'", description = "🔢 Print the version" }
 
 # === Testing feature ===
 [feature.test.dependencies]
@@ -60,7 +70,6 @@ test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
 # === Docs feature ===
 [feature.docs.dependencies]
 sphinx = ">=7,<8.2"
-sphinx-copybutton = "*"
 sphinx-codeautolink = "*"
 sphinx-design = "*"
 sphinx-immaterial = "*"
@@ -77,27 +86,106 @@ sphinx-github-style = "*"
 sphinx-api-relink = "*"
 
 [feature.docs.tasks]
-doc-build = { cmd = [
-  "sphinx-build",
-  "-b",
-  "{{ target }}",
-  "-j",
-  "auto",
-  "source",
-  "build/{{ target }}",
-], cwd = "docs", args = [
-  { arg = "target", default = "html" },
-], description = "📝 Build the docs" }
-doc-serve = { args = [
-  { arg = "port", default = "8000" },
-], cmd = [
-  "python",
-  "-m",
-  "http.server",
-  "{{ port }}",
-  "--directory",
-  "build/html",
-], cwd = "docs", description = "🚀 Start a local server for the docs" }
+doc-build = {
+  cmd = [
+    "sphinx-build",
+    "-b",
+    "{{ target }}",
+    "-j",
+    "auto",
+    "source",
+    "build/{{ target }}",
+  ],
+  cwd = "docs",
+  args = [
+    { arg = "target", default = "html" },
+  ],
+  description = "📝 Build the docs",
+}
+doc-build-preview = {
+  cmd = [
+    "sphinx-build",
+    "-b",
+    "html",
+    "-E",
+    "-a",
+    "-j",
+    "auto",
+    "source",
+    "build/html",
+  ],
+  cwd = "docs",
+  env = {
+    DOCS_VERSIONED_BUILD = "true",
+    DOCS_VERSION_KIND = "pull-request",
+    DOCS_VERSION_PATH = "pr-preview/pr-{{ pr }}",
+    DOCS_PR_NUMBER = "{{ pr }}",
+  },
+  args = [
+    { arg = "pr" },
+  ],
+  description = "📝 Build a local pull request documentation preview",
+}
+doc-build-old = {
+  cmd = [
+    "sphinx-build",
+    "-b",
+    "html",
+    "-E",
+    "-a",
+    "-j",
+    "auto",
+    "source",
+    "build/html/{{ old }}",
+  ],
+  cwd = "docs",
+  env = {
+    DOCS_VERSIONED_BUILD = "true",
+    DOCS_VERSION_KIND = "release",
+    DOCS_VERSION_PATH = "{{ old }}",
+    DOCS_VERSION_MANIFEST_URL = "data:application/json,%5B%7B%22version%22%3A%22{{ latest }}%22%2C%22title%22%3A%22{{ latest }}%20%28latest%29%22%2C%22aliases%22%3A%5B%22latest%22%5D%7D%2C%7B%22version%22%3A%22{{ old }}%22%2C%22title%22%3A%22{{ old }}%22%2C%22aliases%22%3A%5B%5D%7D%5D",
+  },
+  args = [
+    { arg = "old" },
+    { arg = "latest" },
+  ],
+  description = "📝 Build an old-version documentation preview",
+}
+doc-serve = {
+  cmd = [
+    "python",
+    "-m",
+    "http.server",
+    "{{ port }}",
+    "--directory",
+    "build/html",
+  ],
+  cwd = "docs",
+  args = [
+    { arg = "port", default = "8000" },
+  ],
+  description = "🚀 Start a local server for the docs",
+}
+doc-version-manifest-dev = {
+  cmd = [
+    "python",
+    "generate_versions.py",
+    "dev",
+    "version-manifest/versions.json",
+  ],
+  cwd = "docs",
+  description = "🔄 Generate the version manifest only when dev is missing",
+}
+doc-version-manifest-release = {
+  cmd = [
+    "python",
+    "generate_versions.py",
+    "release",
+    "version-manifest/versions.json",
+  ],
+  cwd = "docs",
+  description = "🔄 Add the current release to the version manifest",
+}
 
 # === Linting feature ===
 [feature.lint.dependencies]
@@ -112,7 +200,7 @@ shellcheck = "*"
 validate-pyproject = "*"
 cython-lint = "*"
 blacken-docs = "*"
-taplo = "*"
+tombi = "*"
 nbstripout = ">=0.9.1,<0.10"
 
 [feature.lint.tasks]
@@ -123,9 +211,9 @@ mypy = { cmd = "mypy", description = "Type check with mypy" }
 pyrefly-check = { cmd = "pyrefly check", description = "Type check with pyrefly" }
 ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
 ruff-format = { cmd = "ruff format", description = "Format with ruff" }
+toml-format = { cmd = "tombi format", description = "Format TOML files" }
 dprint = { cmd = "dprint fmt", description = "Format with dprint" }
 typos = { cmd = "typos --write-changes --force-exclude", description = "Fix typos" }
-taplo = { cmd = "taplo fmt", description = "Format toml files with taplo" }
 actionlint = { cmd = "actionlint", description = "Lint actions with actionlint" }
 blacken-docs = { cmd = "blacken-docs", description = "Format Python markdown blocks with Black" }
 validate-pyproject = { cmd = "validate-pyproject pyproject.toml", description = "Validate pyproject.toml" }
@@ -134,29 +222,32 @@ lint = { cmd = "lefthook run pre-commit --all-files --force", description = "�
 
 # Clean build artifacts
 [feature.tools.tasks]
-clean = { cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' \\) -delete", description = "🧹 Clean build artifacts" }
-clean-c = { cmd = "find src -type f -name '*.c' -delete", description = "🧹 Clean C source files" }
-doc-clean = { cmd = [
-  "rm",
-  "-rf",
-  "build",
-  "source/_api",
-], cwd = "docs", description = "🔥 Clean the docs build & api directory" }
+clean = {
+  cmd = "find src -type f \\( -name '*.c' -o -name '*.so' -o -name '*.pyd' -o -name '*.dll' -o -name '*.html' \\) -delete",
+  description = "🧹 Clean build artifacts",
+}
+clean-c = {
+  cmd = "find src -type f -name '*.c' -delete",
+  description = "🧹 Clean C source files",
+}
+doc-clean = {
+  cmd = ["rm", "-rf", "build", "source/_api"],
+  cwd = "docs",
+  description = "🔥 Clean the docs build & api directory",
+}
 
 # === Python environment features ===
-[feature.py310.dependencies]
+[feature.py-oldest.dependencies]
 python = "3.10.*"
-[feature.py314.dependencies]
+
+[feature.py-latest.dependencies]
 python = "3.14.*"
 
 [environments]
-default = { features = ["py314"], solve-group = "py314" }
-docs = { features = ["py314", "docs"], solve-group = "py314" }
-test = { features = ["py314", "test"], solve-group = "py314" }
-test-py314 = { features = [
-  "py314",
-  "test",
-], solve-group = "py314" } # alias of test
-test-py310 = ["py310", "test"]
-lint = { features = ["lint", "test"], solve-group = "py314" }
+default = { features = ["py-latest"], solve-group = "py-latest" }
+docs = { features = ["py-latest", "docs"], solve-group = "py-latest" }
+test = { features = ["py-latest", "test"], solve-group = "py-latest" }
+test-pylatest = { features = ["py-latest", "test"], solve-group = "py-latest" }  # alias of test
+test-pyoldest = ["py-oldest", "test"]
+lint = { features = ["lint", "test"], solve-group = "py-latest" }
 tools = { features = ["tools"], no-default-feature = true }

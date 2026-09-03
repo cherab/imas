@@ -245,7 +245,7 @@ def load_core_species(
 
                         charge_states = np.arange(
                             species_data.z_min, species_data.z_max + 1, dtype=int
-                        )
+                        ).tolist()
 
                         for i_charge, charge in enumerate(charge_states):
                             species = SpeciesData(

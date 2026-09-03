@@ -5,7 +5,7 @@
 |         |                                                                                                                     |
 | ------- | ------------------------------------------------------------------------------------------------------------------- |
 | CI/CD   | [![CI][ci-badge]][ci] [![PyPI Publish][PyPI-publish-badge]][PyPi-publish] [![codecov][codecov-badge]][codecov]      |
-| Docs    | [![Documentation][docs-badge]][docs]                                                                                |
+| Docs    | [![Docs Dev][docs-dev-badge]][docs-dev] [![Docs Release][docs-release-badge]][docs-release]                         |
 | Package | [![PyPI - Version][pypi-badge]][pypi] [![Conda][conda-badge]][conda] [![PyPI - Python Version][python-badge]][pypi] |
 | Meta    | [![License - EUPL-1.1][license-badge]][license] [![Pixi Badge][pixi-badge]][pixi-url]                               |
 
@@ -15,8 +15,10 @@
 [codecov-badge]: https://img.shields.io/codecov/c/github/cherab/imas?token=05LZGWUUXA&style=flat-square&logo=codecov
 [conda]: https://prefix.dev/channels/conda-forge/packages/cherab-imas
 [conda-badge]: https://img.shields.io/conda/vn/conda-forge/cherab-imas?logo=conda-forge&style=flat-square
-[docs]: https://github.com/cherab/imas/actions/workflows/docs.yml
-[docs-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/docs.yml?style=flat-square&logo=GitHub&label=Docs
+[docs-dev]: https://github.com/cherab/imas/actions/workflows/docs-dev.yml
+[docs-dev-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/docs-dev.yml?branch=master&style=flat-square&logo=GitHub&label=Docs%20Dev
+[docs-release]: https://github.com/cherab/imas/actions/workflows/docs-release.yml
+[docs-release-badge]: https://img.shields.io/github/actions/workflow/status/cherab/imas/docs-release.yml?event=release&style=flat-square&logo=GitHub&label=Docs%20Release
 [license]: https://opensource.org/licenses/EUPL-1.1
 [license-badge]: https://img.shields.io/badge/license-EUPL_1.1%20-blue?style=flat-square
 [pixi-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json&style=flat-square
