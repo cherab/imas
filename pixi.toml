@@ -36,7 +36,7 @@ cherab = "1.5.*"
 imas-python = "*"
 rich = "*"
 pooch = "*"
-typing-extensions = ">=4.5"
+typing-extensions = { version = ">=4.5", when = "python <3.12" }
 
 # ---------------------------------
 # === Development Configuration ===
