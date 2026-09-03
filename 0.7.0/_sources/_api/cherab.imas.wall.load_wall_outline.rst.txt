@@ -1,0 +1,6 @@
+cherab.imas.wall.load\_wall\_outline
+====================================
+
+.. currentmodule:: cherab.imas.wall
+
+.. autofunction:: load_wall_outline

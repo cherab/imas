@@ -1,0 +1,16 @@
+cherab.imas.ids.core\_profiles
+==============================
+
+.. automodule:: cherab.imas.ids.core_profiles
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_core_profiles
+      load_core_species
+
+
+

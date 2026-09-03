@@ -1,0 +1,6 @@
+cherab.imas.ids.common.load\_ids\_path\_reference
+=================================================
+
+.. currentmodule:: cherab.imas.ids.common
+
+.. autofunction:: load_ids_path_reference

@@ -1,0 +1,6 @@
+cherab.imas.wall.load\_wall\_mesh
+=================================
+
+.. currentmodule:: cherab.imas.wall
+
+.. autofunction:: load_wall_mesh

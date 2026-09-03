@@ -1,0 +1,6 @@
+cherab.imas.ids.radiation.load\_core\_emissivity
+================================================
+
+.. currentmodule:: cherab.imas.ids.radiation
+
+.. autofunction:: load_core_emissivity

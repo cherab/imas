@@ -1,0 +1,6 @@
+cherab.imas.math.tetrahedralize.cell\_to\_6tetra
+================================================
+
+.. currentmodule:: cherab.imas.math.tetrahedralize
+
+.. autofunction:: cell_to_6tetra

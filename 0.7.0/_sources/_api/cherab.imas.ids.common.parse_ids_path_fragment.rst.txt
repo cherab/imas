@@ -1,0 +1,6 @@
+cherab.imas.ids.common.parse\_ids\_path\_fragment
+=================================================
+
+.. currentmodule:: cherab.imas.ids.common
+
+.. autofunction:: parse_ids_path_fragment
