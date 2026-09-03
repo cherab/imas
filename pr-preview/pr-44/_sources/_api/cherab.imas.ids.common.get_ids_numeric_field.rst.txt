@@ -1,0 +1,6 @@
+cherab.imas.ids.common.get\_ids\_numeric\_field
+===============================================
+
+.. currentmodule:: cherab.imas.ids.common
+
+.. autofunction:: get_ids_numeric_field

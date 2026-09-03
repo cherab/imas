@@ -1,0 +1,6 @@
+cherab.imas.ids.common.solve\_coronal\_equilibrium
+==================================================
+
+.. currentmodule:: cherab.imas.ids.common
+
+.. autofunction:: solve_coronal_equilibrium

@@ -1,0 +1,6 @@
+cherab.imas.ids.common.get\_ids\_time\_slice
+============================================
+
+.. currentmodule:: cherab.imas.ids.common
+
+.. autofunction:: get_ids_time_slice

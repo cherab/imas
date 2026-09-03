@@ -1,0 +1,6 @@
+cherab.imas.ggd.base\_mesh.as\_index\_array
+===========================================
+
+.. currentmodule:: cherab.imas.ggd.base_mesh
+
+.. autofunction:: as_index_array

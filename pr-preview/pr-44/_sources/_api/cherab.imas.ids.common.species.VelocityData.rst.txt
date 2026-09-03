@@ -1,0 +1,30 @@
+cherab.imas.ids.common.species.VelocityData
+===========================================
+
+.. currentmodule:: cherab.imas.ids.common.species
+
+.. autoclass:: VelocityData
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+
+
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :template: attribute.rst
+
+      ~VelocityData.parallel
+      ~VelocityData.phi
+      ~VelocityData.poloidal
+      ~VelocityData.r
+      ~VelocityData.radial
+      ~VelocityData.z
