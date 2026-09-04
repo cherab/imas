@@ -17,7 +17,7 @@ release = version_obj.public
 gh_user_repo = "cherab/imas"
 repository_main_branch = "master"
 repository_url = f"https://github.com/{gh_user_repo}"
-docs_url = "https://cherab.github.io/iter"
+docs_url = "https://cherab.github.io/imas"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
