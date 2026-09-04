@@ -27,12 +27,14 @@ pre-commit:
     - name: toml format
       glob: "*.toml"
       stage_fixed: true
+      skip:
+        - run: test ${CI} -eq 1
       run: pixi {run} toml-format {staged_files}
 
-    - name: ruff check
-      glob: "*.{py,pyi}"
+    - name: toml check
+      glob: "*.toml"
       stage_fixed: true
-      run: pixi {run} ruff check --fix {staged_files}
+      run: pixi {run} toml-check {staged_files}
 
     - name: ruff format
       glob: "*.{py,pyi}"
@@ -40,6 +42,11 @@ pre-commit:
       skip:
         - run: test ${CI:-false} = true
       run: pixi {run} ruff format {staged_files}
+
+    - name: ruff check
+      glob: "*.{py,pyi}"
+      stage_fixed: true
+      run: pixi {run} ruff check --fix {staged_files}
 
     - name: pyrefly
       glob: "src/**/*.{py,pyi}"

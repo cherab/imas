@@ -211,6 +211,7 @@ mypy = { cmd = "mypy", description = "Type check with mypy" }
 pyrefly-check = { cmd = "pyrefly check", description = "Type check with pyrefly" }
 ruff-check = { cmd = "ruff check --fix", description = "Lint with ruff" }
 ruff-format = { cmd = "ruff format", description = "Format with ruff" }
+toml-check = { cmd = "tombi lint", description = "Lint TOML files" }
 toml-format = { cmd = "tombi format", description = "Format TOML files" }
 dprint = { cmd = "dprint fmt", description = "Format with dprint" }
 typos = { cmd = "typos --write-changes --force-exclude", description = "Fix typos" }
