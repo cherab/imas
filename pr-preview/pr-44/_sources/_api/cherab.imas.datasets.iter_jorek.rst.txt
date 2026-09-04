@@ -1,6 +1,0 @@
-cherab.imas.datasets.iter\_jorek
-================================
-
-.. currentmodule:: cherab.imas.datasets
-
-.. autofunction:: iter_jorek

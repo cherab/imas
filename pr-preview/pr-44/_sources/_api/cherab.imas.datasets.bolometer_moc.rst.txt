@@ -1,6 +1,0 @@
-cherab.imas.datasets.bolometer\_moc
-===================================
-
-.. currentmodule:: cherab.imas.datasets
-
-.. autofunction:: bolometer_moc

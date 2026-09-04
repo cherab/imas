@@ -1,6 +1,0 @@
-cherab.imas.observer.bolometer.load\_bolometers
-===============================================
-
-.. currentmodule:: cherab.imas.observer.bolometer
-
-.. autofunction:: load_bolometers

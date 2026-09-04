@@ -1,6 +1,0 @@
-cherab.imas.ids.common.species.get\_elements
-============================================
-
-.. currentmodule:: cherab.imas.ids.common.species
-
-.. autofunction:: get_elements

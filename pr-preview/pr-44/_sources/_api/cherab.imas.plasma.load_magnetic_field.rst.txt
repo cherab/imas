@@ -1,6 +1,0 @@
-cherab.imas.plasma.load\_magnetic\_field
-========================================
-
-.. currentmodule:: cherab.imas.plasma
-
-.. autofunction:: load_magnetic_field

@@ -1,6 +1,0 @@
-cherab.imas.math.polygon.calculate\_2d\_cell\_geometry
-======================================================
-
-.. currentmodule:: cherab.imas.math.polygon
-
-.. autofunction:: calculate_2d_cell_geometry

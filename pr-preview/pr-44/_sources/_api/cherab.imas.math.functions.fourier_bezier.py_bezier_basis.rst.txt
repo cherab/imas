@@ -1,6 +1,0 @@
-cherab.imas.math.functions.fourier\_bezier.py\_bezier\_basis
-============================================================
-
-.. currentmodule:: cherab.imas.math.functions.fourier_bezier
-
-.. autofunction:: py_bezier_basis

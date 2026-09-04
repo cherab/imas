@@ -1,6 +1,0 @@
-cherab.imas.ids.common.ggd.load\_unstruct\_grid\_3d
-===================================================
-
-.. currentmodule:: cherab.imas.ids.common.ggd
-
-.. autofunction:: load_unstruct_grid_3d

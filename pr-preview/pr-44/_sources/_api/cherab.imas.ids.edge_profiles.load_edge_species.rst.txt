@@ -1,6 +1,0 @@
-cherab.imas.ids.edge\_profiles.load\_edge\_species
-==================================================
-
-.. currentmodule:: cherab.imas.ids.edge_profiles
-
-.. autofunction:: load_edge_species

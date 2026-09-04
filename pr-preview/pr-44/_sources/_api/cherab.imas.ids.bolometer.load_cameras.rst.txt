@@ -1,6 +1,0 @@
-cherab.imas.ids.bolometer.load\_cameras
-=======================================
-
-.. currentmodule:: cherab.imas.ids.bolometer
-
-.. autofunction:: load_cameras

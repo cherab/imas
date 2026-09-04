@@ -1,6 +1,0 @@
-cherab.imas.plasma.load\_edge\_plasma
-=====================================
-
-.. currentmodule:: cherab.imas.plasma
-
-.. autofunction:: load_edge_plasma

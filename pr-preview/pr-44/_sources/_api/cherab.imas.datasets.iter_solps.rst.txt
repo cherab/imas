@@ -1,6 +1,0 @@
-cherab.imas.datasets.iter\_solps
-================================
-
-.. currentmodule:: cherab.imas.datasets
-
-.. autofunction:: iter_solps

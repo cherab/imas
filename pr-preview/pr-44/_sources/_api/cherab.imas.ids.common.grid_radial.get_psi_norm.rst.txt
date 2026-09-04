@@ -1,6 +1,0 @@
-cherab.imas.ids.common.grid\_radial.get\_psi\_norm
-==================================================
-
-.. currentmodule:: cherab.imas.ids.common.grid_radial
-
-.. autofunction:: get_psi_norm

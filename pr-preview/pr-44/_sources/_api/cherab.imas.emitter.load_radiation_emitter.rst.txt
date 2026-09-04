@@ -1,6 +1,0 @@
-cherab.imas.emitter.load\_radiation\_emitter
-============================================
-
-.. currentmodule:: cherab.imas.emitter
-
-.. autofunction:: load_radiation_emitter

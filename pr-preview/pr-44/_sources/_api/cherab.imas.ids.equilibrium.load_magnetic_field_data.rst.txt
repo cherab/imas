@@ -1,6 +1,0 @@
-cherab.imas.ids.equilibrium.load\_magnetic\_field\_data
-=======================================================
-
-.. currentmodule:: cherab.imas.ids.equilibrium
-
-.. autofunction:: load_magnetic_field_data
