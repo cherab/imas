@@ -42,7 +42,7 @@ jobs:
       - name: 🧪 Execute pytest
         env:
           pytest_github_report: true
-        run: pixi run -e ${{ matrix.environment }} test --cov-report xml
+        run: pixi run -e ${{ matrix.environment }} test --cov-report xml --exclude-warning-annotations
 
       - name: 📦 Disambiguate coverage filename by environment and OS
         run: mv .coverage ".coverage.${{ matrix.environment }}.${{ matrix.os }}.xml"

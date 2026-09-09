@@ -63,6 +63,7 @@ version = { cmd = "python -c 'import cherab.imas; print(cherab.imas.__version__)
 [feature.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
+pytest-github-actions-annotate-failures = "*"
 
 [feature.test.tasks]
 test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
