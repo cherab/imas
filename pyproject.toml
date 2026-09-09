@@ -105,6 +105,7 @@ env = [
   ], arch = [
     "x86_64",
   ], merges = true },
+  { env = "CYTHON_FORCE_REGEN", arg = "1" },
 ]
 define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
 files = { targets = ["**/*.pyx"] }
