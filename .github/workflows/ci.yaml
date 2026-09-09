@@ -40,8 +40,6 @@ jobs:
           environments: ${{ matrix.environment }}
 
       - name: 🧪 Execute pytest
-        env:
-          pytest_github_report: true
         run: pixi run -e ${{ matrix.environment }} test --cov-report xml --exclude-warning-annotations
 
       - name: 📦 Disambiguate coverage filename by environment and OS
