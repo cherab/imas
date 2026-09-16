@@ -1,0 +1,20 @@
+cherab.imas.math.interpolators.StructGridVectorFunction3D
+=========================================================
+
+.. currentmodule:: cherab.imas.math.interpolators
+
+.. autoclass:: StructGridVectorFunction3D
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+      ~StructGridVectorFunction3D.__call__
+
+

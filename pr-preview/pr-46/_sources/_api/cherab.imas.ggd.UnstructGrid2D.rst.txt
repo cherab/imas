@@ -1,0 +1,43 @@
+cherab.imas.ggd.UnstructGrid2D
+==============================
+
+.. currentmodule:: cherab.imas.ggd
+
+.. autoclass:: UnstructGrid2D
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+      ~UnstructGrid2D.interpolator
+      ~UnstructGrid2D.plot_mesh
+      ~UnstructGrid2D.plot_tri_mesh
+      ~UnstructGrid2D.subset
+      ~UnstructGrid2D.vector_interpolator
+
+
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :template: attribute.rst
+
+      ~UnstructGrid2D.cell_area
+      ~UnstructGrid2D.cell_centre
+      ~UnstructGrid2D.cell_to_triangle_map
+      ~UnstructGrid2D.cell_volume
+      ~UnstructGrid2D.cells
+      ~UnstructGrid2D.coordinate_system
+      ~UnstructGrid2D.dimension
+      ~UnstructGrid2D.mesh_extent
+      ~UnstructGrid2D.name
+      ~UnstructGrid2D.num_cell
+      ~UnstructGrid2D.triangle_to_cell_map
+      ~UnstructGrid2D.triangles
+      ~UnstructGrid2D.valid_data_mask
+      ~UnstructGrid2D.vertices

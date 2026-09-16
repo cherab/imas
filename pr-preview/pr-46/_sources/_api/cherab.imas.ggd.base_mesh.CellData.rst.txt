@@ -1,0 +1,6 @@
+cherab.imas.ggd.base\_mesh.CellData
+===================================
+
+.. currentmodule:: cherab.imas.ggd.base_mesh
+
+.. autodata:: CellData

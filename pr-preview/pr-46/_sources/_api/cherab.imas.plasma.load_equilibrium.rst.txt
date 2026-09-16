@@ -1,0 +1,6 @@
+cherab.imas.plasma.load\_equilibrium
+====================================
+
+.. currentmodule:: cherab.imas.plasma
+
+.. autofunction:: load_equilibrium

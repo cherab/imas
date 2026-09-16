@@ -1,0 +1,6 @@
+cherab.imas.ids.equilibrium.load\_equilibrium\_data
+===================================================
+
+.. currentmodule:: cherab.imas.ids.equilibrium
+
+.. autofunction:: load_equilibrium_data
