@@ -1,0 +1,6 @@
+cherab.imas.plasma.load\_plasma
+===============================
+
+.. currentmodule:: cherab.imas.plasma
+
+.. autofunction:: load_plasma

@@ -1,0 +1,6 @@
+cherab.imas.datasets.iter\_jintrac\_radiation\_values
+=====================================================
+
+.. currentmodule:: cherab.imas.datasets
+
+.. autofunction:: iter_jintrac_radiation_values
