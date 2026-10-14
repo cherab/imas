@@ -1,0 +1,6 @@
+cherab.imas.ids.edge\_profiles.load\_edge\_profiles
+===================================================
+
+.. currentmodule:: cherab.imas.ids.edge_profiles
+
+.. autofunction:: load_edge_profiles

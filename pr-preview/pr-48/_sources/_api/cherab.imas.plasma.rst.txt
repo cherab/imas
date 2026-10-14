@@ -1,0 +1,19 @@
+cherab.imas.plasma
+==================
+
+.. automodule:: cherab.imas.plasma
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_plasma
+      load_core_plasma
+      load_edge_plasma
+      load_equilibrium
+      load_magnetic_field
+
+
+

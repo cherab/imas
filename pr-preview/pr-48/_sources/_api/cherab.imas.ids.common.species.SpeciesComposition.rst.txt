@@ -1,0 +1,31 @@
+cherab.imas.ids.common.species.SpeciesComposition
+=================================================
+
+.. currentmodule:: cherab.imas.ids.common.species
+
+.. autoclass:: SpeciesComposition
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+
+
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :template: attribute.rst
+
+      ~SpeciesComposition.electron
+      ~SpeciesComposition.ion
+      ~SpeciesComposition.ion_bundle
+      ~SpeciesComposition.neutral
+      ~SpeciesComposition.neutral_bundle
+      ~SpeciesComposition.molecule
+      ~SpeciesComposition.molecular_bundle

@@ -1,0 +1,15 @@
+cherab.imas.math.blend
+======================
+
+.. automodule:: cherab.imas.math.blend
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      blend_core_edge_functions
+
+
+
