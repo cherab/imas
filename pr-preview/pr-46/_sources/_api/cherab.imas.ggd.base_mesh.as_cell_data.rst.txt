@@ -1,6 +1,0 @@
-cherab.imas.ggd.base\_mesh.as\_cell\_data
-=========================================
-
-.. currentmodule:: cherab.imas.ggd.base_mesh
-
-.. autofunction:: as_cell_data

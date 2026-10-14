@@ -1,6 +1,0 @@
-cherab.imas.ids.common.grid\_radial.load\_core\_grid
-====================================================
-
-.. currentmodule:: cherab.imas.ids.common.grid_radial
-
-.. autofunction:: load_core_grid

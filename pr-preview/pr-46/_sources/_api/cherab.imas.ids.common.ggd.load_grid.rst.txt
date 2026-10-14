@@ -1,6 +1,0 @@
-cherab.imas.ids.common.ggd.load\_grid
-=====================================
-
-.. currentmodule:: cherab.imas.ids.common.ggd
-
-.. autofunction:: load_grid
