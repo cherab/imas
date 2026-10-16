@@ -1,0 +1,6 @@
+cherab.imas.ids.common.ggd.get\_ggd\_subset\_data
+=================================================
+
+.. currentmodule:: cherab.imas.ids.common.ggd
+
+.. autofunction:: get_ggd_subset_data

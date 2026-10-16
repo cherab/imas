@@ -1,0 +1,34 @@
+cherab.imas.ids.bolometer.Geometry
+==================================
+
+.. currentmodule:: cherab.imas.ids.bolometer
+
+.. autoclass:: Geometry
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+
+
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :template: attribute.rst
+
+      ~Geometry.coords
+      ~Geometry.dx
+      ~Geometry.dy
+      ~Geometry.radius
+      ~Geometry.surface
+      ~Geometry.type
+      ~Geometry.centre
+      ~Geometry.basis_x
+      ~Geometry.basis_y
+      ~Geometry.basis_z

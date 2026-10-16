@@ -1,0 +1,15 @@
+cherab.imas.ids.wall.load2d
+===========================
+
+.. automodule:: cherab.imas.ids.wall.load2d
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_wall_2d
+
+
+

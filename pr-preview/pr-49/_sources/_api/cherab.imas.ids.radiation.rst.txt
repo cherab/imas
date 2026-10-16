@@ -1,0 +1,23 @@
+cherab.imas.ids.radiation
+=========================
+
+.. automodule:: cherab.imas.ids.radiation
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_core_emissivity
+      load_ggd_emissivity
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: class.rst
+
+      EmissivityData
+
+
+

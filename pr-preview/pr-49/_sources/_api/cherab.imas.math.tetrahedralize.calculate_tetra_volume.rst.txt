@@ -1,0 +1,6 @@
+cherab.imas.math.tetrahedralize.calculate\_tetra\_volume
+========================================================
+
+.. currentmodule:: cherab.imas.math.tetrahedralize
+
+.. autofunction:: calculate_tetra_volume
