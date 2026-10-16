@@ -8,8 +8,27 @@ on:
       - published
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      # Releases and manual runs always build every distribution.
+      wheels: ${{ github.event_name != 'pull_request' || steps.filter.outputs.wheels == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        if: github.event_name == 'pull_request'
+        id: filter
+        with:
+          filters: .github/filters.yml
+
   build_wheels:
     name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
+    needs: changes
+    if: needs.changes.outputs.wheels == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -131,7 +150,14 @@ jobs:
           path: dist/*.tar.gz
 
   show-artifacts:
-    needs: [build_wheels, build_sdist]
+    needs: [changes, build_wheels, build_sdist]
+    # Docs-only PRs still produce an sdist, even when wheels are unnecessary.
+    if: >-
+      !cancelled() &&
+      needs.changes.result == 'success' &&
+      needs.build_sdist.result == 'success' &&
+      (needs.build_wheels.result == 'success' ||
+       (needs.changes.outputs.wheels == 'false' && needs.build_wheels.result == 'skipped'))
     name: Show artifacts
     runs-on: ubuntu-latest
     steps:
@@ -144,6 +170,22 @@ jobs:
       - shell: bash
         run: |
           ls -lh ${{ github.workspace }}/dist
+
+  status:
+    name: Packaging status
+    needs: [changes, build_wheels, build_sdist, show-artifacts]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful source distribution and selected wheels
+        env:
+          PASSED: >-
+            ${{ needs.changes.result == 'success' &&
+                needs.build_sdist.result == 'success' &&
+                needs.show-artifacts.result == 'success' &&
+                ((needs.changes.outputs.wheels == 'true' && needs.build_wheels.result == 'success') ||
+                 (needs.changes.outputs.wheels == 'false' && needs.build_wheels.result == 'skipped')) }}
+        run: test "$PASSED" = true
 
   pypi-publish:
     name: Upload release to PyPI

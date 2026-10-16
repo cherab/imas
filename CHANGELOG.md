@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-10-16
+
+### Changed
+
+- **Breaking:** Update the build and runtime CHERAB dependency from `1.5.*` to `1.6.*`, requiring CHERAB 1.6.0 or a later 1.6.x release
+- Enable CPython 3.13 and 3.14 wheel builds while continuing to exclude free-threaded CPython 3.14 and CPython 3.15
+- Update Pixi build variants and the oldest test environment to Python 3.11
+- Require `typing-extensions` only on Python versions earlier than 3.12 in Pixi environments
+- Enable tungsten ionization, recombination, and excitation data in the emission notebook, and select emission lines within the configured wavelength range using the active OpenADAS repository
+- Add TOML linting and GitHub Actions annotations for test failures
+
+### Fixed
+
+- Force Cython source regeneration during builds to avoid reusing generated C files from an incompatible dependency version
+- Use the correct neon ADF15 dataset (`pec96#ne_pju`) in the emission notebook
+- Fix the documentation base URL to point to the CHERAB-IMAS site
+
 ## [0.7.0] - 2026-09-02
 
 ### Added
