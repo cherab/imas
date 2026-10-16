@@ -10,7 +10,7 @@
 <link href="" rel="icon"/>
 <title>2D Radiation Emitter - CHERAB-IMAS</title>
 <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
-<link href="../../_static/sphinx_immaterial_theme.74c816e3f9967dd6e.min.css?v=6cfe2491" rel="stylesheet" type="text/css"/>
+<link href="../../_static/sphinx_immaterial_theme.6efbe22605a23fcd6.min.css?v=b2ceb110" rel="stylesheet" type="text/css"/>
 <link href="../../_static/sphinx-codeautolink.css?v=b2176991" rel="stylesheet" type="text/css"/>
 <link href="../../_static/github_style.css?v=1093691d" rel="stylesheet" type="text/css"/>
 <link href="../../_static/sphinx-design.min.css?v=95c83b7e" rel="stylesheet" type="text/css"/>
@@ -445,8 +445,8 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-11:41:13 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
-11:41:13 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+09:46:46 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+09:46:46 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
 /home/runner/work/imas/imas/src/cherab/imas/emitter/radiation.py:347: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_123364_1.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
   ids = get_ids_time_slice(
 </pre></div></div>
@@ -460,8 +460,8 @@
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">R_MIN</span><span class="p">,</span> <span class="n">R_MAX</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">8.5</span>
 <span class="n">Z_MIN</span><span class="p">,</span> <span class="n">Z_MAX</span> <span class="o">=</span> <span class="o">-</span><span class="mf">4.7</span><span class="p">,</span> <span class="mf">4.8</span>
 <span class="n">RES</span> <span class="o">=</span> <span class="mf">0.01</span>  <span class="c1"># resolution of grid in [m]</span>
-<span class="n">n_r</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">R_MAX</span> <span class="o">-</span> <span class="n">R_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-<span class="n">n_z</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">Z_MAX</span> <span class="o">-</span> <span class="n">Z_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">n_r</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">R_MAX</span> <span class="o">-</span> <span class="n">R_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">n_z</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">Z_MAX</span> <span class="o">-</span> <span class="n">Z_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 <span class="n">dr</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_MAX</span> <span class="o">-</span> <span class="n">R_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Z_MAX</span> <span class="o">-</span> <span class="n">Z_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_z</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># (r, z) coordinates at phi=0</span>
@@ -474,7 +474,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[5]:
 </code></pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">rad</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.zeros.html#numpy.zeros" title="numpy.zeros"><span class="n">np</span><span class="o">.</span><span class="n">zeros</span></a><span class="p">((</span><span class="n">n_r</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">rad</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.zeros.html#numpy.zeros" title="numpy.zeros"><span class="n">np</span><span class="o">.</span><span class="n">zeros</span></a><span class="p">((</span><span class="n">n_r</span><span class="p">,</span> <span class="n">n_z</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndindex.html#numpy.ndindex" title="numpy.ndindex"><span class="n">np</span><span class="o">.</span><span class="n">ndindex</span></a><span class="p">(</span><span class="n">n_r</span><span class="p">,</span> <span class="n">n_z</span><span class="p">):</span>
     <span class="n">rad</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">emitter</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">radiation_function</span><span class="p">(</span>
         <span class="n">r_pts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>

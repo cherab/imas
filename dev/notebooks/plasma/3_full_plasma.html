@@ -10,7 +10,7 @@
 <link href="" rel="icon"/>
 <title>Full Plasma (Core + Edge profiles) - CHERAB-IMAS</title>
 <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
-<link href="../../_static/sphinx_immaterial_theme.74c816e3f9967dd6e.min.css?v=6cfe2491" rel="stylesheet" type="text/css"/>
+<link href="../../_static/sphinx_immaterial_theme.6efbe22605a23fcd6.min.css?v=b2ceb110" rel="stylesheet" type="text/css"/>
 <link href="../../_static/sphinx-codeautolink.css?v=b2176991" rel="stylesheet" type="text/css"/>
 <link href="../../_static/github_style.css?v=1093691d" rel="stylesheet" type="text/css"/>
 <link href="../../_static/sphinx-design.min.css?v=95c83b7e" rel="stylesheet" type="text/css"/>
@@ -510,7 +510,7 @@
 <h2 id="Downloading-ADAS-files">Downloading ADAS files<a class="headerlink" href="#Downloading-ADAS-files" title="Link to this heading">¶</a></h2>
 <p>JINTRAC dataset contains bundled ion species data.
 To split the ion bundles into individual ion stages, we use the coronal equilibrium solver <a class="reference internal" href="../../_api/cherab.imas.ids.common.solve_coronal_equilibrium.html#cherab.imas.ids.common.solve_coronal_equilibrium" title="cherab.imas.ids.common.solve_coronal_equilibrium (Python function) — Solve the charge state distribution of an element in coronal equilibrium."><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve_coronal_equilibrium</span></code></a>, where the specific ADAS files are required.
-Almost all of the required ADAS files are downloaded by default when executing <a class="reference external" href="https://www.cherab.info/atomic/repository.html#cherab.openadas.repository.create.populate" title="(in Cherab v1.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">populate</span></code></a> function, but specific species files (e.g. tungsten) are not downloaded by default.
+Almost all of the required ADAS files are downloaded by default when executing <a class="reference external" href="https://www.cherab.info/atomic/repository.html#cherab.openadas.repository.create.populate" title="(in Cherab v1.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">populate</span></code></a> function, but specific species files (e.g. tungsten) are not downloaded by default.
 To download the required ADAS files, run the following code cell.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[2]:
@@ -542,10 +542,8 @@ To download the required ADAS files, run the following code cell.</p>
 <div class="highlight"><pre>
 Installing adf11/scd96/scd96_ne.dat...
 Installing adf11/scd50/scd50_w.dat...
- - downloading ADF file 'adf11/scd50/scd50_w.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/scd50/scd50_w.dat'
 Installing adf11/acd96/acd96_ne.dat...
 Installing adf11/acd50/acd50_w.dat...
- - downloading ADF file 'adf11/acd50/acd50_w.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf11/acd50/acd50_w.dat'
 </pre></div></div>
 </div>
 <h3 id="Define-a-function-to-plot-plasma-quantities">Define a function to plot plasma quantities<a class="headerlink" href="#Define-a-function-to-plot-plasma-quantities" title="Link to this heading">¶</a></h3>
@@ -556,17 +554,17 @@ Installing adf11/acd50/acd50_w.dat...
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_quantity</span><span class="p">(</span>
     <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.axes.Axes.html#ultraplot.axes.Axes" title="ultraplot.axes.base.Axes"><span class="n">ax</span></a><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.axes.Axes.html#ultraplot.axes.Axes" title="ultraplot.axes.base.Axes"><span class="n">uplt</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span></a><span class="p">,</span>
     <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">quantity</span></a><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span></a><span class="p">,</span>
-    <span class="n">extent</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">[</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">],</span>
-    <span class="n">logscale</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#bool"><span class="nb">bool</span></a> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">symmetric</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#bool"><span class="nb">bool</span></a> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">cbar_kwargs</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#dict"><span class="nb">dict</span></a> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">extent</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">[</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">],</span>
+    <span class="n">logscale</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#bool"><span class="nb">bool</span></a> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">symmetric</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#bool"><span class="nb">bool</span></a> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">cbar_kwargs</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#dict"><span class="nb">dict</span></a> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.axes.Axes.html#ultraplot.axes.Axes" title="ultraplot.axes.base.Axes"><span class="n">uplt</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">Axes</span></a><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Make a 2D plot of quantity, optionally on a log scale."""</span>
     <span class="k">if</span> <span class="n">logscale</span><span class="p">:</span>
         <span class="c1"># Plot lowest values (mainly 0's) on linear map, as log(0) = -inf.</span>
         <span class="n">linthresh</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.percentile.html#numpy.percentile" title="numpy.percentile"><span class="n">np</span><span class="o">.</span><span class="n">percentile</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.unique.html#numpy.unique" title="numpy.unique"><span class="n">np</span><span class="o">.</span><span class="n">unique</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray"><span class="n">quantity</span></a><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
         <a class="sphinx-codeautolink-a" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.SymLogNorm.html#matplotlib.colors.SymLogNorm" title="matplotlib.colors.SymLogNorm"><span class="n">norm</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.SymLogNorm.html#matplotlib.colors.SymLogNorm" title="matplotlib.colors.SymLogNorm"><span class="n">SymLogNorm</span></a><span class="p">(</span>
-            <span class="n">linthresh</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#max"><span class="nb">max</span></a><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="mf">1.0e-10</span> <span class="o">*</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.max.html#numpy.ndarray.max" title="numpy.ndarray.max"><span class="n">quantity</span><span class="o">.</span><span class="n">max</span></a><span class="p">())),</span>
+            <span class="n">linthresh</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#max"><span class="nb">max</span></a><span class="p">(</span><span class="n">linthresh</span><span class="p">,</span> <span class="mf">1.0e-10</span> <span class="o">*</span> <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.max.html#numpy.ndarray.max" title="numpy.ndarray.max"><span class="n">quantity</span><span class="o">.</span><span class="n">max</span></a><span class="p">())),</span>
             <span class="n">base</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -623,7 +621,7 @@ Installing adf11/acd50/acd50_w.dat...
 </div>
 </div>
 <h3 id="Load-the-plasma-object">Load the plasma object<a class="headerlink" href="#Load-the-plasma-object" title="Link to this heading">¶</a></h3>
-<p>The instance of the <a class="reference external" href="https://www.cherab.info/plasmas/core_plasma_classes.html#cherab.core.Plasma" title="(in Cherab v1.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Plasma</span></code></a> class is created by loading the <a class="reference external" href="https://imas-data-dictionary.readthedocs.io/en/latest/generated/ids/core_profiles.html">core_profiles</a> and <a class="reference external" href="https://imas-data-dictionary.readthedocs.io/en/latest/generated/ids/edge_profiles.html">edge_profiles</a> IDSs from the IMAS database.</p>
+<p>The instance of the <a class="reference external" href="https://www.cherab.info/plasmas/core_plasma_classes.html#cherab.core.Plasma" title="(in Cherab v1.6)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Plasma</span></code></a> class is created by loading the <a class="reference external" href="https://imas-data-dictionary.readthedocs.io/en/latest/generated/ids/core_profiles.html">core_profiles</a> and <a class="reference external" href="https://imas-data-dictionary.readthedocs.io/en/latest/generated/ids/edge_profiles.html">edge_profiles</a> IDSs from the IMAS database.</p>
 <p>The equilibrium information is automatically loaded from the <a class="reference external" href="https://imas-data-dictionary.readthedocs.io/en/latest/generated/ids/equilibrium.html">equilibrium</a> IDS if not already provided.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[5]:
@@ -638,8 +636,8 @@ Installing adf11/acd50/acd50_w.dat...
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-11:31:43 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
-11:31:44 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+09:36:12 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+09:36:12 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
 /home/runner/work/imas/imas/src/cherab/imas/plasma/blend.py:181: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
   core_profiles_ids = get_ids_time_slice(
 /home/runner/work/imas/imas/src/cherab/imas/plasma/blend.py:207: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
@@ -774,7 +772,7 @@ The following species will be skipped: D-D molecule
 <a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table.add_column" title="rich.table.Table.add_column"><span class="n">table</span><span class="o">.</span><span class="n">add_column</span></a><span class="p">(</span><span class="s2">"Charge"</span><span class="p">,</span> <span class="n">justify</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
     <span class="n">charges</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">[</span><span class="n">symbol</span><span class="p">]]</span>
-    <span class="n">charges_split</span> <span class="o">=</span> <span class="p">[</span><span class="n">charges</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">charges</span><span class="p">),</span> <span class="mi">10</span><span class="p">)]</span>
+    <span class="n">charges_split</span> <span class="o">=</span> <span class="p">[</span><span class="n">charges</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">charges</span><span class="p">),</span> <span class="mi">10</span><span class="p">)]</span>
     <span class="n">charges_strs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">+"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">split</span><span class="p">)</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">charges_split</span><span class="p">]</span>
     <span class="n">charges_str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">charges_strs</span><span class="p">)</span>
     <a class="sphinx-codeautolink-a" href="https://rich.readthedocs.io/en/stable/reference/table.html#rich.table.Table.add_row" title="rich.table.Table.add_row"><span class="n">table</span><span class="o">.</span><span class="n">add_row</span></a><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">charges_str</span><span class="p">)</span>
@@ -815,8 +813,8 @@ The following species will be skipped: D-D molecule
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">R_MIN</span><span class="p">,</span> <span class="n">R_MAX</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">8.5</span>
 <span class="n">Z_MIN</span><span class="p">,</span> <span class="n">Z_MAX</span> <span class="o">=</span> <span class="o">-</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">4.4</span>
 <span class="n">RES</span> <span class="o">=</span> <span class="mf">0.005</span>  <span class="c1"># resolution of grid in [m]</span>
-<span class="n">n_r</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">R_MAX</span> <span class="o">-</span> <span class="n">R_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-<span class="n">n_z</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">Z_MAX</span> <span class="o">-</span> <span class="n">Z_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">n_r</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">R_MAX</span> <span class="o">-</span> <span class="n">R_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">n_z</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#round"><span class="nb">round</span></a><span class="p">((</span><span class="n">Z_MAX</span> <span class="o">-</span> <span class="n">Z_MIN</span><span class="p">)</span> <span class="o">/</span> <span class="n">RES</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 <span class="n">extent</span> <span class="o">=</span> <span class="p">[</span><span class="n">R_MIN</span><span class="p">,</span> <span class="n">R_MAX</span><span class="p">,</span> <span class="n">Z_MIN</span><span class="p">,</span> <span class="n">Z_MAX</span><span class="p">]</span>
 </code></pre></div>
 </div>
@@ -873,14 +871,14 @@ The following species will be skipped: D-D molecule
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_18_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_18_0.png" style="width: 385px; height: 574px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_18_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_18_0.png" style="width: 384px; height: 573px;"/>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_18_1.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_18_1.png" style="width: 380px; height: 574px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_18_1.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_18_1.png" style="width: 379px; height: 573px;"/>
 </div>
 </div>
 <h2 id="Hydrogenic-species-(D,-T)-density-and-temperature">Hydrogenic species (D, T) density and temperature<a class="headerlink" href="#Hydrogenic-species-(D,-T)-density-and-temperature" title="Link to this heading">¶</a></h2>
@@ -888,7 +886,7 @@ The following species will be skipped: D-D molecule
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[9]:
 </code></pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">species_label</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#str"><span class="nb">str</span></a><span class="p">:</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">species_label</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#str"><span class="nb">str</span></a><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Construct element symbol with charge label"""</span>
     <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span><span class="si">}</span><span class="s2">$^</span><span class="se">{{</span><span class="s2">0</span><span class="se">}}</span><span class="s2">$"</span>
@@ -905,8 +903,8 @@ The following species will be skipped: D-D molecule
     <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">axs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">"Hydrogenic Species Density [/m³]"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">s_list</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">([</span><span class="n">species</span><span class="p">[</span><span class="s2">"D"</span><span class="p">],</span> <span class="n">species</span><span class="p">[</span><span class="s2">"T"</span><span class="p">]]):</span>
-    <span class="k">for</span> <span class="n">i_col</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">s_list</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">([</span><span class="n">species</span><span class="p">[</span><span class="s2">"D"</span><span class="p">],</span> <span class="n">species</span><span class="p">[</span><span class="s2">"T"</span><span class="p">]]):</span>
+    <span class="k">for</span> <span class="n">i_col</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">):</span>
         <span class="c1"># Sample density</span>
         <span class="n">density</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/math/samplers.html#cherab.core.math.samplers.sample3d_grid" title="cherab.core.math.samplers.sample3d_grid"><span class="n">sample3d_grid</span></a><span class="p">(</span>
             <span class="n">s</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">density</span><span class="p">,</span>
@@ -931,8 +929,8 @@ The following species will be skipped: D-D molecule
     <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">axs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">"Hydrogenic Species Temperature [eV]"</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">s_list</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">([</span><span class="n">species</span><span class="p">[</span><span class="s2">"D"</span><span class="p">],</span> <span class="n">species</span><span class="p">[</span><span class="s2">"T"</span><span class="p">]]):</span>
-    <span class="k">for</span> <span class="n">i_col</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">i_row</span><span class="p">,</span> <span class="n">s_list</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">([</span><span class="n">species</span><span class="p">[</span><span class="s2">"D"</span><span class="p">],</span> <span class="n">species</span><span class="p">[</span><span class="s2">"T"</span><span class="p">]]):</span>
+    <span class="k">for</span> <span class="n">i_col</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">):</span>
         <span class="c1"># Sample temperature</span>
         <span class="n">temperature</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/math/samplers.html#cherab.core.math.samplers.sample3d_grid" title="cherab.core.math.samplers.sample3d_grid"><span class="n">sample3d_grid</span></a><span class="p">(</span>
             <span class="n">s</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">effective_temperature</span><span class="p">,</span>
@@ -956,14 +954,14 @@ The following species will be skipped: D-D molecule
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_20_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_20_0.png" style="width: 730px; height: 1093px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_20_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_20_0.png" style="width: 768px; height: 1129px;"/>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_20_1.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_20_1.png" style="width: 719px; height: 1093px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_20_1.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_20_1.png" style="width: 758px; height: 1129px;"/>
 </div>
 </div>
 <h2 id="Other-species'-density">Other species’ density<a class="headerlink" href="#Other-species'-density" title="Link to this heading">¶</a></h2>
@@ -974,15 +972,15 @@ The following species will be skipped: D-D molecule
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">s_list</span> <span class="ow">in</span> <span class="p">[</span><span class="n">species</span><span class="p">[</span><span class="s2">"He"</span><span class="p">],</span> <span class="n">species</span><span class="p">[</span><span class="s2">"Ne"</span><span class="p">],</span> <span class="n">species</span><span class="p">[</span><span class="s2">"W"</span><span class="p">][::</span><span class="mi">10</span><span class="p">]]:</span>
     <span class="c1"># Each element gets its own figure</span>
-    <span class="n">num_species</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">)</span>
+    <span class="n">num_species</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">)</span>
     <span class="n">ncols</span> <span class="o">=</span> <span class="n">num_species</span> <span class="k">if</span> <span class="n">num_species</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mi">4</span>
-    <span class="n">nrows</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ceil.html#numpy.ceil" title="numpy.ceil"><span class="n">np</span><span class="o">.</span><span class="n">ceil</span></a><span class="p">(</span><span class="n">num_species</span> <span class="o">/</span> <span class="n">ncols</span><span class="p">))</span>
+    <span class="n">nrows</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.ceil.html#numpy.ceil" title="numpy.ceil"><span class="n">np</span><span class="o">.</span><span class="n">ceil</span></a><span class="p">(</span><span class="n">num_species</span> <span class="o">/</span> <span class="n">ncols</span><span class="p">))</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://ultraplot.readthedocs.io/en/stable/api/ultraplot.ui.subplots.html#ultraplot.ui.subplots" title="ultraplot.ui.subplots"><span class="n">uplt</span><span class="o">.</span><span class="n">subplots</span></a><span class="p">(</span>
         <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span>
         <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">i_ax</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i_ax</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#enumerate"><span class="nb">enumerate</span></a><span class="p">(</span><span class="n">s_list</span><span class="p">):</span>
         <span class="c1"># Sample density</span>
         <span class="n">density</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/math/samplers.html#cherab.core.math.samplers.sample3d_grid" title="cherab.core.math.samplers.sample3d_grid"><span class="n">sample3d_grid</span></a><span class="p">(</span>
             <span class="n">s</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">density</span><span class="p">,</span>
@@ -1000,7 +998,7 @@ The following species will be skipped: D-D molecule
             <span class="n">density</span><span class="p">,</span>
             <span class="n">extent</span><span class="p">,</span>
             <span class="n">logscale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">cbar_kwargs</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#dict"><span class="nb">dict</span></a><span class="p">(</span>
+            <span class="n">cbar_kwargs</span><span class="o">=</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#dict"><span class="nb">dict</span></a><span class="p">(</span>
                 <span class="n">loc</span><span class="o">=</span><span class="s2">"lr"</span><span class="p">,</span>
                 <span class="n">orientation</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
                 <span class="n">ticklabelsize</span><span class="o">=</span><span class="s2">"small"</span><span class="p">,</span>
@@ -1027,21 +1025,21 @@ The following species will be skipped: D-D molecule
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_22_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_22_0.png" style="width: 811px; height: 532px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_22_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_22_0.png" style="width: 812px; height: 533px;"/>
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_22_1.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_22_1.png" style="width: 1085px; height: 1548px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_22_1.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_22_1.png" style="width: 1085px; height: 1550px;"/>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_22_2.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_22_2.png" style="width: 1085px; height: 1040px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_22_2.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_22_2.png" style="width: 1085px; height: 1041px;"/>
 </div>
 </div>
 <h3 id="Plot-Z_\mathrm{eff}">Plot <span class="math notranslate nohighlight">\(Z_\mathrm{eff}\)</span><a class="headerlink" href="#Plot-Z_\mathrm{eff}" title="Link to this heading">¶</a></h3>
@@ -1050,14 +1048,14 @@ The following species will be skipped: D-D molecule
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[11]:
 </code></pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">z_effective</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/functions.html#float"><span class="nb">float</span></a><span class="p">:</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">z_effective</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">)</span> <span class="o">-&gt;</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#float"><span class="nb">float</span></a><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Calculate effective charge, $Z_\\mathrm{eff}$, at a given point.</span>
 
 <span class="sd">    Need to implement error handling for points where zero density is sampled.</span>
 <span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">z_eff</span> <span class="o">=</span> <span class="n">plasma</span><span class="o">.</span><span class="n">z_effective</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-    <span class="k">except</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">:</span>
+    <span class="k">except</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">:</span>
         <span class="n">z_eff</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">return</span> <span class="n">z_eff</span>
@@ -1094,7 +1092,7 @@ The following species will be skipped: D-D molecule
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_3_full_plasma_25_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_25_0.png" style="width: 377px; height: 574px;"/>
+<img alt="../../_images/notebooks_plasma_3_full_plasma_25_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_3_full_plasma_25_0.png" style="width: 376px; height: 573px;"/>
 </div>
 </div>
 </article>

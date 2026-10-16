@@ -10,7 +10,7 @@
 <link href="" rel="icon"/>
 <title>Fractional Abundances - CHERAB-IMAS</title>
 <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
-<link href="../../_static/sphinx_immaterial_theme.74c816e3f9967dd6e.min.css?v=6cfe2491" rel="stylesheet" type="text/css"/>
+<link href="../../_static/sphinx_immaterial_theme.6efbe22605a23fcd6.min.css?v=b2ceb110" rel="stylesheet" type="text/css"/>
 <link href="../../_static/sphinx-codeautolink.css?v=b2176991" rel="stylesheet" type="text/css"/>
 <link href="../../_static/github_style.css?v=1093691d" rel="stylesheet" type="text/css"/>
 <link href="../../_static/sphinx-design.min.css?v=95c83b7e" rel="stylesheet" type="text/css"/>
@@ -321,7 +321,7 @@
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS" title="cherab.openadas.openadas.OpenADAS"><span class="n">atomic_data</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS" title="cherab.openadas.openadas.OpenADAS"><span class="n">OpenADAS</span></a><span class="p">(</span><span class="n">permit_extrapolation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">missing_rates_return_null</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS.ionisation_rate" title="cherab.openadas.openadas.OpenADAS.ionisation_rate"><span class="n">atomic_data</span><span class="o">.</span><span class="n">ionisation_rate</span></a><span class="p">(</span><span class="n">neon</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="k">except</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/exceptions.html#RuntimeError"><span class="ne">RuntimeError</span></a><span class="p">:</span>
+<span class="k">except</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError"><span class="ne">RuntimeError</span></a><span class="p">:</span>
     <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/openadas.html#cherab.openadas.install.install_adf11acd" title="cherab.openadas.install.install_adf11acd"><span class="n">install_adf11acd</span></a><span class="p">(</span><span class="n">neon</span><span class="p">,</span> <span class="s2">"adf11/acd96/acd96_ne.dat"</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/openadas.html#cherab.openadas.install.install_adf11scd" title="cherab.openadas.install.install_adf11scd"><span class="n">install_adf11scd</span></a><span class="p">(</span><span class="n">neon</span><span class="p">,</span> <span class="s2">"adf11/scd96/scd96_ne.dat"</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
@@ -376,7 +376,7 @@ Installing adf11/scd96/scd96_ne.dat...
 <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
     <span class="n">lines</span><span class="p">,</span>
-    <span class="p">[</span><span class="sa">f</span><span class="s2">"Ne </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">+"</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="n">neon</span><span class="o">.</span><span class="n">atomic_number</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)],</span>
+    <span class="p">[</span><span class="sa">f</span><span class="s2">"Ne </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">+"</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="n">neon</span><span class="o">.</span><span class="n">atomic_number</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)],</span>
     <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="n">loc</span><span class="o">=</span><span class="s2">"right"</span><span class="p">,</span>
     <span class="n">frame</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -401,15 +401,16 @@ Installing adf11/scd96/scd96_ne.dat...
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/imas/imas/.pixi/envs/docs/lib/python3.14/site-packages/ultraplot/__init__.py:221: UltraPlotWarning: Rebuilding font cache. This usually happens after installing or updating ultraplot.
+/home/runner/work/imas/imas/.pixi/envs/docs/lib/python3.14/site-packages/ultraplot/__init__.py:223: UltraPlotWarning: Rebuilding font cache. This usually happens after installing or updating ultraplot.
   register_fonts(default=True)
+findfont: Failed to find font weight normal for TeX Gyre Chorus, now using 500.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_misc_fractional_abundances_9_1.png" class="no-scaled-link" src="../../_images/notebooks_misc_fractional_abundances_9_1.png" style="width: 541px; height: 408px;"/>
+<img alt="../../_images/notebooks_misc_fractional_abundances_9_1.png" class="no-scaled-link" src="../../_images/notebooks_misc_fractional_abundances_9_1.png" style="width: 542px; height: 407px;"/>
 </div>
 </div>
 </article>
