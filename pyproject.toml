@@ -50,7 +50,7 @@ requires = ["cherab==1.6.*", "hatch-cython>=0.6.0", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*"  # TODO: Suppport latest CPython after cherab supports it
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp314t* cp315*"  # TODO: Suppport latest CPython after cherab supports it
 build-frontend = "build[uv]"
 test-extras = ["test"]
 test-command = "pytest {project}/tests"
