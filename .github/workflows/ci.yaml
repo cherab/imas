@@ -7,6 +7,23 @@ on:
       - master
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      tests: ${{ steps.filter.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          # PRs use their base branch; pushes compare with the previous branch tip.
+          base: ${{ github.ref }}
+          filters: .github/filters.yml
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -24,6 +41,8 @@ jobs:
 
   checks:
     name: Test 🐍 ${{ matrix.environment }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    needs: changes
+    if: needs.changes.outputs.tests == 'true'
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -49,3 +68,18 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  status:
+    name: CI status
+    needs: [changes, lint, checks]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful lint and selected tests
+        env:
+          PASSED: >-
+            ${{ needs.changes.result == 'success' &&
+                needs.lint.result == 'success' &&
+                ((needs.changes.outputs.tests == 'true' && needs.checks.result == 'success') ||
+                 (needs.changes.outputs.tests == 'false' && needs.checks.result == 'skipped')) }}
+        run: test "$PASSED" = true

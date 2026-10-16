@@ -1,0 +1,34 @@
+# Inputs shared by package installation, tests and documentation builds.
+package: &package
+  - "src/**"
+  - "pyproject.toml"
+  - "pixi.toml"
+  - "pixi.lock"
+  - ".pixi/config.toml"
+  - "README.md"
+  - "LICENCE.txt"
+  - ".gitignore"
+  - ".gitattributes"
+  - ".github/filters.yml"
+
+# cibuildwheel also runs pytest, including tests of the version manifest generator.
+test-inputs: &test-inputs
+  - *package
+  - "tests/**"
+  - "docs/generate_versions.py"
+
+tests:
+  - *test-inputs
+  - ".github/workflows/ci.yaml"
+
+wheels:
+  - *test-inputs
+  - "demos/**"
+  - ".github/workflows/deploy-pypi.yml"
+
+docs:
+  - *package
+  - "docs/**"
+  - ".binder/**"
+  - ".nblink/**"
+  - ".github/workflows/docs-*.yml"
