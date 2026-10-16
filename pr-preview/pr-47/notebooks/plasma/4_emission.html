@@ -40,7 +40,7 @@
 <strong>This page was created from a pull request build</strong>
 <span class="version-banner__details">
           See the
-          <a href="https://github.com/cherab/imas/actions/runs/38867851858?pr=47" rel="noopener noreferrer" target="_blank">build's detail page</a>
+          <a href="https://github.com/cherab/imas/actions/runs/38870020489?pr=47" rel="noopener noreferrer" target="_blank">build's detail page</a>
           or pull request
           <a href="https://github.com/cherab/imas/pull/47" rel="noopener noreferrer" target="_blank">#47</a>
           for more information.
@@ -470,7 +470,10 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[1]:
 </code></pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/index.html#module-numpy"><span class="nn">numpy</span></a><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#module-json"><span class="nn">json</span></a>
+<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#module-pathlib"><span class="nn">pathlib</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a>
+
+<span class="kn">import</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/index.html#module-numpy"><span class="nn">numpy</span></a><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ultraplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">uplt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">raysect.core.math</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.point.Point3D" title="raysect.core.math.point.Point3D"><span class="n">Point3D</span></a><span class="p">,</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/points_and_vectors.html#raysect.core.math.vector.Vector3D" title="raysect.core.math.vector.Vector3D"><span class="n">Vector3D</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">raysect.core.workflow</span><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="http://www.raysect.org/api_reference/core/render_engines.html#raysect.core.workflow.MulticoreEngine" title="raysect.core.workflow.MulticoreEngine"><span class="n">MulticoreEngine</span></a>
@@ -529,19 +532,18 @@ Currently, neon and tungsten atomic data files (related to adf11, adf15) are to 
     <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/repository.html#cherab.openadas.repository.create.populate" title="cherab.openadas.repository.create.populate"><span class="n">populate</span></a><span class="p">()</span>
 
     <span class="c1"># Install ADAS files that are not downloaded by default</span>
-    <span class="c1"># TODO: uncomment tungsten ADF15 once https://github.com/cherab/core/pull/497 is resolved</span>
     <span class="n">install_files</span><span class="p">(</span>
         <span class="p">{</span>
-            <span class="c1"># "adf11scd": ((elements.tungsten, "adf11/scd50/scd50_w.dat"),),</span>
-            <span class="c1"># "adf11acd": ((elements.tungsten, "adf11/acd50/acd50_w.dat"),),</span>
+            <span class="s2">"adf11scd"</span><span class="p">:</span> <span class="p">((</span><span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="p">,</span> <span class="s2">"adf11/scd50/scd50_w.dat"</span><span class="p">),),</span>
+            <span class="s2">"adf11acd"</span><span class="p">:</span> <span class="p">((</span><span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="p">,</span> <span class="s2">"adf11/acd50/acd50_w.dat"</span><span class="p">),),</span>
             <span class="s2">"adf15"</span><span class="p">:</span> <span class="p">[</span>
                 <span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"adf15/pec96#ne/pec96#ne_pju#ne</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.dat"</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="o">.</span><span class="n">atomic_number</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"adf15/pec40#w/pec40#w_ic#w</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.dat"</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#range"><span class="nb">range</span></a><span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="o">.</span><span class="n">atomic_number</span><span class="p">)</span>
             <span class="p">],</span>
-            <span class="c1"># + [</span>
-            <span class="c1">#     (elements.tungsten, i, f"adf15/pec40#w/pec40#w_ic#w{i}.dat")</span>
-            <span class="c1">#     for i in range(elements.tungsten.atomic_number)</span>
-            <span class="c1"># ],</span>
         <span class="p">},</span>
         <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
@@ -846,6 +848,8 @@ Installing adf22/bme97#h/bme97#h_ne10.dat...
  - downloading ADF file 'adf22/bme97#h/bme97#h_ne10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme97#h/bme97#h_ne10.dat'
 Installing adf22/bme99#h/bme99#h_ar18.dat...
  - downloading ADF file 'adf22/bme99#h/bme99#h_ar18.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf22/bme99#h/bme99#h_ar18.dat'
+Installing adf11/scd50/scd50_w.dat...
+Installing adf11/acd50/acd50_w.dat...
 Installing adf15/pec96#ne/pec96#ne_pju#ne0.dat...
  - downloading ADF file 'adf15/pec96#ne/pec96#ne_pju#ne0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pju#ne0.dat'
 Installing adf15/pec96#ne/pec96#ne_pju#ne1.dat...
@@ -866,6 +870,154 @@ Installing adf15/pec96#ne/pec96#ne_pju#ne8.dat...
  - downloading ADF file 'adf15/pec96#ne/pec96#ne_pju#ne8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pju#ne8.dat'
 Installing adf15/pec96#ne/pec96#ne_pju#ne9.dat...
  - downloading ADF file 'adf15/pec96#ne/pec96#ne_pju#ne9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec96#ne/pec96#ne_pju#ne9.dat'
+Installing adf15/pec40#w/pec40#w_ic#w0.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w0.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w0.dat'
+Installing adf15/pec40#w/pec40#w_ic#w1.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w1.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w1.dat'
+Installing adf15/pec40#w/pec40#w_ic#w2.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w2.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w2.dat'
+Installing adf15/pec40#w/pec40#w_ic#w3.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w3.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w3.dat'
+Installing adf15/pec40#w/pec40#w_ic#w4.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w4.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w4.dat'
+Installing adf15/pec40#w/pec40#w_ic#w5.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w5.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w5.dat'
+Installing adf15/pec40#w/pec40#w_ic#w6.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w6.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w6.dat'
+Installing adf15/pec40#w/pec40#w_ic#w7.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w7.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w7.dat'
+Installing adf15/pec40#w/pec40#w_ic#w8.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w8.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w8.dat'
+Installing adf15/pec40#w/pec40#w_ic#w9.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w9.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w9.dat'
+Installing adf15/pec40#w/pec40#w_ic#w10.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w10.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w10.dat'
+Installing adf15/pec40#w/pec40#w_ic#w11.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w11.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w11.dat'
+Installing adf15/pec40#w/pec40#w_ic#w12.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w12.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w12.dat'
+Installing adf15/pec40#w/pec40#w_ic#w13.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w13.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w13.dat'
+Installing adf15/pec40#w/pec40#w_ic#w14.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w14.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w14.dat'
+Installing adf15/pec40#w/pec40#w_ic#w15.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w15.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w15.dat'
+Installing adf15/pec40#w/pec40#w_ic#w16.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w16.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w16.dat'
+Installing adf15/pec40#w/pec40#w_ic#w17.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w17.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w17.dat'
+Installing adf15/pec40#w/pec40#w_ic#w18.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w18.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w18.dat'
+Installing adf15/pec40#w/pec40#w_ic#w19.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w19.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w19.dat'
+Installing adf15/pec40#w/pec40#w_ic#w20.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w20.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w20.dat'
+Installing adf15/pec40#w/pec40#w_ic#w21.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w21.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w21.dat'
+Installing adf15/pec40#w/pec40#w_ic#w22.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w22.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w22.dat'
+Installing adf15/pec40#w/pec40#w_ic#w23.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w23.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w23.dat'
+Installing adf15/pec40#w/pec40#w_ic#w24.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w24.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w24.dat'
+Installing adf15/pec40#w/pec40#w_ic#w25.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w25.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w25.dat'
+Installing adf15/pec40#w/pec40#w_ic#w26.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w26.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w26.dat'
+Installing adf15/pec40#w/pec40#w_ic#w27.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w27.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w27.dat'
+Installing adf15/pec40#w/pec40#w_ic#w28.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w28.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w28.dat'
+Installing adf15/pec40#w/pec40#w_ic#w29.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w29.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w29.dat'
+Installing adf15/pec40#w/pec40#w_ic#w30.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w30.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w30.dat'
+Installing adf15/pec40#w/pec40#w_ic#w31.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w31.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w31.dat'
+Installing adf15/pec40#w/pec40#w_ic#w32.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w32.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w32.dat'
+Installing adf15/pec40#w/pec40#w_ic#w33.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w33.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w33.dat'
+Installing adf15/pec40#w/pec40#w_ic#w34.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w34.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w34.dat'
+Installing adf15/pec40#w/pec40#w_ic#w35.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w35.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w35.dat'
+Installing adf15/pec40#w/pec40#w_ic#w36.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w36.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w36.dat'
+Installing adf15/pec40#w/pec40#w_ic#w37.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w37.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w37.dat'
+Installing adf15/pec40#w/pec40#w_ic#w38.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w38.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w38.dat'
+Installing adf15/pec40#w/pec40#w_ic#w39.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w39.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w39.dat'
+Installing adf15/pec40#w/pec40#w_ic#w40.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w40.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w40.dat'
+Installing adf15/pec40#w/pec40#w_ic#w41.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w41.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w41.dat'
+Installing adf15/pec40#w/pec40#w_ic#w42.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w42.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w42.dat'
+Installing adf15/pec40#w/pec40#w_ic#w43.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w43.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w43.dat'
+Installing adf15/pec40#w/pec40#w_ic#w44.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w44.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w44.dat'
+Installing adf15/pec40#w/pec40#w_ic#w45.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w45.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w45.dat'
+Installing adf15/pec40#w/pec40#w_ic#w46.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w46.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w46.dat'
+Installing adf15/pec40#w/pec40#w_ic#w47.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w47.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w47.dat'
+Installing adf15/pec40#w/pec40#w_ic#w48.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w48.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w48.dat'
+Installing adf15/pec40#w/pec40#w_ic#w49.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w49.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w49.dat'
+Installing adf15/pec40#w/pec40#w_ic#w50.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w50.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w50.dat'
+Installing adf15/pec40#w/pec40#w_ic#w51.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w51.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w51.dat'
+Installing adf15/pec40#w/pec40#w_ic#w52.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w52.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w52.dat'
+Installing adf15/pec40#w/pec40#w_ic#w53.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w53.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w53.dat'
+Installing adf15/pec40#w/pec40#w_ic#w54.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w54.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w54.dat'
+Installing adf15/pec40#w/pec40#w_ic#w55.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w55.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w55.dat'
+Installing adf15/pec40#w/pec40#w_ic#w56.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w56.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w56.dat'
+Installing adf15/pec40#w/pec40#w_ic#w57.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w57.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w57.dat'
+Installing adf15/pec40#w/pec40#w_ic#w58.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w58.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w58.dat'
+Installing adf15/pec40#w/pec40#w_ic#w59.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w59.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w59.dat'
+Installing adf15/pec40#w/pec40#w_ic#w60.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w60.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w60.dat'
+Installing adf15/pec40#w/pec40#w_ic#w61.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w61.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w61.dat'
+Installing adf15/pec40#w/pec40#w_ic#w62.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w62.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w62.dat'
+Installing adf15/pec40#w/pec40#w_ic#w63.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w63.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w63.dat'
+Installing adf15/pec40#w/pec40#w_ic#w64.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w64.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w64.dat'
+Installing adf15/pec40#w/pec40#w_ic#w65.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w65.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w65.dat'
+Installing adf15/pec40#w/pec40#w_ic#w66.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w66.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w66.dat'
+Installing adf15/pec40#w/pec40#w_ic#w67.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w67.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w67.dat'
+Installing adf15/pec40#w/pec40#w_ic#w68.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w68.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w68.dat'
+Installing adf15/pec40#w/pec40#w_ic#w69.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w69.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w69.dat'
+Installing adf15/pec40#w/pec40#w_ic#w70.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w70.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w70.dat'
+Installing adf15/pec40#w/pec40#w_ic#w71.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w71.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w71.dat'
+Installing adf15/pec40#w/pec40#w_ic#w72.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w72.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w72.dat'
+Installing adf15/pec40#w/pec40#w_ic#w73.dat...
+ - downloading ADF file 'adf15/pec40#w/pec40#w_ic#w73.dat' to '/home/runner/.cherab/openadas/repository/_download_cache/adf15/pec40#w/pec40#w_ic#w73.dat'
 </pre></div></div>
 </div>
 <h2 id="Load-full-plasma-from-IMAS">Load full plasma from IMAS<a class="headerlink" href="#Load-full-plasma-from-IMAS" title="Link to this heading">¶</a></h2>
@@ -885,8 +1037,8 @@ Installing adf15/pec96#ne/pec96#ne_pju#ne9.dat...
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-07:36:26 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
-07:36:26 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+07:58:04 INFO     Parsing data dictionary version 4.1.1 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
+07:58:04 INFO     Parsing data dictionary version 4.0.0 <span class="ansi-black-intense-fg">@dd_zip.py:89</span>
 /home/runner/work/imas/imas/src/cherab/imas/plasma/blend.py:181: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
   core_profiles_ids = get_ids_time_slice(
 /home/runner/work/imas/imas/src/cherab/imas/plasma/blend.py:207: RuntimeWarning: The 'get_slice' method is not implemented for the URI '/home/runner/.cache/cherab/imas/iter_scenario_53298_seq1_DD4_mod.nc'. Falling back to 'get' method because the returned IDS contains a single time slice.
@@ -1061,65 +1213,54 @@ The following species will be skipped: D-D molecule
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span><code>[6]:
 </code></pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#module-json"><span class="nn">json</span></a>
-<span class="kn">from</span><span class="w"> </span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#module-pathlib"><span class="nn">pathlib</span></a><span class="w"> </span><span class="kn">import</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="c1"># Limiting the wavelength range for emission lines</span>
+<span class="n">WVL_MIN</span><span class="p">,</span> <span class="n">WVL_MAX</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">1000.0</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">cherab.openadas.repository.utility</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_REPOSITORY_PATH</span>
+<span class="n">models</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"excitation"</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.impact_excitation.ExcitationLine" title="cherab.core.model.plasma.impact_excitation.ExcitationLine"><span class="n">ExcitationLine</span></a><span class="p">,</span>
+    <span class="s2">"recombination"</span><span class="p">:</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.recombination.RecombinationLine" title="cherab.core.model.plasma.recombination.RecombinationLine"><span class="n">RecombinationLine</span></a><span class="p">,</span>
+<span class="p">}</span>
 
-<span class="n">lines_exc</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">lines_rec</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
 
 <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="p">[</span>
     <span class="n">elements</span><span class="o">.</span><span class="n">deuterium</span><span class="p">,</span>
     <span class="n">elements</span><span class="o">.</span><span class="n">tritium</span><span class="p">,</span>
     <span class="n">elements</span><span class="o">.</span><span class="n">helium</span><span class="p">,</span>
     <span class="n">elements</span><span class="o">.</span><span class="n">neon</span><span class="p">,</span>
-    <span class="c1"># elements.tungsten,  # TODO: uncomment once https://github.com/cherab/core/pull/497 is resolved</span>
+    <span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="p">,</span>
 <span class="p">]:</span>
-    <span class="n">ion_elm</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">element</span> <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#isinstance"><span class="nb">isinstance</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/elements_and_isotopes.html#cherab.core.atomic.elements.Isotope" title="cherab.core.atomic.elements.Isotope"><span class="n">Isotope</span></a><span class="p">)</span> <span class="k">else</span> <span class="n">elm</span>
+    <span class="k">for</span> <span class="n">model_str</span><span class="p">,</span> <span class="n">model_cls</span> <span class="ow">in</span> <span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">ion_elm</span> <span class="o">=</span> <span class="n">elm</span><span class="o">.</span><span class="n">element</span> <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#isinstance"><span class="nb">isinstance</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/elements_and_isotopes.html#cherab.core.atomic.elements.Isotope" title="cherab.core.atomic.elements.Isotope"><span class="n">Isotope</span></a><span class="p">)</span> <span class="k">else</span> <span class="n">elm</span>
 
-    <span class="c1"># === Excitation Lines ===</span>
-    <span class="n">dir_exc</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a><span class="p">(</span><span class="n">DEFAULT_REPOSITORY_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pec/excitation/</span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
-    <span class="n">paths_pec_exc</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#list"><span class="nb">list</span></a><span class="p">(</span><span class="n">dir_exc</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">))</span>
-    <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">paths_pec_exc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"No excitation data found for element </span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> in the repository </span><span class="si">{</span><span class="n">dir_exc</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths_pec_exc</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">data_exc</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-        <span class="n">charge</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="n">data_exc</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">lines_exc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.impact_excitation.ExcitationLine" title="cherab.core.model.plasma.impact_excitation.ExcitationLine"><span class="n">ExcitationLine</span></a><span class="p">(</span>
-                    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">Line</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" -&gt; "</span><span class="p">))),</span>
-                <span class="p">),</span>
-            <span class="p">)</span>
-
-    <span class="c1"># === Recombination Lines ===</span>
-    <span class="k">if</span> <span class="n">ion_elm</span> <span class="o">==</span> <span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span><span class="p">:</span>
         <span class="c1"># Skip recombination lines for tungsten since they are not available in the repository</span>
-        <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">ion_elm</span> <span class="o">==</span> <span class="n">elements</span><span class="o">.</span><span class="n">tungsten</span> <span class="ow">and</span> <span class="n">model_str</span> <span class="o">==</span> <span class="s2">"recombination"</span><span class="p">:</span>
+            <span class="k">continue</span>
 
-    <span class="n">dir_rec</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a><span class="p">(</span><span class="n">DEFAULT_REPOSITORY_PATH</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pec/recombination/</span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
-    <span class="n">paths_pec_rec</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#list"><span class="nb">list</span></a><span class="p">(</span><span class="n">dir_rec</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.json"</span><span class="p">))</span>
-    <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">paths_pec_rec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"No recombination data found for element </span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> in the repository </span><span class="si">{</span><span class="n">dir_rec</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span>
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths_pec_rec</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">data_rec</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-        <span class="n">charge</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="n">data_rec</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">lines_rec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/basic_line/basic_line_emission.html#cherab.core.model.plasma.recombination.RecombinationLine" title="cherab.core.model.plasma.recombination.RecombinationLine"><span class="n">RecombinationLine</span></a><span class="p">(</span>
-                    <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">Line</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" -&gt; "</span><span class="p">))),</span>
-                <span class="p">),</span>
+        <span class="n">paths</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#sorted"><span class="nb">sorted</span></a><span class="p">(</span>
+            <span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path"><span class="n">Path</span></a><span class="p">(</span><span class="n">atomic_data</span><span class="o">.</span><span class="n">data_path</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"pec/</span><span class="si">{</span><span class="n">model_str</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span>
+                <span class="s2">"*.json"</span>
             <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/exceptions.html#ValueError"><span class="ne">ValueError</span></a><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">model_str</span><span class="si">}</span><span class="s2"> data found for element </span><span class="si">{</span><span class="n">ion_elm</span><span class="o">.</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> in the repository </span><span class="si">{</span><span class="n">paths</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/library/json.html#json.load"><span class="n">json</span><span class="o">.</span><span class="n">load</span></a><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="n">charge</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#int"><span class="nb">int</span></a><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">line</span></a> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">Line</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/stdtypes.html#tuple"><span class="nb">tuple</span></a><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" -&gt; "</span><span class="p">)))</span>
+
+                <span class="c1"># Skip lines outside the wavelength range</span>
+                <span class="n">wavelength</span> <span class="o">=</span> <a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/atomic_data_interface.html#cherab.openadas.openadas.OpenADAS.wavelength" title="cherab.openadas.openadas.OpenADAS.wavelength"><span class="n">atomic_data</span><span class="o">.</span><span class="n">wavelength</span></a><span class="p">(</span><span class="n">elm</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">transition</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">wavelength</span> <span class="o">&lt;</span> <span class="n">WVL_MIN</span> <span class="ow">or</span> <span class="n">wavelength</span> <span class="o">&gt;</span> <span class="n">WVL_MAX</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model_cls</span><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://www.cherab.info/atomic/emission_lines.html#cherab.core.atomic.line.Line" title="cherab.core.atomic.line.Line"><span class="n">line</span></a><span class="p">))</span>
 </code></pre></div>
 </div>
 </div>
@@ -1130,8 +1271,7 @@ The following species will be skipped: D-D molecule
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span class="n">plasma</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span>
     <a class="sphinx-codeautolink-a" href="https://www.cherab.info/models/brem/bremsstrahlung.html#cherab.core.model.plasma.bremsstrahlung.Bremsstrahlung" title="cherab.core.model.plasma.bremsstrahlung.Bremsstrahlung"><span class="n">Bremsstrahlung</span></a><span class="p">(),</span>
-    <span class="o">*</span><span class="n">lines_exc</span><span class="p">,</span>
-    <span class="o">*</span><span class="n">lines_rec</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">lines</span><span class="p">,</span>
 <span class="p">]</span>
 </code></pre></div>
 </div>
@@ -1158,11 +1298,11 @@ The following species will be skipped: D-D molecule
 <span class="c1"># - Using multiple adjacent decade bands approximates logarithmic coverage overall,</span>
 <span class="c1">#   while preserving linear binning locally in each band.</span>
 <span class="n">wavelength_bands</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">WVL_MIN</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
     <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
     <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
     <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span>
-    <span class="p">(</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">WVL_MAX</span><span class="p">),</span>
 <span class="p">]</span>
 <span class="n">wavelength_bins</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># number of bins per decade band</span>
 </code></pre></div>
@@ -1277,7 +1417,7 @@ The following species will be skipped: D-D molecule
 <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
     <span class="n">aspect</span><span class="o">=</span><span class="s2">"equal"</span><span class="p">,</span>
-    <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Emissivity integrated over </span><span class="si">{</span><span class="n">wavelength_bands</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> – </span><span class="si">{</span><span class="n">wavelength_bands</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> nm"</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Emissivity integrated over </span><span class="si">{</span><span class="n">wavelength_bands</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> – </span><span class="si">{</span><span class="n">wavelength_bands</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> nm"</span><span class="p">,</span>
     <span class="n">xlabel</span><span class="o">=</span><span class="s2">"$R$ [m]"</span><span class="p">,</span>
     <span class="n">ylabel</span><span class="o">=</span><span class="s2">"$Z$ [m]"</span><span class="p">,</span>
     <span class="n">xlocator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -1290,7 +1430,7 @@ The following species will be skipped: D-D molecule
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/notebooks_plasma_4_emission_20_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_4_emission_20_0.png" style="width: 422px; height: 573px;"/>
+<img alt="../../_images/notebooks_plasma_4_emission_20_0.png" class="no-scaled-link" src="../../_images/notebooks_plasma_4_emission_20_0.png" style="width: 417px; height: 573px;"/>
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1310,7 +1450,7 @@ The following species will be skipped: D-D molecule
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Total radiated power: 77.8 MW
+Total radiated power: 88.6 MW
 </pre></div></div>
 </div>
 <h2 id="Measure-line-of-sight-Spectra">Measure line-of-sight Spectra<a class="headerlink" href="#Measure-line-of-sight-Spectra" title="Link to this heading">¶</a></h2>
@@ -1454,7 +1594,7 @@ Total radiated power: 77.8 MW
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Total radiance along line of sight:  7.88e+04 W/m²/sr
+Total radiance along line of sight:  8.51e+04 W/m²/sr
 </pre></div></div>
 </div>
 <p>Let us also plot the bar chart of the integrated spectrum for each wavelength band to see which wavelength bands dominate the total emission.</p>
@@ -1509,10 +1649,7 @@ Total radiance along line of sight:  7.88e+04 W/m²/sr
 
 
 <span class="c1"># Plot histogram of integrated spectrum</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
-    <a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">spectra</span><span class="p">)),</span>
-    <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">total</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">]</span>
-<span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><a class="sphinx-codeautolink-a" href="https://docs.python.org/3/builtins/functions.html#len"><span class="nb">len</span></a><span class="p">(</span><span class="n">spectra</span><span class="p">)),</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">total</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">])</span>
 
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
     <span class="n">yscale</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
@@ -1568,9 +1705,9 @@ Total radiance along line of sight:  7.88e+04 W/m²/sr
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-soft X-ray radiance: 1.410e+04 W/m²/sr
-UV/visible radiance: 6.470e+04 W/m²/sr
-radiance ratio (soft X-ray / UV-visible): 0.22
+soft X-ray radiance: 2.004e+04 W/m²/sr
+UV/visible radiance: 6.505e+04 W/m²/sr
+radiance ratio (soft X-ray / UV-visible): 0.31
 </pre></div></div>
 </div>
 </article>
