@@ -28,7 +28,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "cherab==1.5.*",
+  "cherab==1.6.*",
   "imas-python[netcdf]",
   "pooch",
   "rich",
@@ -46,11 +46,11 @@ Repository = "https://github.com/cherab/imas"
 test = ["pytest", "pytest-cov", "plotly"]
 
 [build-system]
-requires = ["cherab==1.5.*", "hatch-cython>=0.6.0", "hatch-vcs"]
+requires = ["cherab==1.6.*", "hatch-cython>=0.6.0", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.cibuildwheel]
-skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp313* cp314* cp315*"  # TODO: Suppport latest CPython after cherab supports it
+skip = "pp* *_ppc64le *_i686 *_s390x *-musllinux* cp314t* cp315*"  # TODO: Suppport latest CPython after cherab supports it
 build-frontend = "build[uv]"
 test-extras = ["test"]
 test-command = "pytest {project}/tests"
@@ -105,6 +105,7 @@ env = [
   ], arch = [
     "x86_64",
   ], merges = true },
+  { env = "CYTHON_FORCE_REGEN", arg = "1" },
 ]
 define_macros = [["NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"]]
 files = { targets = ["**/*.pyx"] }
