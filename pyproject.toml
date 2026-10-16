@@ -28,7 +28,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "cherab==1.5.*",
+  "cherab==1.6.*",
   "imas-python[netcdf]",
   "pooch",
   "rich",
@@ -46,7 +46,7 @@ Repository = "https://github.com/cherab/imas"
 test = ["pytest", "pytest-cov", "plotly"]
 
 [build-system]
-requires = ["cherab==1.5.*", "hatch-cython>=0.6.0", "hatch-vcs"]
+requires = ["cherab==1.6.*", "hatch-cython>=0.6.0", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.cibuildwheel]
