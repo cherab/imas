@@ -1,6 +1,0 @@
-cherab.imas.ggd.base\_mesh.VertexIndices
-========================================
-
-.. currentmodule:: cherab.imas.ggd.base_mesh
-
-.. autodata:: VertexIndices

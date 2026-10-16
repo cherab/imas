@@ -1,6 +1,0 @@
-cherab.imas.ids.radiation.load\_ggd\_emissivity
-===============================================
-
-.. currentmodule:: cherab.imas.ids.radiation
-
-.. autofunction:: load_ggd_emissivity

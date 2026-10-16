@@ -1,6 +1,0 @@
-cherab.imas.datasets.clear\_cache
-=================================
-
-.. currentmodule:: cherab.imas.datasets
-
-.. autofunction:: clear_cache

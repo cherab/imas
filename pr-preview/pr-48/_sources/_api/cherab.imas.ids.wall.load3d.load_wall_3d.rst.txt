@@ -1,6 +1,0 @@
-cherab.imas.ids.wall.load3d.load\_wall\_3d
-==========================================
-
-.. currentmodule:: cherab.imas.ids.wall.load3d
-
-.. autofunction:: load_wall_3d

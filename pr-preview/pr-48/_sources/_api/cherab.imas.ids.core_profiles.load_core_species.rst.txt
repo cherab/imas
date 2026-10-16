@@ -1,6 +1,0 @@
-cherab.imas.ids.core\_profiles.load\_core\_species
-==================================================
-
-.. currentmodule:: cherab.imas.ids.core_profiles
-
-.. autofunction:: load_core_species

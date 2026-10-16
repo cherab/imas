@@ -1,6 +1,0 @@
-cherab.imas.datasets.iter\_jintrac
-==================================
-
-.. currentmodule:: cherab.imas.datasets
-
-.. autofunction:: iter_jintrac
