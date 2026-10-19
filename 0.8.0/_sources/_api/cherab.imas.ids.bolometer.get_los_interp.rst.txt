@@ -1,0 +1,6 @@
+cherab.imas.ids.bolometer.get\_los\_interp
+==========================================
+
+.. currentmodule:: cherab.imas.ids.bolometer
+
+.. autofunction:: get_los_interp

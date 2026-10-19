@@ -1,0 +1,31 @@
+cherab.imas.ids.common.species.ProfileData
+==========================================
+
+.. currentmodule:: cherab.imas.ids.common.species
+
+.. autoclass:: ProfileData
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+      ~ProfileData.array_shapes
+
+
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :template: attribute.rst
+
+      ~ProfileData.density
+      ~ProfileData.density_fast
+      ~ProfileData.density_thermal
+      ~ProfileData.temperature
+      ~ProfileData.velocity
+      ~ProfileData.species

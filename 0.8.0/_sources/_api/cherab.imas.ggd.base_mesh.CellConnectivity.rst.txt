@@ -1,0 +1,6 @@
+cherab.imas.ggd.base\_mesh.CellConnectivity
+===========================================
+
+.. currentmodule:: cherab.imas.ggd.base_mesh
+
+.. autodata:: CellConnectivity

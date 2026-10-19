@@ -1,0 +1,21 @@
+cherab.imas.math.UnstructGridFunction2D
+=======================================
+
+.. currentmodule:: cherab.imas.math
+
+.. autoclass:: UnstructGridFunction2D
+   :show-inheritance:
+   :members:
+   :special-members: __call__, __getitem__
+   :inherited-members:
+
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :template: method.rst
+
+      ~UnstructGridFunction2D.__call__
+      ~UnstructGridFunction2D.instance
+
+

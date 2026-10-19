@@ -1,0 +1,22 @@
+cherab.imas.ids.wall.load3d
+===========================
+
+.. automodule:: cherab.imas.ids.wall.load3d
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_wall_3d
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: class.rst
+
+      Component
+
+
+
