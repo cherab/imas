@@ -1,0 +1,28 @@
+cherab.imas.ggd
+===============
+
+.. automodule:: cherab.imas.ggd
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: class.rst
+
+      GGDGrid
+      UnstructGrid2D
+      UnstructGrid2DExtended
+      UnstructGrid3D
+
+
+
+.. currentmodule:: cherab.imas.ggd
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: module.rst
+   :recursive:
+
+   base_mesh

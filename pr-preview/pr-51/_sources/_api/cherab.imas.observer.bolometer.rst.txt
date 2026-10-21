@@ -1,0 +1,16 @@
+cherab.imas.observer.bolometer
+==============================
+
+.. automodule:: cherab.imas.observer.bolometer
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_bolometers
+      visualize
+
+
+

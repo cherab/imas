@@ -1,0 +1,38 @@
+cherab.imas.ids.common
+======================
+
+.. automodule:: cherab.imas.ids.common
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      solve_coronal_equilibrium
+      get_ids_time_slice
+      get_ids_numeric_field
+      parse_ids_path_fragment
+      resolve_ids_path_reference
+      load_ids_path_reference
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: class.rst
+
+      IDSPathReference
+
+
+
+.. currentmodule:: cherab.imas.ids.common
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: module.rst
+   :recursive:
+
+   ggd
+   grid_radial
+   species

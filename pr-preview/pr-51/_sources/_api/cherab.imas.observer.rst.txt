@@ -1,0 +1,24 @@
+cherab.imas.observer
+====================
+
+.. automodule:: cherab.imas.observer
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+
+      load_bolometers
+
+
+
+.. currentmodule:: cherab.imas.observer
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :template: module.rst
+   :recursive:
+
+   bolometer
