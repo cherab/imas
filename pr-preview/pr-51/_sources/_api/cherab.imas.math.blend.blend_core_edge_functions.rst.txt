@@ -1,6 +1,0 @@
-cherab.imas.math.blend.blend\_core\_edge\_functions
-===================================================
-
-.. currentmodule:: cherab.imas.math.blend
-
-.. autofunction:: blend_core_edge_functions

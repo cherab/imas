@@ -1,6 +1,0 @@
-cherab.imas.ggd.base\_mesh.CellSelection
-========================================
-
-.. currentmodule:: cherab.imas.ggd.base_mesh
-
-.. autodata:: CellSelection

@@ -1,6 +1,0 @@
-cherab.imas.observer.bolometer.visualize
-========================================
-
-.. currentmodule:: cherab.imas.observer.bolometer
-
-.. autofunction:: visualize
