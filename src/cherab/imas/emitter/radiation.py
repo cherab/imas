@@ -30,6 +30,7 @@ from raysect.core.math.function.float import (
     Interpolator1DArray,
 )
 from raysect.core.scenegraph._nodebase import _NodeBase
+from raysect.optical.material import VolumeTransform
 from raysect.primitive import Cylinder, Subtract
 
 from cherab.core.math import AxisymmetricMapper
@@ -581,8 +582,9 @@ def load_radiation_emitter(
     else:
         primitive = Cylinder(radius_outer, height, parent=parent)
 
-    primitive.transform = translate(0, 0, zmin)
-    primitive.material = emitter
+    shift = translate(0, 0, zmin)
+    primitive.transform = shift
+    primitive.material = VolumeTransform(emitter, shift.inverse())
     primitive.name = primitive_name or "RadiationEmitter"
 
     return primitive
