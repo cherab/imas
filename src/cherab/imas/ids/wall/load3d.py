@@ -101,7 +101,7 @@ def load_wall_3d(
     # iterate over the grid subsets to get individual wall components and their materials
     for subset in grid.grid_subset:
         subset_name = subset.identifier.name
-        subset_index = subset.identifier.index
+        subset_index = int(subset.identifier.index)
 
         if subset.dimension - 1 != POLYGON_DIMENSION:
             continue
@@ -146,7 +146,7 @@ def _get_materials(material_struct) -> dict[int, list[tuple[str, np.ndarray]]]:
             for name in unique_names:
                 (elements,) = np.where(names == name)
                 material_list.append((name, elements))
-            materials[subset.grid_subset_index] = material_list
+            materials[int(subset.grid_subset_index)] = material_list
 
     return materials
 
