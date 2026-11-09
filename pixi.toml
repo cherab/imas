@@ -33,7 +33,7 @@ llvm-openmp = "*"
 cherab = "1.6.*"
 
 [package.run-dependencies]
-imas-python = "*"
+imas-python = ">=2.3"
 rich = "*"
 pooch = "*"
 typing-extensions = { version = ">=4.5", when = "python <3.12" }
