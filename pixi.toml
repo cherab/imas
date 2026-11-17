@@ -61,8 +61,14 @@ plotly = ">=6.5.2,<7"
 python-kaleido = ">=1.2.0,<2"
 
 [tasks]
-ipython = { cmd = "ipython", description = "🐍 Start an IPython shell" }
-version = { cmd = "python -c 'import cherab.imas; print(cherab.imas.__version__)'", description = "🔢 Print the version" }
+ipython = {
+  cmd = "ipython",
+  description = "🐍 Start an IPython shell",
+}
+version = {
+  cmd = "python -c 'import cherab.imas; print(cherab.imas.__version__)'",
+  description = "🔢 Print the version",
+}
 
 # === Testing feature ===
 [feature.test.dependencies]
@@ -71,7 +77,10 @@ pytest-cov = "*"
 pytest-github-actions-annotate-failures = "*"
 
 [feature.test.tasks]
-test = { cmd = ["pytest", "tests"], description = "🧪 Run the tests" }
+test = {
+  cmd = ["pytest", "tests"],
+  description = "🧪 Run the tests",
+}
 
 # === Docs feature ===
 [feature.docs.dependencies]
