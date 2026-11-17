@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-10-28
+
+### Added
+
+- Add a notebook for rendering radiation emissivity with a 2D pinhole camera
+
+### Fixed
+
+- Preserve radiation emissivity coordinates when translating the emitter primitive along the Z axis by wrapping its material in `VolumeTransform` with the inverse translation
+- Convert wall geometry and material subset identifiers to Python integers so IMAS scalar identifiers can be used as dictionary keys
+
 ## [0.8.0] - 2026-10-16
 
 ### Changed
